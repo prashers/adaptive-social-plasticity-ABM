@@ -53,5 +53,18 @@ order = 1:nrow(q.data.ord)
 q.data.ord = cbind(order, q.data.ord)
 head(q.data.ord)
 
-# I will need to know which phases each row belongs to (ticks 0:100 are the pre-foraging phase, ticks 101:200 are the foraging phase, and ticks 201:300 are the post-foraging phase)
+# I will need to know which phases each row belongs to 
+        # (tick 0 is the state of the model when reset button is pressed, 
+        # ticks 1:100 are the pre-foraging phase, ticks 101:200 are the foraging phase, 
+        # and ticks 201:300 are the post-foraging phase)
+q.data.ord$phase = NA
+q.data.ord[q.data.ord$ticks == 0,]$phase = "start"
+q.data.ord[q.data.ord$ticks %in% 1:100,]$phase = "pre-forage"
+q.data.ord[q.data.ord$ticks %in% 101:200,]$phase = "forage"
+q.data.ord[q.data.ord$ticks %in% 201:300,]$phase = "post-forage"
 
+# divide dataframe into three -- one for each phase
+q.data.start.pre = q.data.ord[q.data.ord$phase %in% c("start", "pre-forage"),]
+q.data.pre = q.data.ord[q.data.ord$phase == "pre-forage",]
+q.data.forage = q.data.ord[q.data.ord$phase == "forage",]
+q.data.post = q.data.ord[q.data.ord$phase == "post-forage",]
