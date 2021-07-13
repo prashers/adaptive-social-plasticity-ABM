@@ -63,6 +63,38 @@ q.data.ord[q.data.ord$ticks %in% 1:100,]$phase = "pre-forage"
 q.data.ord[q.data.ord$ticks %in% 101:200,]$phase = "forage"
 q.data.ord[q.data.ord$ticks %in% 201:300,]$phase = "post-forage"
 
+
+
+### need to be able to count the number of times an agent was in proximity to, or being followed by, each other agent
+### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns
+
+# separate coordinates into different columns (two columns for each agent)
+library(stringr)
+split.coordinates = str_split_fixed(q.data.ord$coor.list, "] ", 6) # split the data in the coor.list column at each "] " into 6 separate columns
+head(split.coordinates)
+nrow(split.coordinates)
+split.coordinates[,1:6] = gsub("[[]", "", split.coordinates[,1:6]) # remove the square brackets from the split data
+split.coordinates[,1:6] = gsub("[]]", "", split.coordinates[,1:6])
+head(split.coordinates)
+
+
+split.cor = data.frame(1:37625) # need same number of rows as nrow(split.coordinates)
+for(i in 1:ncol(split.coordinates)){ # loop to separate each foragers coordinates into two columns
+        x = str_split_fixed(split.coordinates[,i], " ", 2)
+        split.cor = cbind(split.cor, x)
+}
+head(split.cor)
+names(split.cor) = c("X", "xcorA", "ycorA", "xcorB", "ycorB", "xcorC", "ycorC", "xcorD", "ycorD", "xcorE", "ycorE", "xcorF", "ycorF")
+
+#####
+q.data.split = cbind(q.data.ord[, -9], split.cor[,-1]) #add the 12 new columns into the dataframe with coordinate.list column removed
+head(q.data.split)
+
+
+
+
+
+
 # divide dataframe into three -- one for each phase
 q.data.start.pre = q.data.ord[q.data.ord$phase %in% c("start", "pre-forage"),]
 q.data.pre = q.data.ord[q.data.ord$phase == "pre-forage",]
