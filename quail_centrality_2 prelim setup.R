@@ -68,7 +68,7 @@ q.data.ord[q.data.ord$ticks %in% 201:300,]$phase = "post-forage"
 ### need to be able to count the number of times an agent was in proximity to, or being followed by, each other agent
 ### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns
 
-# separate coordinates into different columns (two columns for each agent)
+# separate coordinates into different columns (two columns for each agent):
 library(stringr)
 split.coordinates = str_split_fixed(q.data.ord$coor.list, "] ", 6) # split the data in the coor.list column at each "] " into 6 separate columns
 head(split.coordinates)
@@ -86,12 +86,86 @@ for(i in 1:ncol(split.coordinates)){ # loop to separate each foragers coordinate
 head(split.cor)
 names(split.cor) = c("X", "xcorA", "ycorA", "xcorB", "ycorB", "xcorC", "ycorC", "xcorD", "ycorD", "xcorE", "ycorE", "xcorF", "ycorF")
 
-#####
-q.data.split = cbind(q.data.ord[, -9], split.cor[,-1]) #add the 12 new columns into the dataframe with coordinate.list column removed
+split.cor = split.cor[,-1]
+
+### split.cor is ready to be added to the big dataframe
+
+
+#separate proxim.IDs into different columns
+# first, a separate column for each agent's list, 
+# then further split into separate columns per agent in proximity proxA1:proxA5 (up to 5 agents in proximity)
+split.proximIDs = str_split_fixed(q.data.ord$proxim.IDs, "] ", 6) # split the data in the proxim.IDs column at each "] " into 6 separate columns
+head(split.proximIDs)
+split.proximIDs[,1:6] = gsub("[[]", "", split.proximIDs[,1:6]) # remove the square brackets from the split data
+split.proximIDs[,1:6] = gsub("[]]", "", split.proximIDs[,1:6])
+head(split.proximIDs)
+
+nrow(split.proximIDs)
+
+split.prox = data.frame(1:37625) # need same number of rows as nrow(split.proximIDs)
+for(i in 1:ncol(split.proximIDs)){ # loop to separate each foragers coordinates into two columns
+        x = str_split_fixed(split.proximIDs[,i], " ", 5)
+        split.prox = cbind(split.prox, x)
+}
+head(split.prox)
+tail(split.prox)
+names(split.prox) = c("X", "proxA1", "proxA2", "proxA3", "proxA4", "proxA5", 
+                      "proxB1", "proxB2", "proxB3", "proxB4", "proxB5",
+                      "proxC1", "proxC2", "proxC3", "proxC4", "proxC5",
+                      "proxD1", "proxD2", "proxD3", "proxD4", "proxD5",
+                      "proxE1", "proxE2", "proxE3", "proxE4", "proxE5",
+                      "proxF1", "proxF2", "proxF3", "proxF4", "proxF5")
+unique(split.prox$proxB3) # split.prox has some blanks if there were not 5 values for proximIDs in an agent's split.proximIDs column 
+split.prox[split.prox==""] = NA #replace all blank cells with NA
+
+split.prox = split.prox[,-1] #remove first column
+
+View(data.frame(q.data.ord$proxim.IDs, split.prox))# compare split.prox to proxim.IDs column in q.data.ord
+
+### split.prox is ready to be added to the big data frame
+
+
+
+#separate foll.IDs into different columns
+# first, a separate column for each agent's list, 
+# then further split into separate columns per agent following follA1:follA5 (up to 5 agents following agent A)
+split.follIDs = str_split_fixed(q.data.ord$foll.IDs, "] ", 6) # split the data in the proxim.IDs column at each "] " into 6 separate columns
+head(split.follIDs)
+split.follIDs[,1:6] = gsub("[[]", "", split.follIDs[,1:6]) # remove the square brackets from the split data
+split.follIDs[,1:6] = gsub("[]]", "", split.follIDs[,1:6])
+head(split.follIDs)
+
+nrow(split.proximIDs)
+
+
+split.foll = data.frame(1:37625) # need same number of rows as nrow(split.proximIDs)
+for(i in 1:ncol(split.follIDs)){ # loop to separate each foragers coordinates into two columns
+        x = str_split_fixed(split.follIDs[,i], " ", 5)
+        split.foll = cbind(split.foll, x)
+}
+head(split.foll)
+tail(split.foll)
+names(split.foll) = c("X", "follA1", "follA2", "follA3", "follA4", "follA5", 
+                      "follB1", "follB2", "follB3", "follB4", "follB5",
+                      "follC1", "follC2", "follC3", "follC4", "follC5",
+                      "follD1", "follD2", "follD3", "follD4", "follD5",
+                      "follE1", "follE2", "follE3", "follE4", "follE5",
+                      "follF1", "follF2", "follF3", "follF4", "follF5")
+
+unique(split.foll$follB2) # split.foll has some blanks if there were not 5 values for follIDs in an agent's split.follIDs column 
+split.foll[split.foll==""] = NA #replace all blank cells with NA
+
+split.foll = split.foll[,-1] #remove first column
+
+View(data.frame(q.data.ord$foll.IDs, split.foll))# compare split.foll to foll.IDs column in q.data.ord
+
+
+##### add all separated columns to the big dataframe at one time
+q.data.split = cbind(q.data.ord[, -14], split.cor) #add the 12 new columns into the dataframe with coor.list column removed
 head(q.data.split)
 
-
-
+#example line that adds a column to a dataframe at the specified position
+#q.data.split = tibble::add_column(q.data.split, split.centrality, .after = "centrality.list")
 
 
 
