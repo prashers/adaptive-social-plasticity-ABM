@@ -159,18 +159,24 @@ split.foll = split.foll[,-1] #remove first column
 
 View(data.frame(q.data.ord$foll.IDs, split.foll))# compare split.foll to foll.IDs column in q.data.ord
 
+### split.foll is ready to be added to the big data frame
 
-##### add all separated columns to the big dataframe at one time
-q.data.split = cbind(q.data.ord[, -14], split.cor) #add the 12 new columns into the dataframe with coor.list column removed
+
+
+
+##### add all separated columns to the big dataframe 
+q.data.split = cbind(q.data.ord[, -c(7,9,13,14)], split.prox, split.foll, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
 head(q.data.split)
-
-#example line that adds a column to a dataframe at the specified position
-#q.data.split = tibble::add_column(q.data.split, split.centrality, .after = "centrality.list")
-
+tail(q.data.split)
 
 
 # divide dataframe into three -- one for each phase
-q.data.start.pre = q.data.ord[q.data.ord$phase %in% c("start", "pre-forage"),]
-q.data.pre = q.data.ord[q.data.ord$phase == "pre-forage",]
-q.data.forage = q.data.ord[q.data.ord$phase == "forage",]
-q.data.post = q.data.ord[q.data.ord$phase == "post-forage",]
+q.data.start.pre = q.data.split[q.data.split$phase %in% c("start", "pre-forage"),]
+q.data.pre = q.data.split[q.data.split$phase == "pre-forage",]
+q.data.forage = q.data.split[q.data.split$phase == "forage",]
+q.data.post = q.data.split[q.data.split$phase == "post-forage",]
+
+
+# NOW FIGURE OUT HOW TO MAKE AN ADJACENCY MATRIX FOR PROXIMITY AND FOLLOWING
+# MATRIX WILL CONTAIN COUNTS OF HOW MANY TIME STEPS EACH DYAD WAS IN PROXIMITY FOR OR IN HOW MANY TIME STEPS EACH AGENT WAS FOLLOWED BY EACH OTHER AGENT
+# WILL HAVE A MATRIX FOR EACH PHASE WITHIN EACH MODEL RUN
