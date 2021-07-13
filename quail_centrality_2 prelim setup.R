@@ -1,13 +1,14 @@
 ### FORMAT QUAIL_CENTRALITY_2 MODEL DATA ###
 #This script is for the data from one run of each parameter combo
 
-q.data = read.csv("quail_centrality_2 prelim analysis-table.csv", skip = 6, header = T) 
-head(q.data[,1:3])
-tail(q.data)
-nrow(q.data)
+q.data.full = read.csv("quail_centrality_2 prelim analysis-table.csv", skip = 6, header = T) 
+head(q.data.full)
+tail(q.data.full)
+nrow(q.data.full)
+min(q.data.full$ticks)
+max(q.data.full$ticks)
 
-
-names(q.data)
+names(q.data.full)
 #Column info:
 # "X.run.number." is the model run ID - in this case, there is a unique number for each parameter combination 
 # "memory" is one of the three parameters that can vary between run IDs. 
@@ -39,8 +40,18 @@ names(q.data)
 # 'X.step.' column is the same as 'ticks' column
 
 # remove unnecessary columns:
+q.data = q.data.full[,-(5:12)] #remove columns 5 through 12
 
 # rename columns:
-names(q.data) = c("run.number", "memory", "attention", "preference", "grouping", "prior.affils", "unfam.prod", "cluster", "eat.delay", "alt.food", "reset.food", "step", "ticks", "affil.IDs", "prox.cent.list", "proxim.IDs", "memory.succ.foragers", "fss.list", "foll.cent.list", "foll.IDs", "coor.list")
+names(q.data)
+names(q.data) = c("run.num", "memory", "attention", "preference", "ticks", "affil.IDs", "prox.centrality.list", "proxim.IDs", "memory.succ.foragers", "fss.list", "foll.centrality.list", "foll.IDs", "coor.list")
 head(q.data)
 tail(q.data)
+
+q.data.ord = q.data[order(q.data$run.num, q.data$ticks),] #reorder data by run number and time step within run number
+order = 1:nrow(q.data.ord)
+q.data.ord = cbind(order, q.data.ord)
+head(q.data.ord)
+
+# I will need to know which phases each row belongs to (ticks 0:100 are the pre-foraging phase, ticks 101:200 are the foraging phase, and ticks 201:300 are the post-foraging phase)
+
