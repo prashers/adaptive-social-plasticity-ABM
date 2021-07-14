@@ -226,13 +226,24 @@ prox.count.for = q.data.forage %>%
 
 nrow(q.data.forage)*30 == nrow(prox.count.for)#if TRUE prox.count.for has the correct number of rows
 
-prox.count.pre = tibble::add_column(prox.count.pre, prox.key = "NA", .after = "prox")
+prox.count.for = tibble::add_column(prox.count.for, prox.key = "NA", .after = "prox")
 
-foll.count
+
 
 # use igraph or reshape2 to convert edge list to matrix
-# use ggplot for making heat maps #could also check heatmap2
 
-# want to see if mem, att, pref have an effect on producer's centrality using network metrics from pre-forage phase as a reference point/baseline
-# calculate differences between producer's network metrics between phases for each combo of mem/att/pref and 
-# make a heat map for mem x att (use only differences for preference = 0, or average over all preference values IF there are little differences between attxmem heatmaps across preference values), mem x pref, att x pref where red shows the biggest differences
+# Function to convert to matrix format using matrix.please function
+matrix.please <- function(x) {
+        m<-as.matrix(x[,-1])
+        rownames(m)<-x[,1]
+        m
+}
+
+###proximity network: pre-foraging phase###
+prox.summ.pre
+prox.pre.matrix = prox.summ.pre %>% reshape2::dcast(prox.key ~ prox.ID) 
+prox.pre.matrix = prox.pre.matrix[,1:7]
+prox.pre.matrix = matrix.please(prox.pre.matrix)
+prox.pre.matrix
+
+
