@@ -117,6 +117,7 @@ names(split.prox) = c("X", "proxA1", "proxA2", "proxA3", "proxA4", "proxA5",
                       "proxF1", "proxF2", "proxF3", "proxF4", "proxF5")
 unique(split.prox$proxB3) # split.prox has some blanks if there were not 5 values for proximIDs in an agent's split.proximIDs column 
 split.prox[split.prox==""] = NA #replace all blank cells with NA
+split.prox[split.prox=="NA"] = NA #replace all characters "NA" with missing values
 
 split.prox = split.prox[,-1] #remove first column
 
@@ -154,6 +155,7 @@ names(split.foll) = c("X", "follA1", "follA2", "follA3", "follA4", "follA5",
 
 unique(split.foll$follB2) # split.foll has some blanks if there were not 5 values for follIDs in an agent's split.follIDs column 
 split.foll[split.foll==""] = NA #replace all blank cells with NA
+split.foll[split.foll=="NA"] = NA #replace all characters "NA" with missing values
 
 split.foll = split.foll[,-1] #remove first column
 
@@ -169,6 +171,11 @@ q.data.split = cbind(q.data.ord[, -c(7,9,13,14)], split.prox, split.foll, split.
 head(q.data.split)
 tail(q.data.split)
 
+#need to change a couple column names to make it easier to use the starts_with argument later
+names(q.data.split)
+colnames(q.data.split)[7] = "pr.centrality.list" #rename prox.centrality.list column
+colnames(q.data.split)[10] = "fo.centrality.list" #rename foll.centrality.list column
+
 
 # divide dataframe into three -- one for each phase
 q.data.start.pre = q.data.split[q.data.split$phase %in% c("start", "pre-forage"),]
@@ -178,5 +185,54 @@ q.data.post = q.data.split[q.data.split$phase == "post-forage",]
 
 
 # NOW FIGURE OUT HOW TO MAKE AN ADJACENCY MATRIX FOR PROXIMITY AND FOLLOWING
-# MATRIX WILL CONTAIN COUNTS OF HOW MANY TIME STEPS EACH DYAD WAS IN PROXIMITY FOR OR IN HOW MANY TIME STEPS EACH AGENT WAS FOLLOWED BY EACH OTHER AGENT
+# MATRIX WILL CONTAIN COUNTS OF HOW MANY TIME STEPS EACH DYAD WAS IN PROXIMITY (FOR PROXIMITY NETWORK) OR IN HOW MANY TIME STEPS EACH AGENT WAS FOLLOWED BY EACH OTHER AGENT (DIRECTED FOLLOWING NETWORK)
 # WILL HAVE A MATRIX FOR EACH PHASE WITHIN EACH MODEL RUN
+
+library(tidyr)
+library(dplyr)
+
+prox.count.pre = q.data.pre %>% 
+        pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+        names_to = "prox", values_to = "prox.ID") 
+#c(proxA1, proxA2, proxA3, proxA4, proxA5, 
+#  proxB1, proxB2, proxB3, proxB4, proxB5,
+#  proxC1, proxC2, proxC3, proxC4, proxC5,
+#  proxD1, proxD2, proxD3, proxD4, proxD5,
+#  proxE1, proxE2, proxE3, proxE4, proxE5,
+#  proxF1, proxF2, proxF3, proxF4, proxF5)
+
+nrow(q.data.pre)*30 == nrow(prox.count.pre)#prox.count has the correct number of rows
+
+#add column with values you can group by
+prox.count.pre = tibble::add_column(prox.count.pre, prox.key = "NA", .after = "prox")
+prox.count.pre[with(prox.count.pre, grepl("proxA", prox)),]$prox.key = "A"
+prox.count.pre[with(prox.count.pre, grepl("proxB", prox)),]$prox.key = "B"
+prox.count.pre[with(prox.count.pre, grepl("proxC", prox)),]$prox.key = "C"
+prox.count.pre[with(prox.count.pre, grepl("proxD", prox)),]$prox.key = "D"
+prox.count.pre[with(prox.count.pre, grepl("proxE", prox)),]$prox.key = "E"
+prox.count.pre[with(prox.count.pre, grepl("proxF", prox)),]$prox.key = "F"
+unique(prox.count.pre$prox.key)# check that all NAs were replaced
+
+# use dplyr functions to get counts after grouping by prox.key and proxIDs
+prox.summ.pre = prox.count.pre %>% group_by(prox.key, prox.ID) %>% summarize(n = n()) 
+View(prox.summ.pre)
+### prox.summ.pre contains the counts of how many time steps each agent was in proximity to each other agent
+### SINCE I USED q.data.pre, THIS DOES NOT INCLUDE THE STATE OF THE MODEL AT TICK ZERO
+
+
+prox.count.for = q.data.forage %>% 
+        pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+                     names_to = "prox", values_to = "prox.ID") 
+
+nrow(q.data.forage)*30 == nrow(prox.count.for)#if TRUE prox.count.for has the correct number of rows
+
+prox.count.pre = tibble::add_column(prox.count.pre, prox.key = "NA", .after = "prox")
+
+foll.count
+
+# use igraph or reshape2 to convert edge list to matrix
+# use ggplot for making heat maps #could also check heatmap2
+
+# want to see if mem, att, pref have an effect on producer's centrality using network metrics from pre-forage phase as a reference point/baseline
+# calculate differences between producer's network metrics between phases for each combo of mem/att/pref and 
+# make a heat map for mem x att (use only differences for preference = 0, or average over all preference values IF there are little differences between attxmem heatmaps across preference values), mem x pref, att x pref where red shows the biggest differences
