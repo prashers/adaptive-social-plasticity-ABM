@@ -191,6 +191,7 @@ q.data.post = q.data.split[q.data.split$phase == "post-forage",]
 library(tidyr)
 library(dplyr)
 
+###proximity network: pre-foraging phase###
 prox.count.pre = q.data.pre %>% 
         pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
         names_to = "prox", values_to = "prox.ID") 
@@ -220,6 +221,7 @@ View(prox.summ.pre)
 ### SINCE I USED q.data.pre, THIS DOES NOT INCLUDE THE STATE OF THE MODEL AT TICK ZERO
 
 
+###proximity network: foraging phase###
 prox.count.for = q.data.forage %>% 
         pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
                      names_to = "prox", values_to = "prox.ID") 
@@ -227,10 +229,42 @@ prox.count.for = q.data.forage %>%
 nrow(q.data.forage)*30 == nrow(prox.count.for)#if TRUE prox.count.for has the correct number of rows
 
 prox.count.for = tibble::add_column(prox.count.for, prox.key = "NA", .after = "prox")
+prox.count.for[with(prox.count.for, grepl("proxA", prox)),]$prox.key = "A"
+prox.count.for[with(prox.count.for, grepl("proxB", prox)),]$prox.key = "B"
+prox.count.for[with(prox.count.for, grepl("proxC", prox)),]$prox.key = "C"
+prox.count.for[with(prox.count.for, grepl("proxD", prox)),]$prox.key = "D"
+prox.count.for[with(prox.count.for, grepl("proxE", prox)),]$prox.key = "E"
+prox.count.for[with(prox.count.for, grepl("proxF", prox)),]$prox.key = "F"
+unique(prox.count.for$prox.key)# check that all NAs were replaced
+
+# use dplyr functions to get counts after grouping by prox.key and proxIDs
+prox.summ.for = prox.count.for %>% group_by(prox.key, prox.ID) %>% summarize(n = n()) 
+View(prox.summ.for)
 
 
 
-# use igraph or reshape2 to convert edge list to matrix
+###proximity network: post-foraging phase###
+prox.count.post = q.data.post %>% 
+        pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+                     names_to = "prox", values_to = "prox.ID") 
+
+nrow(q.data.post)*30 == nrow(prox.count.post)#if TRUE prox.count.for has the correct number of rows
+
+prox.count.post = tibble::add_column(prox.count.post, prox.key = "NA", .after = "prox")
+prox.count.post[with(prox.count.post, grepl("proxA", prox)),]$prox.key = "A"
+prox.count.post[with(prox.count.post, grepl("proxB", prox)),]$prox.key = "B"
+prox.count.post[with(prox.count.post, grepl("proxC", prox)),]$prox.key = "C"
+prox.count.post[with(prox.count.post, grepl("proxD", prox)),]$prox.key = "D"
+prox.count.post[with(prox.count.post, grepl("proxE", prox)),]$prox.key = "E"
+prox.count.post[with(prox.count.post, grepl("proxF", prox)),]$prox.key = "F"
+unique(prox.count.post$prox.key)# check that all NAs were replaced
+
+# use dplyr functions to get counts after grouping by prox.key and proxIDs
+prox.summ.post = prox.count.post %>% group_by(prox.key, prox.ID) %>% summarize(n = n()) 
+View(prox.summ.post)
+
+
+##### use dcast from reshape2 to convert edge list to matrix #####
 
 # Function to convert to matrix format using matrix.please function
 matrix.please <- function(x) {
@@ -242,8 +276,22 @@ matrix.please <- function(x) {
 ###proximity network: pre-foraging phase###
 prox.summ.pre
 prox.pre.matrix = prox.summ.pre %>% reshape2::dcast(prox.key ~ prox.ID) 
-prox.pre.matrix = prox.pre.matrix[,1:7]
+prox.pre.matrix = prox.pre.matrix[,1:7] #remove counts of NAs
 prox.pre.matrix = matrix.please(prox.pre.matrix)
 prox.pre.matrix
 
 
+###proximity network: foraging phase###
+prox.summ.for
+prox.for.matrix = prox.summ.for %>% reshape2::dcast(prox.key ~ prox.ID) 
+prox.for.matrix = prox.for.matrix[,1:7] #remove counts of NAs 
+prox.for.matrix = matrix.please(prox.for.matrix)
+prox.for.matrix
+
+
+###proximity network: post-foraging phase###
+prox.summ.post
+prox.post.matrix = prox.summ.post %>% reshape2::dcast(prox.key ~ prox.ID) 
+prox.post.matrix = prox.post.matrix[,1:7] #remove counts of NAs 
+prox.post.matrix = matrix.please(prox.post.matrix)
+prox.post.matrix
