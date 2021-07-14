@@ -195,12 +195,7 @@ library(dplyr)
 prox.count.pre = q.data.pre %>% 
         pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
         names_to = "prox", values_to = "prox.ID") 
-#c(proxA1, proxA2, proxA3, proxA4, proxA5, 
-#  proxB1, proxB2, proxB3, proxB4, proxB5,
-#  proxC1, proxC2, proxC3, proxC4, proxC5,
-#  proxD1, proxD2, proxD3, proxD4, proxD5,
-#  proxE1, proxE2, proxE3, proxE4, proxE5,
-#  proxF1, proxF2, proxF3, proxF4, proxF5)
+
 
 nrow(q.data.pre)*30 == nrow(prox.count.pre)#prox.count has the correct number of rows
 
@@ -283,7 +278,11 @@ View(prox.summ.post)
 
 ##### NOW EDGE LISTS CAN BE USED IN THE "quail_centrality_2 prelim analysis (1 run per combo)" R SCRIPT
 
+########################
+########################
+
 ##### EVERYTHING BELOW IS NOT NECESSARY (IT WAS USEFUL FOR GETTING AN OVERVIEW OF COUNTS)
+
 
 ##### use dcast from reshape2 to convert edge list to matrix #####
 # Function to convert to matrix format using matrix.please function
