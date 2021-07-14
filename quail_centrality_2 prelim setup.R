@@ -215,7 +215,12 @@ prox.count.pre[with(prox.count.pre, grepl("proxF", prox)),]$prox.key = "F"
 unique(prox.count.pre$prox.key)# check that all NAs were replaced
 
 # use dplyr functions to get counts after grouping by prox.key and proxIDs
-prox.summ.pre = prox.count.pre %>% group_by(prox.key, prox.ID) %>% summarize(n = n()) 
+prox.summ.pre = prox.count.pre %>% 
+        group_by(run.num, memory, attention, preference, prox.key, prox.ID) %>% 
+        summarize(n = n()) 
+prox.summ.pre = prox.summ.pre[complete.cases(prox.summ.pre$prox.ID),]
+unique(prox.summ.pre$prox.ID)
+
 View(prox.summ.pre)
 ### prox.summ.pre contains the counts of how many time steps each agent was in proximity to each other agent
 ### SINCE I USED q.data.pre, THIS DOES NOT INCLUDE THE STATE OF THE MODEL AT TICK ZERO
@@ -238,7 +243,13 @@ prox.count.for[with(prox.count.for, grepl("proxF", prox)),]$prox.key = "F"
 unique(prox.count.for$prox.key)# check that all NAs were replaced
 
 # use dplyr functions to get counts after grouping by prox.key and proxIDs
-prox.summ.for = prox.count.for %>% group_by(prox.key, prox.ID) %>% summarize(n = n()) 
+prox.summ.for = prox.count.for %>% 
+        group_by(run.num, memory, attention, preference, prox.key, prox.ID) %>% 
+        summarize(n = n()) 
+
+prox.summ.for = prox.summ.for[complete.cases(prox.summ.for$prox.ID),]
+unique(prox.summ.for$prox.ID)
+
 View(prox.summ.for)
 
 
@@ -260,38 +271,45 @@ prox.count.post[with(prox.count.post, grepl("proxF", prox)),]$prox.key = "F"
 unique(prox.count.post$prox.key)# check that all NAs were replaced
 
 # use dplyr functions to get counts after grouping by prox.key and proxIDs
-prox.summ.post = prox.count.post %>% group_by(prox.key, prox.ID) %>% summarize(n = n()) 
+prox.summ.post = prox.count.post %>% 
+        group_by(run.num, memory, attention, preference, prox.key, prox.ID) %>% 
+        summarize(n = n()) 
+
+prox.summ.post = prox.summ.post[complete.cases(prox.summ.post$prox.ID),]
+unique(prox.summ.post$prox.ID)
+
 View(prox.summ.post)
 
 
-##### use dcast from reshape2 to convert edge list to matrix #####
+##### NOW EDGE LISTS CAN BE USED IN THE "quail_centrality_2 prelim analysis (1 run per combo)" R SCRIPT
 
+##### EVERYTHING BELOW IS NOT NECESSARY (IT WAS USEFUL FOR GETTING AN OVERVIEW OF COUNTS)
+
+##### use dcast from reshape2 to convert edge list to matrix #####
 # Function to convert to matrix format using matrix.please function
-matrix.please <- function(x) {
-        m<-as.matrix(x[,-1])
-        rownames(m)<-x[,1]
-        m
-}
+#matrix.please <- function(x) {
+#        m<-as.matrix(x[,-1])
+#        rownames(m)<-x[,1]
+#        m
+#}
 
 ###proximity network: pre-foraging phase###
-prox.summ.pre
-prox.pre.matrix = prox.summ.pre %>% reshape2::dcast(prox.key ~ prox.ID) 
-prox.pre.matrix = prox.pre.matrix[,1:7] #remove counts of NAs
+prox.summ.pre.sub = prox.summ.pre[prox.summ.pre$run.num==5,]
+
+prox.pre.matrix = prox.summ.pre.sub %>% reshape2::dcast(prox.key ~ prox.ID) 
 prox.pre.matrix = matrix.please(prox.pre.matrix)
 prox.pre.matrix
 
 
 ###proximity network: foraging phase###
-prox.summ.for
-prox.for.matrix = prox.summ.for %>% reshape2::dcast(prox.key ~ prox.ID) 
-prox.for.matrix = prox.for.matrix[,1:7] #remove counts of NAs 
-prox.for.matrix = matrix.please(prox.for.matrix)
-prox.for.matrix
+#prox.summ.for.sub = prox.summ.for[prox.summ.for$run.num==1,]
+#prox.for.matrix = prox.summ.for.sub %>% reshape2::dcast(prox.key ~ prox.ID) 
+#prox.for.matrix = matrix.please(prox.for.matrix)
+#prox.for.matrix
 
 
 ###proximity network: post-foraging phase###
-prox.summ.post
-prox.post.matrix = prox.summ.post %>% reshape2::dcast(prox.key ~ prox.ID) 
-prox.post.matrix = prox.post.matrix[,1:7] #remove counts of NAs 
-prox.post.matrix = matrix.please(prox.post.matrix)
-prox.post.matrix
+#prox.summ.post.sub = prox.summ.post[prox.summ.post$run.num==1,]
+#prox.post.matrix = prox.summ.post.sub %>% reshape2::dcast(prox.key ~ prox.ID) 
+#prox.post.matrix = matrix.please(prox.post.matrix)
+#prox.post.matrix
