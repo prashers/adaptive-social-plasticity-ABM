@@ -20,14 +20,23 @@ prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == 5,]$prox.ID = "F"
 prox.metrics.pre = data.frame(run.num = seq(1:125), A.deg=NA, A.str= NA)
 for (i in unique(prox.summ.pre$run.num)) {
         current.edge.list = prox.summ.pre.letters[prox.summ.pre.letters$run.num==i, 5:7] #subset of prox.summ.pre giving the edge list for the current run.num
-        eg = igraph::graph_from_data_frame(current.edge.list, directed = FALSE)
+#        eg = igraph::graph_from_data_frame(current.edge.list, directed = FALSE) # this way was doubling the degrees
+        
+        current.matrix = current.edge.list %>% reshape2::dcast(prox.key ~ prox.ID) 
+        current.matrix = matrix.please(current.matrix)
+        current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=NA)
+        eg = igraph::graph_from_adjacency_matrix(current.matrix, mode="upper", weighted = TRUE, diag = FALSE)
+        #igraph::E(eg)$weight #weights exist in the igraph object
+        
         
         current.degree = igraph::degree(eg)
-        current.strength = igraph::strength(eg, weights=current.edge.list$n) #this is returning same values as degree...
+        current.strength = igraph::strength(eg) #this is returning same values as degree...
         
         current.metrics = cbind(current.degree,current.strength)
         prox.metrics.pre[prox.metrics.pre$run.num==i, 2:3] = current.metrics[1,] #save producer metrics in external data.frame
 }
+prox.metrics.pre #check
+
 
 uniq.q.data.pre = unique(q.data.pre[,2:5])
 pre.prox = merge(prox.metrics.pre, uniq.q.data.pre, by = "run.num") #adds mem, att, pref values to data frame with network metrics
@@ -47,17 +56,29 @@ unique(prox.summ.for.letters$prox.ID) #check if the loop worked
 prox.metrics.for = data.frame(run.num = seq(1:125), A.deg=NA, A.str= NA)
 for (i in unique(prox.summ.for$run.num)) {
         current.edge.list = prox.summ.for.letters[prox.summ.for.letters$run.num==i, 5:7] #subset of prox.summ.for giving the edge list for the current run.num
-        eg = igraph::graph_from_data_frame(current.edge.list, directed = FALSE)
+#        eg = igraph::graph_from_data_frame(current.edge.list, directed = FALSE) # this way was doubling the degrees
+        
+        current.matrix = current.edge.list %>% reshape2::dcast(prox.key ~ prox.ID) 
+        current.matrix = matrix.please(current.matrix)
+        current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=NA)
+        eg = igraph::graph_from_adjacency_matrix(current.matrix, mode="upper", weighted = TRUE, diag = FALSE)
+       #igraph::E(eg)$weight #weights exist in the igraph object
         
         current.degree = igraph::degree(eg)
-        current.strength = igraph::strength(eg, weights=current.edge.list$n) #this is returning same values as degree...
+        current.strength = igraph::strength(eg) 
         
         current.metrics = cbind(current.degree,current.strength)
         prox.metrics.for[prox.metrics.for$run.num==i, 2:3] = current.metrics[1,] #save producer metrics in external data.frame
 }
+prox.metrics.for #check
 
-uniq.q.data.for = unique(q.data.for[,2:5])
+uniq.q.data.for = unique(q.data.forage[,2:5])
 for.prox = merge(prox.metrics.for, uniq.q.data.for, by = "run.num") #adds mem, att, pref values to data frame with network metrics
+
+
+
+###proximity network: post-foraging phase###
+
 
 
 
