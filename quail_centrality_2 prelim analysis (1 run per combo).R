@@ -39,8 +39,8 @@ for (i in unique(prox.summ.pre$run.num)) {
 prox.metrics.pre #check #Max degree should be 5, max strength should be 500 because each individual can be in proximity with each of the other 5 agents for all 100 time steps in each phase (it's ok if these maximums are not reached though)
 
 
-uniq.q.data.pre = unique(q.data.pre[,2:5])
-pre.prox = merge(prox.metrics.pre, uniq.q.data.pre, by = "run.num") #adds mem, att, pref values to data frame with network metrics
+#uniq.q.data.pre = unique(q.data.pre[,2:5])
+#pre.prox = merge(prox.metrics.pre, uniq.q.data.pre, by = "run.num") #adds mem, att, pref values to data frame with network metrics
 
 
 
@@ -74,8 +74,8 @@ for (i in unique(prox.summ.for$run.num)) {
 }
 prox.metrics.for #check
 
-uniq.q.data.for = unique(q.data.forage[,2:5])
-for.prox = merge(prox.metrics.for, uniq.q.data.for, by = "run.num") #adds mem, att, pref values to data frame with network metrics
+#uniq.q.data.for = unique(q.data.forage[,2:5])
+#for.prox = merge(prox.metrics.for, uniq.q.data.for, by = "run.num") #adds mem, att, pref values to data frame with network metrics
 
 
 
@@ -109,14 +109,68 @@ for (i in unique(prox.summ.post$run.num)) {
 }
 prox.metrics.post #check
 
-uniq.q.data.post = unique(q.data.post[,2:5])
-post.prox = merge(prox.metrics.post, uniq.q.data.post, by = "run.num") #adds mem, att, pref values to data frame with network metrics
+#uniq.q.data.post = unique(q.data.post[,2:5])
+#post.prox = merge(prox.metrics.post, uniq.q.data.post, by = "run.num") #adds mem, att, pref values to data frame with network metrics
 
 
 
 
-# want to see if mem, att, pref have an effect on producer's centrality using network metrics from pre-forage phase as a reference point/baseline
-# calculate differences between producer's network metrics between phases for each combo of mem/att/pref and 
+# want to see if mem, att, pref have an effect on producer's centrality using network metrics from pre-forage phase as a baseline
+# calculate differences between producer's network metrics between phases for each combo of mem/att/pref:
+
+uniq.q.data.ord = unique(q.data.ord[,2:5])
+
+prox.forXpre = data.frame(run.num = seq(1:nrow(prox.metrics.pre))) # data frame for differences between foraging and pre-foraging phases
+prox.forXpre$forXpre.deg = prox.metrics.for$A.deg - prox.metrics.pre$A.deg # differences in degree
+prox.forXpre$forXpre.str = prox.metrics.for$A.str - prox.metrics.pre$A.str # differences in strength
+
+prox.forXpre = merge(prox.forXpre, uniq.q.data.ord, by = "run.num") #adds mem, att, pref values to data frame with differences in producer network metrics
+
+
+prox.postXpre = data.frame(run.num = seq(1:nrow(prox.metrics.pre))) # data frame for differences between foraging and pre-foraging phases
+prox.postXpre$postXpre.deg = prox.metrics.post$A.deg - prox.metrics.pre$A.deg # differences in degree
+prox.postXpre$postXpre.str = prox.metrics.post$A.str - prox.metrics.pre$A.str # differences in strength
+
+prox.postXpre = merge(prox.postXpre, uniq.q.data.ord, by = "run.num") #adds mem, att, pref values to data frame with differences in producer network metrics
+
+
+
+# use ggplot2 or heatmap2 package for making heat maps
 # make a heat map for mem x att (use only differences for preference = 0, or average over all preference values IF there are little differences between attxmem heatmaps across preference values), mem x pref, att x pref where red shows the biggest differences
 
-# use ggplot for making heat maps #could also check the heatmap2 package
+plot(prox.forXpre$forXpre.str ~ prox.forXpre$run.num)
+plot(prox.postXpre$postXpre.str ~ prox.postXpre$run.num)
+
+library(ggplot2)
+
+plot.deg.list = list()
+plot.str.list = list()
+counter = 1
+for(i in unique(prox.forXpre$preference)) { #loop to plot heat maps of Attention X Memory for each unique value of preference
+        run.data = prox.forXpre[prox.forXpre$preference == i,]
+                
+        Memory = as.factor(run.data$memory) 
+        Attention = as.factor(run.data$attention) 
+        Degree = run.data$forXpre.deg
+        Strength = run.data$forXpre.str
+
+        #Make dataframes containing the necessary info:
+        deg.data = data.frame(Memory, Attention, Degree)
+        str.data = data.frame(Memory, Attention, Strength)
+
+        #Make and temporarily store plots:
+        plot.deg = ggplot(deg.data, aes(Memory, Attention, fill = Degree)) +
+                        geom_tile() +
+                        scale_fill_gradient(low="white", high="red") +
+                        theme_minimal()
+        plot.str = ggplot(str.data, aes(Memory, Attention, fill = Strength)) +
+                        geom_tile() +
+                        scale_fill_gradient(low="white", high="red") +
+                        theme_minimal()
+        
+        #save plots in external lists:
+        plot.deg.list[[counter]] = plot.deg 
+        plot.str.list[[counter]] = plot.str
+        counter = counter + 1
+}
+
