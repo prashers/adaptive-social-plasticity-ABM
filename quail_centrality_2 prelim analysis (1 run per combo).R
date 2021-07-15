@@ -1,5 +1,7 @@
 # make loops in which you subset the big edge lists by run number, 
 # then use igraph to calculate degree and strength and save in an external data frame
+library(tidyr)
+library(dplyr)
 
 prox.summ.pre #edge list for pre-foraging period - contains data from all runs
 prox.summ.for #edge list for foraging period - contains data from all runs
@@ -8,12 +10,11 @@ prox.summ.post #edge list for post-foraging period - contains data from all runs
 
 ###proximity network: pre-foraging phase###
 prox.summ.pre.letters = as.data.frame(ungroup(prox.summ.pre))
-prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == 0,]$prox.ID = "A"
-prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == 1,]$prox.ID = "B"
-prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == 2,]$prox.ID = "C"
-prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == 3,]$prox.ID = "D"
-prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == 4,]$prox.ID = "E"
-prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == 5,]$prox.ID = "F"
+for (i in 0:5) { #Loop to replace numbers in prox.ID column with letters 
+        j = c("A","B","C","D","E","F")
+        prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == i,]$prox.ID = j[i+1]
+}
+unique(prox.summ.pre.letters$prox.ID) #check if the loop worked
 
 
 
@@ -25,17 +26,17 @@ for (i in unique(prox.summ.pre$run.num)) {
         current.matrix = current.edge.list %>% reshape2::dcast(prox.key ~ prox.ID) 
         current.matrix = matrix.please(current.matrix)
         current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=NA)
-        eg = igraph::graph_from_adjacency_matrix(current.matrix, mode="upper", weighted = TRUE, diag = FALSE)
+        current.matrix.half[is.na(current.matrix.half)] = 0
+        eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
         #igraph::E(eg)$weight #weights exist in the igraph object
         
-        
         current.degree = igraph::degree(eg)
-        current.strength = igraph::strength(eg) #this is returning same values as degree...
+        current.strength = igraph::strength(eg) #don't need 'weights' argument if igraph object has edge weights attribute already
         
         current.metrics = cbind(current.degree,current.strength)
         prox.metrics.pre[prox.metrics.pre$run.num==i, 2:3] = current.metrics[1,] #save producer metrics in external data.frame
 }
-prox.metrics.pre #check
+prox.metrics.pre #check #Max degree should be 5, max strength should be 500 because each individual can be in proximity with each of the other 5 agents for all 100 time steps in each phase (it's ok if these maximums are not reached though)
 
 
 uniq.q.data.pre = unique(q.data.pre[,2:5])
@@ -61,7 +62,8 @@ for (i in unique(prox.summ.for$run.num)) {
         current.matrix = current.edge.list %>% reshape2::dcast(prox.key ~ prox.ID) 
         current.matrix = matrix.please(current.matrix)
         current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=NA)
-        eg = igraph::graph_from_adjacency_matrix(current.matrix, mode="upper", weighted = TRUE, diag = FALSE)
+        current.matrix.half[is.na(current.matrix.half)] = 0
+        eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
        #igraph::E(eg)$weight #weights exist in the igraph object
         
         current.degree = igraph::degree(eg)
@@ -78,6 +80,37 @@ for.prox = merge(prox.metrics.for, uniq.q.data.for, by = "run.num") #adds mem, a
 
 
 ###proximity network: post-foraging phase###
+
+prox.summ.post.letters = as.data.frame(ungroup(prox.summ.post))
+for (i in 0:5) { #Loop to replace numbers in prox.ID column with letters 
+        j = c("A","B","C","D","E","F")
+        prox.summ.post.letters[prox.summ.post.letters$prox.ID == i,]$prox.ID = j[i+1]
+}
+unique(prox.summ.post.letters$prox.ID) #check if the loop worked
+
+
+prox.metrics.post = data.frame(run.num = seq(1:125), A.deg=NA, A.str= NA)
+for (i in unique(prox.summ.post$run.num)) {
+        current.edge.list = prox.summ.post.letters[prox.summ.post.letters$run.num==i, 5:7] #subset of prox.summ.for giving the edge list for the current run.num
+        #        eg = igraph::graph_from_data_frame(current.edge.list, directed = FALSE) # this way was doubling the degrees
+        
+        current.matrix = current.edge.list %>% reshape2::dcast(prox.key ~ prox.ID) 
+        current.matrix = matrix.please(current.matrix)
+        current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=NA)
+        current.matrix.half[is.na(current.matrix.half)] = 0
+        eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
+        #igraph::E(eg)$weight #weights exist in the igraph object
+        
+        current.degree = igraph::degree(eg)
+        current.strength = igraph::strength(eg) 
+        
+        current.metrics = cbind(current.degree,current.strength)
+        prox.metrics.post[prox.metrics.post$run.num==i, 2:3] = current.metrics[1,] #save producer metrics in external data.frame
+}
+prox.metrics.post #check
+
+uniq.q.data.post = unique(q.data.post[,2:5])
+post.prox = merge(prox.metrics.post, uniq.q.data.post, by = "run.num") #adds mem, att, pref values to data frame with network metrics
 
 
 
