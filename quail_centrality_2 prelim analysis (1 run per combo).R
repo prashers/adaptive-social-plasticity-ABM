@@ -143,8 +143,8 @@ plot(prox.postXpre$postXpre.str ~ prox.postXpre$run.num)
 
 library(ggplot2)
 
-plot.deg.list = list()
-plot.str.list = list()
+prox.forXpre.deg.plots = list()
+prox.forXpre.str.plots = list()
 counter = 1
 for(i in unique(prox.forXpre$preference)) { #loop to plot heat maps of Attention X Memory for each unique value of preference
         run.data = prox.forXpre[prox.forXpre$preference == i,]
@@ -169,8 +169,46 @@ for(i in unique(prox.forXpre$preference)) { #loop to plot heat maps of Attention
                         theme_minimal()
         
         #save plots in external lists:
-        plot.deg.list[[counter]] = plot.deg 
-        plot.str.list[[counter]] = plot.str
+        prox.forXpre.deg.plots[[counter]] = plot.deg 
+        prox.forXpre.str.plots[[counter]] = plot.str
         counter = counter + 1
 }
 
+
+#par(mfrow=c(2,3))
+#for (i in 1:length(prox.forXpre.deg.plots)) {
+#        prox.forXpre.deg.plots[[i]]
+#}#trying to plot 5 heat maps in one panel
+
+
+
+prox.postXpre.deg.plots = list()
+prox.postXpre.str.plots = list()
+counter = 1
+for(i in unique(prox.postXpre$preference)) { #loop to plot heat maps of Attention X Memory for each unique value of preference
+        run.data = prox.postXpre[prox.postXpre$preference == i,]
+        
+        Memory = as.factor(run.data$memory) 
+        Attention = as.factor(run.data$attention) 
+        Degree = run.data$postXpre.deg
+        Strength = run.data$postXpre.str
+        
+        #Make dataframes containing the necessary info:
+        deg.data = data.frame(Memory, Attention, Degree)
+        str.data = data.frame(Memory, Attention, Strength)
+        
+        #Make and temporarily store plots:
+        plot.deg = ggplot(deg.data, aes(Memory, Attention, fill = Degree)) +
+                geom_tile() +
+                scale_fill_gradient(low="white", high="red") +
+                theme_minimal()
+        plot.str = ggplot(str.data, aes(Memory, Attention, fill = Strength)) +
+                geom_tile() +
+                scale_fill_gradient(low="white", high="red") +
+                theme_minimal()
+        
+        #save plots in external lists:
+        prox.postXpre.deg.plots[[counter]] = plot.deg 
+        prox.postXpre.str.plots[[counter]] = plot.str
+        counter = counter + 1
+}
