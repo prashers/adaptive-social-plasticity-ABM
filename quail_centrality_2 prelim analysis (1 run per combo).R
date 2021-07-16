@@ -173,13 +173,33 @@ for(i in unique(prox.forXpre$preference)) { #loop to plot heat maps of Attention
         prox.forXpre.str.plots[[counter]] = plot.str
         counter = counter + 1
 }
+# loop stores individual plots in the prox.forXpre.deg.plots and prox.forXpre.str.plots lists
 
 
-#par(mfrow=c(2,3))
-#for (i in 1:length(prox.forXpre.deg.plots)) {
-#        prox.forXpre.deg.plots[[i]]
-#}#trying to plot 5 heat maps in one panel
+# I want to see plots at once, so use facet_grid with ggplot:
+prox.forXpre.mem = as.factor(prox.forXpre$memory) 
+prox.forXpre.att = as.factor(prox.forXpre$attention) 
+prox.forXpre.pref = as.factor(prox.forXpre$preference)
+prox.forXpre.deg = prox.forXpre$forXpre.deg
+prox.forXpre.str = prox.forXpre$forXpre.str
+ 
+prox.forXpre.deg.data = data.frame(prox.forXpre.mem, prox.forXpre.att, prox.forXpre.pref, prox.forXpre.deg)
+ggplot(prox.forXpre.deg.data, aes(prox.forXpre.pref, prox.forXpre.att, fill = prox.forXpre.deg)) +
+        ggtitle("Producer's proximity degree between foraging and pre-foraging phases") +
+        labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+        facet_grid(rows=vars(prox.forXpre.mem)) +
+        geom_tile() +
+        scale_fill_gradient(low="white", high="red") +
+        theme_minimal()
 
+prox.forXpre.str.data = data.frame(prox.forXpre.mem, prox.forXpre.att, prox.forXpre.pref, prox.forXpre.str)
+ggplot(prox.forXpre.str.data, aes(prox.forXpre.pref, prox.forXpre.att, fill = prox.forXpre.str)) +
+        ggtitle("Producer's proximity strength between foraging and pre-foraging phases") +
+        labs(y = "Attention", x = "Preference", fill = "Difference in strength") +
+        facet_grid(rows=vars(prox.forXpre.mem)) +
+        geom_tile() +
+        scale_fill_gradient(low="white", high="red") +
+        theme_minimal()
 
 
 prox.postXpre.deg.plots = list()
@@ -211,4 +231,31 @@ for(i in unique(prox.postXpre$preference)) { #loop to plot heat maps of Attentio
         prox.postXpre.deg.plots[[counter]] = plot.deg 
         prox.postXpre.str.plots[[counter]] = plot.str
         counter = counter + 1
-}
+}# loop stores individual plots in the prox.postXpre.deg.plots and prox.postXpre.str.plots lists
+
+
+# I want to see plots at once, so use facet_grid with ggplot:
+prox.postXpre.mem = as.factor(prox.postXpre$memory) 
+prox.postXpre.att = as.factor(prox.postXpre$attention) 
+prox.postXpre.pref = as.factor(prox.postXpre$preference)
+prox.postXpre.deg = prox.postXpre$postXpre.deg
+prox.postXpre.str = prox.postXpre$postXpre.str
+
+prox.postXpre.deg.data = data.frame(prox.postXpre.mem, prox.postXpre.att, prox.postXpre.pref, prox.postXpre.deg)
+ggplot(prox.postXpre.deg.data, aes(prox.postXpre.pref, prox.postXpre.att, fill = prox.postXpre.deg)) +
+        ggtitle("Producer's proximity degree between post- and pre-foraging phases") +
+        labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+        facet_grid(rows=vars(prox.postXpre.mem)) +
+        geom_tile() +
+        scale_fill_gradient(low="white", high="red") +
+        theme_minimal()
+
+
+prox.postXpre.str.data = data.frame(prox.postXpre.mem, prox.postXpre.att, prox.postXpre.pref, prox.postXpre.str)
+ggplot(prox.postXpre.str.data, aes(prox.postXpre.pref, prox.postXpre.att, fill = prox.postXpre.str)) +
+        ggtitle("Producer's proximity strength between post- and pre-foraging phases") +
+        labs(y = "Attention", x = "Preference", fill = "Difference in strength") +
+        facet_grid(rows=vars(prox.postXpre.mem)) +
+        geom_tile() +
+        scale_fill_gradient(low="white", high="red") +
+        theme_minimal()
