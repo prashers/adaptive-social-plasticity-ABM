@@ -49,5 +49,97 @@ q.data.ord = cbind(order, q.data.ord)
 head(q.data.ord)
 
 
-nrow(unique(q.data.ord[,3:5]))
-# I want a column that tells me the combo number (1:125)
+num.combos = nrow(unique(q.data.ord[,3:5])) #number of unique mem, att, pref combinations
+# I want to add a column that tells me the combo number (1:125)
+
+nrow(q.data.ord[q.data.ord$memory == 0 & q.data.ord$attention == 0 & q.data.ord$preference == 0,]) # every combo has 30100 rows
+q.data.ord[q.data.ord$order == 60201, colnames(q.data.ord) %in% c("memory", "attention", "preference")]
+
+combo = vector()
+for (i in 1:num.combos) {
+  x = rep(i, 30100)
+  combo = append(combo, x, after=length(combo))
+}
+
+q.data.ord$combo.num = combo
+
+
+# I will need to know which phases each row belongs to 
+# (tick 0 is the state of the model when reset button is pressed, 
+# ticks 1:100 are the pre-foraging phase, ticks 101:200 are the foraging phase, 
+# and ticks 201:300 are the post-foraging phase)
+q.data.ord$phase = NA
+q.data.ord[q.data.ord$ticks == 0,]$phase = "start"
+q.data.ord[q.data.ord$ticks %in% 1:100,]$phase = "pre-forage"
+q.data.ord[q.data.ord$ticks %in% 101:200,]$phase = "forage"
+q.data.ord[q.data.ord$ticks %in% 201:300,]$phase = "post-forage"
+
+
+
+### need to be able to count the number of times an agent was in proximity to, or being followed by, each other agent
+### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns
+
+# separate coordinates into different columns (two columns for each agent):
+library(stringr)
+timestamp()
+split.coordinates = str_split_fixed(q.data.ord$coor.list, "] ", 6) # split the data in the coor.list column at each "] " into 6 separate columns
+timestamp()
+head(split.coordinates)
+nrow(split.coordinates)
+split.coordinates[,1:6] = gsub("[[]", "", split.coordinates[,1:6]) # remove the square brackets from the split data
+split.coordinates[,1:6] = gsub("[]]", "", split.coordinates[,1:6])
+head(split.coordinates)
+
+
+split.cor = data.frame(1:nrow(split.coordinates)) 
+for(i in 1:ncol(split.coordinates)){ # loop to separate each foragers coordinates into two columns
+  x = str_split_fixed(split.coordinates[,i], " ", 2)
+  split.cor = cbind(split.cor, x)
+}
+head(split.cor)
+names(split.cor) = c("X", "xcorA", "ycorA", "xcorB", "ycorB", "xcorC", "ycorC", "xcorD", "ycorD", "xcorE", "ycorE", "xcorF", "ycorF")
+
+split.cor = split.cor[,-1]
+
+View(data.frame(q.data.ord[10:20,]$coor.list, split.cor[10:20,]))# compare split.cor to coor.list column in q.data.ord
+
+### split.cor is ready to be added to the big dataframe
+
+
+
+
+
+#separate proxim.IDs into different columns
+# first, a separate column for each agent's list, 
+# then further split into separate columns per agent in proximity proxA1:proxA5 (up to 5 agents in proximity)
+split.proximIDs = str_split_fixed(q.data.ord$proxim.IDs, "] ", 6) # split the data in the proxim.IDs column at each "] " into 6 separate columns
+head(split.proximIDs)
+split.proximIDs[,1:6] = gsub("[[]", "", split.proximIDs[,1:6]) # remove the square brackets from the split data
+split.proximIDs[,1:6] = gsub("[]]", "", split.proximIDs[,1:6])
+head(split.proximIDs)
+
+nrow(split.proximIDs)
+
+split.prox = data.frame(1:37625) # need same number of rows as nrow(split.proximIDs)
+for(i in 1:ncol(split.proximIDs)){ # loop to separate each foragers coordinates into two columns
+  x = str_split_fixed(split.proximIDs[,i], " ", 5)
+  split.prox = cbind(split.prox, x)
+}
+head(split.prox)
+tail(split.prox)
+names(split.prox) = c("X", "proxA1", "proxA2", "proxA3", "proxA4", "proxA5", 
+                      "proxB1", "proxB2", "proxB3", "proxB4", "proxB5",
+                      "proxC1", "proxC2", "proxC3", "proxC4", "proxC5",
+                      "proxD1", "proxD2", "proxD3", "proxD4", "proxD5",
+                      "proxE1", "proxE2", "proxE3", "proxE4", "proxE5",
+                      "proxF1", "proxF2", "proxF3", "proxF4", "proxF5")
+unique(split.prox$proxB3) # split.prox has some blanks if there were not 5 values for proximIDs in an agent's split.proximIDs column 
+split.prox[split.prox==""] = NA #replace all blank cells with NA
+split.prox[split.prox=="NA"] = NA #replace all characters "NA" with missing values
+
+split.prox = split.prox[,-1] #remove first column
+
+View(data.frame(q.data.ord[10:20,]$proxim.IDs, split.prox[10:20,]))# compare split.prox to proxim.IDs column in q.data.ord
+
+
+
