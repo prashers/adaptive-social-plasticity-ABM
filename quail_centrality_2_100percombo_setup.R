@@ -120,8 +120,8 @@ head(split.proximIDs)
 
 nrow(split.proximIDs)
 
-split.prox = data.frame(1:37625) # need same number of rows as nrow(split.proximIDs)
-for(i in 1:ncol(split.proximIDs)){ # loop to separate each foragers coordinates into two columns
+split.prox = data.frame(1:nrow(split.proximIDs)) # need same number of rows as nrow(split.proximIDs)
+for(i in 1:ncol(split.proximIDs)){ # loop to separate each foragers proximity IDs into five columns
   x = str_split_fixed(split.proximIDs[,i], " ", 5)
   split.prox = cbind(split.prox, x)
 }
@@ -139,7 +139,91 @@ split.prox[split.prox=="NA"] = NA #replace all characters "NA" with missing valu
 
 split.prox = split.prox[,-1] #remove first column
 
-View(data.frame(q.data.ord[10:20,]$proxim.IDs, split.prox[10:20,]))# compare split.prox to proxim.IDs column in q.data.ord
+View(data.frame(q.data.ord[10000:10020,]$proxim.IDs, split.prox[10000:10020,]))# compare split.prox to proxim.IDs column in q.data.ord
+
+
+### split.prox is ready to be added to the big data frame
+
+
+
+
+#separate foll.IDs into different columns
+# first, a separate column for each agent's list, 
+# then further split into separate columns per agent following follA1:follA5 (up to 5 agents following agent A)
+split.follIDs = str_split_fixed(q.data.ord$foll.IDs, "] ", 6) # split the data in the foll.IDs column at each "] " into 6 separate columns
+head(split.follIDs)
+split.follIDs[,1:6] = gsub("[[]", "", split.follIDs[,1:6]) # remove the square brackets from the split data
+split.follIDs[,1:6] = gsub("[]]", "", split.follIDs[,1:6])
+head(split.follIDs)
+
+nrow(split.follIDs)
+
+
+split.foll = data.frame(1:nrow(split.follIDs)) # need same number of rows as nrow(split.follIDs)
+for(i in 1:ncol(split.follIDs)){ # loop to separate each foragers following IDs into five columns
+  x = str_split_fixed(split.follIDs[,i], " ", 5)
+  split.foll = cbind(split.foll, x)
+}
+head(split.foll)
+tail(split.foll)
+names(split.foll) = c("X", "follA1", "follA2", "follA3", "follA4", "follA5", 
+                      "follB1", "follB2", "follB3", "follB4", "follB5",
+                      "follC1", "follC2", "follC3", "follC4", "follC5",
+                      "follD1", "follD2", "follD3", "follD4", "follD5",
+                      "follE1", "follE2", "follE3", "follE4", "follE5",
+                      "follF1", "follF2", "follF3", "follF4", "follF5")
+
+unique(split.foll$follB2) # split.foll has some blanks if there were not 5 values for follIDs in an agent's split.follIDs column 
+split.foll[split.foll==""] = NA #replace all blank cells with NA
+split.foll[split.foll=="NA"] = NA #replace all characters "NA" with missing values
+
+split.foll = split.foll[,-1] #remove first column
+
+View(data.frame(q.data.ord$foll.IDs, split.foll))# compare split.foll to foll.IDs column in q.data.ord
+
+
+### split.foll is ready to be added to the big data frame
+
+
+
+
+
+
+##### add all separated columns to the big dataframe 
+q.data.split = cbind(q.data.ord[, -c(7,9,13,14)], split.prox, split.foll, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
+head(q.data.split)
+tail(q.data.split)
+
+#need to change a couple column names to make it easier to use the starts_with argument later
+names(q.data.split)
+colnames(q.data.split)[7] = "pr.centrality.list" #rename prox.centrality.list column
+colnames(q.data.split)[10] = "fo.centrality.list" #rename foll.centrality.list column
+
+
+#remove other unnecessary columns and separate into different data frames to reduce size (hopefully make computation a little lighter)
+qd.prox = q.data.split[, -c(8:10, 43:72, 73:ncol(q.data.split))]
+qd.foll
+qd.coor
+
+
+
+
+# MATRIX WILL CONTAIN COUNTS OF HOW MANY TIME STEPS EACH DYAD WAS IN PROXIMITY (FOR PROXIMITY NETWORK) OR IN HOW MANY TIME STEPS EACH AGENT WAS FOLLOWED BY EACH OTHER AGENT (DIRECTED FOLLOWING NETWORK)
+# WILL HAVE A MATRIX FOR EACH PHASE WITHIN EACH MODEL RUN
+
+
+
+
+
+
+
+# divide proximity dataframe into three -- one for each phase
+qd.start.pre = qd[qd$phase %in% c("start", "pre-forage"),]
+qd.pre = qd[qd$phase == "pre-forage",]
+qd.forage = qd[qd$phase == "forage",]
+qd.post = qd[qd$phase == "post-forage",]
+
+
 
 
 
