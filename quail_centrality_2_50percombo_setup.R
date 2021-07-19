@@ -52,12 +52,12 @@ head(q.data.ord)
 num.combos = nrow(unique(q.data.ord[,3:5])) #number of unique mem, att, pref combinations
 # I want to add a column that tells me the combo number (1:125)
 
-nrow(q.data.ord[q.data.ord$memory == 0 & q.data.ord$attention == 0 & q.data.ord$preference == 0,]) # every combo has 30100 rows
-q.data.ord[q.data.ord$order == 60201, colnames(q.data.ord) %in% c("memory", "attention", "preference")]
+nrow(q.data.ord[q.data.ord$memory == 0 & q.data.ord$attention == 0 & q.data.ord$preference == 0,]) # every combo has 15050 rows
+q.data.ord[q.data.ord$order == 30101, colnames(q.data.ord) %in% c("memory", "attention", "preference")]
 
 combo = vector()
 for (i in 1:num.combos) {
-  x = rep(i, 30100)
+  x = rep(i, 15050)
   combo = append(combo, x, after=length(combo))
 }
 
@@ -79,11 +79,12 @@ q.data.ord[q.data.ord$ticks %in% 201:300,]$phase = "post-forage"
 ### need to be able to count the number of times an agent was in proximity to, or being followed by, each other agent
 ### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns
 
+######SPLITTING COORDINATES IS NOT IMPORTANT FOR ABS POSTER, SO I AM SKIPPING IT######
 # separate coordinates into different columns (two columns for each agent):
 library(stringr)
-timestamp()
+#timestamp()
 split.coordinates = str_split_fixed(q.data.ord$coor.list, "] ", 6) # split the data in the coor.list column at each "] " into 6 separate columns
-timestamp()
+#timestamp()
 head(split.coordinates)
 nrow(split.coordinates)
 split.coordinates[,1:6] = gsub("[[]", "", split.coordinates[,1:6]) # remove the square brackets from the split data
@@ -133,6 +134,7 @@ names(split.prox) = c("X", "proxA1", "proxA2", "proxA3", "proxA4", "proxA5",
                       "proxD1", "proxD2", "proxD3", "proxD4", "proxD5",
                       "proxE1", "proxE2", "proxE3", "proxE4", "proxE5",
                       "proxF1", "proxF2", "proxF3", "proxF4", "proxF5")
+
 unique(split.prox$proxB3) # split.prox has some blanks if there were not 5 values for proximIDs in an agent's split.proximIDs column 
 split.prox[split.prox==""] = NA #replace all blank cells with NA
 split.prox[split.prox=="NA"] = NA #replace all characters "NA" with missing values
@@ -193,17 +195,19 @@ colnames(q.data.ord)[8] = "pr.centrality.list" #rename prox.centrality.list colu
 colnames(q.data.ord)[12] = "fo.centrality.list" #rename foll.centrality.list column
 
 ##### add all separated columns to the big dataframe 
-#q.data.split = cbind(q.data.ord[, -c(7,9,13,14)], split.prox, split.foll, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
+q.data.split = cbind(q.data.ord[, -c(7,9,13,14)], split.prox, split.foll) #, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
+head(q.data.split)
+tail(q.data.split)
 
-#remove other unnecessary columns and separate into different data frames to reduce size (hopefully make computation a little lighter)
-qd.prox = q.data.ord[, -c(7, 10, 11, 12, 13,14)]
-qd.prox = cbind(qd.prox, split.prox)
+  #remove other unnecessary columns and separate into different data frames to reduce size (hopefully make computation a little lighter)
+  #qd.prox = q.data.ord[, -c(7, 10, 11, 12, 13,14)]
+  #qd.prox = cbind(qd.prox, split.prox)
 
-qd.foll = q.data.ord[, -c(7, 8, 9, 10, 14)]
-qd.foll = cbind(qd.foll, split.foll)
+  #qd.foll = q.data.ord[, -c(7, 8, 9, 10, 14)]
+  #qd.foll = cbind(qd.foll, split.foll)
 
-qd.coor = q.data.ord[, -c(7, 10, 11, 12, 13)]
-qd.coor = cbind(qd.coor, split.cor) #returns an Error "cannot allocate vector of size 28.7 Mb", but I don't need it right now
+  #qd.coor = q.data.ord[, -c(7, 10, 11, 12, 13)]
+  #qd.coor = cbind(qd.coor, split.cor) 
 
 
 
@@ -212,14 +216,45 @@ qd.coor = cbind(qd.coor, split.cor) #returns an Error "cannot allocate vector of
 # WILL HAVE A MATRIX FOR EACH PHASE WITHIN EACH MODEL RUN
 
 
-
 # divide proximity dataframe into three -- one for each phase
-qdp.start.pre = qd.prox[qd.prox$phase %in% c("start", "pre-forage"),] #Error too big
-qdp.pre = qd.prox[qd.prox$phase == "pre-forage",]
-qdp.forage = qd.prox[qd.prox$phase == "forage",]
-qdp.post = qd.prox[qd.prox$phase == "post-forage",]
+#qdp.start.pre = qd.prox[qd.prox$phase %in% c("start", "pre-forage"),] 
+q.data.pre = q.data.split[q.data.split$phase == "pre-forage",]
+q.data.forage = q.data.split[q.data.split$phase == "forage",]
+q.data.post = q.data.split[q.data.split$phase == "post-forage",]
+
+
+library(tidyr)
+library(dplyr)
+
+###proximity network: pre-foraging phase###
+prox.count.pre = q.data.pre %>% 
+  pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+               names_to = "prox", values_to = "prox.ID") 
+
+
+nrow(q.data.pre)*30 == nrow(prox.count.pre)#prox.count has the correct number of rows
+
+prox.count.pre = tibble::add_column(prox.count.pre, prox.key = "NA", .after = "prox")
+
+#mtcars %>%
+#  mutate(mpg=replace(mpg, cyl==4, NA)) 
+prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxA1", "proxA2", "proxA3", "proxA4", "proxA5"), "A"))
+prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxB1", "proxB2", "proxB3", "proxB4", "proxB5"), "B"))
+prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxC1", "proxC2", "proxC3", "proxC4", "proxC5"), "C"))
+prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxD1", "proxD2", "proxD3", "proxD4", "proxD5"), "D"))
+prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxE1", "proxE2", "proxE3", "proxE4", "proxE5"), "E"))
+prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxF1", "proxF2", "proxF3", "proxF4", "proxF5"), "F"))
 
 
 
+# use dplyr functions to get counts after grouping by prox.key and proxIDs
+prox.summ.pre = prox.count.pre %>% 
+  group_by(run.num, memory, attention, preference, prox.key, prox.ID) %>% 
+  summarize(n = n()) 
+prox.summ.pre = prox.summ.pre[complete.cases(prox.summ.pre$prox.ID),]
+unique(prox.summ.pre$prox.ID)
 
+View(prox.summ.pre)
+### prox.summ.pre contains the counts of how many time steps each agent was in proximity to each other agent
+### SINCE I USED q.data.pre, THIS DOES NOT INCLUDE THE STATE OF THE MODEL AT TICK ZERO
 
