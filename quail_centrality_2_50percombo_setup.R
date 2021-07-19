@@ -195,7 +195,7 @@ colnames(q.data.ord)[8] = "pr.centrality.list" #rename prox.centrality.list colu
 colnames(q.data.ord)[12] = "fo.centrality.list" #rename foll.centrality.list column
 
 ##### add all separated columns to the big dataframe 
-q.data.split = cbind(q.data.ord[, -c(7,9,13,14)], split.prox, split.foll) #, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
+q.data.split = cbind(q.data.ord[, -c(7,9, 10, 13,14)], split.prox, split.foll) #, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
 head(q.data.split)
 tail(q.data.split)
 
@@ -219,14 +219,19 @@ tail(q.data.split)
 # divide proximity dataframe into three -- one for each phase
 #qdp.start.pre = qd.prox[qd.prox$phase %in% c("start", "pre-forage"),] 
 q.data.pre = q.data.split[q.data.split$phase == "pre-forage",]
+write.csv(q.data.pre, "q_data_pre50.csv")
+
 q.data.forage = q.data.split[q.data.split$phase == "forage",]
+write.csv(q.data.forage, "q_data_forage50.csv")
+
 q.data.post = q.data.split[q.data.split$phase == "post-forage",]
+write.csv(q.data.post, "q_data_post50.csv")
 
 
 library(tidyr)
 library(dplyr)
 
-###proximity network: pre-foraging phase###
+###PROXIMITY network: pre-foraging phase###
 prox.count.pre = q.data.pre %>% 
   pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
                names_to = "prox", values_to = "prox.ID") 
@@ -236,8 +241,6 @@ nrow(q.data.pre)*30 == nrow(prox.count.pre)#prox.count has the correct number of
 
 prox.count.pre = tibble::add_column(prox.count.pre, prox.key = "NA", .after = "prox")
 
-#mtcars %>%
-#  mutate(mpg=replace(mpg, cyl==4, NA)) 
 prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxA1", "proxA2", "proxA3", "proxA4", "proxA5"), "A"))
 prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxB1", "proxB2", "proxB3", "proxB4", "proxB5"), "B"))
 prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxC1", "proxC2", "proxC3", "proxC4", "proxC5"), "C"))
@@ -245,7 +248,7 @@ prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c(
 prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxE1", "proxE2", "proxE3", "proxE4", "proxE5"), "E"))
 prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox%in%c("proxF1", "proxF2", "proxF3", "proxF4", "proxF5"), "F"))
 
-
+unique(prox.count.pre$prox.key)# check that all NAs were replaced
 
 # use dplyr functions to get counts after grouping by prox.key and proxIDs
 prox.summ.pre = prox.count.pre %>% 
@@ -255,6 +258,133 @@ prox.summ.pre = prox.summ.pre[complete.cases(prox.summ.pre$prox.ID),]
 unique(prox.summ.pre$prox.ID)
 
 View(prox.summ.pre)
-### prox.summ.pre contains the counts of how many time steps each agent was in proximity to each other agent
+### prox.summ.pre contains the counts of how many time steps each agent was in proximity to each other agent during the pre-foraging phase
 ### SINCE I USED q.data.pre, THIS DOES NOT INCLUDE THE STATE OF THE MODEL AT TICK ZERO
 
+#save it as a csv to save space in the R workspace
+write.csv(prox.summ.pre, "prox_summ_pre50.csv")
+
+
+
+
+
+
+###PROXIMITY network: foraging phase###
+prox.count.for = q.data.forage %>% 
+  pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+               names_to = "prox", values_to = "prox.ID") 
+
+nrow(q.data.forage)*30 == nrow(prox.count.for)#if TRUE prox.count.for has the correct number of rows
+
+prox.count.for = tibble::add_column(prox.count.for, prox.key = "NA", .after = "prox")
+
+prox.count.for = prox.count.for %>% mutate(prox.key=replace(prox.key, prox%in%c("proxA1", "proxA2", "proxA3", "proxA4", "proxA5"), "A"))
+prox.count.for = prox.count.for %>% mutate(prox.key=replace(prox.key, prox%in%c("proxB1", "proxB2", "proxB3", "proxB4", "proxB5"), "B"))
+prox.count.for = prox.count.for %>% mutate(prox.key=replace(prox.key, prox%in%c("proxC1", "proxC2", "proxC3", "proxC4", "proxC5"), "C"))
+prox.count.for = prox.count.for %>% mutate(prox.key=replace(prox.key, prox%in%c("proxD1", "proxD2", "proxD3", "proxD4", "proxD5"), "D"))
+prox.count.for = prox.count.for %>% mutate(prox.key=replace(prox.key, prox%in%c("proxE1", "proxE2", "proxE3", "proxE4", "proxE5"), "E"))
+prox.count.for = prox.count.for %>% mutate(prox.key=replace(prox.key, prox%in%c("proxF1", "proxF2", "proxF3", "proxF4", "proxF5"), "F"))
+
+unique(prox.count.for$prox.key)# check that all NAs were replaced
+
+# use dplyr functions to get counts after grouping by prox.key and proxIDs
+prox.summ.for = prox.count.for %>% 
+  group_by(run.num, memory, attention, preference, prox.key, prox.ID) %>% 
+  summarize(n = n()) 
+
+prox.summ.for = prox.summ.for[complete.cases(prox.summ.for$prox.ID),]
+unique(prox.summ.for$prox.ID)
+
+View(prox.summ.for)
+### prox.summ.for contains the counts of how many time steps each agent was in proximity to each other agent during the foraging phase
+write.csv(prox.summ.for, "prox_summ_for50.csv")
+
+
+
+
+
+
+###PROXIMITY network: post-foraging phase###
+prox.count.post = q.data.post %>% 
+  pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+               names_to = "prox", values_to = "prox.ID") 
+
+nrow(q.data.post)*30 == nrow(prox.count.post)#if TRUE prox.count.for has the correct number of rows
+
+prox.count.post = tibble::add_column(prox.count.post, prox.key = "NA", .after = "prox")
+
+prox.count.post = prox.count.post %>% mutate(prox.key=replace(prox.key, prox%in%c("proxA1", "proxA2", "proxA3", "proxA4", "proxA5"), "A"))
+prox.count.post = prox.count.post %>% mutate(prox.key=replace(prox.key, prox%in%c("proxB1", "proxB2", "proxB3", "proxB4", "proxB5"), "B"))
+prox.count.post = prox.count.post %>% mutate(prox.key=replace(prox.key, prox%in%c("proxC1", "proxC2", "proxC3", "proxC4", "proxC5"), "C"))
+prox.count.post = prox.count.post %>% mutate(prox.key=replace(prox.key, prox%in%c("proxD1", "proxD2", "proxD3", "proxD4", "proxD5"), "D"))
+prox.count.post = prox.count.post %>% mutate(prox.key=replace(prox.key, prox%in%c("proxE1", "proxE2", "proxE3", "proxE4", "proxE5"), "E"))
+prox.count.post = prox.count.post %>% mutate(prox.key=replace(prox.key, prox%in%c("proxF1", "proxF2", "proxF3", "proxF4", "proxF5"), "F"))
+
+unique(prox.count.post$prox.key)# check that all NAs were replaced
+
+# use dplyr functions to get counts after grouping by prox.key and proxIDs
+prox.summ.post = prox.count.post %>% 
+  group_by(run.num, memory, attention, preference, prox.key, prox.ID) %>% 
+  summarize(n = n()) 
+
+prox.summ.post = prox.summ.post[complete.cases(prox.summ.post$prox.ID),]
+unique(prox.summ.post$prox.ID)
+
+View(prox.summ.post)
+### prox.summ.post contains the counts of how many time steps each agent was in proximity to each other agent during the post-foraging phase
+write.csv(prox.summ.post, "prox_summ_post50.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###FOLLOWING network: pre-foraging phase###
+# AGENTS DON'T FOLLOW IN THE PRE-FORAGING PHASE BECAUSE NO ONE HAS FORAGED YET
+# I ran the code anyway and it does not return any counts as expected
+
+
+
+
+###FOLLOWING network: foraging phase###
+
+q.data.forage = read.csv("q_data_forage50.csv", header = T)
+
+foll.count.forage = q.data.forage %>% 
+  pivot_longer(starts_with("foll"), #pivot_longer is the same as melt in the reshape2 package
+               names_to = "foll", values_to = "foll.ID") 
+
+
+nrow(q.data.forage)*30 == nrow(foll.count.forage)#foll.count has the correct number of rows
+
+foll.count.forage = tibble::add_column(foll.count.forage, foll.key = "NA", .after = "foll")
+
+foll.count.forage = foll.count.forage %>% mutate(foll.key=replace(foll.key, foll%in%c("follA1", "follA2", "follA3", "follA4", "follA5"), "A"))
+foll.count.forage = foll.count.forage %>% mutate(foll.key=replace(foll.key, foll%in%c("follB1", "follB2", "follB3", "follB4", "follB5"), "B"))
+foll.count.forage = foll.count.forage %>% mutate(foll.key=replace(foll.key, foll%in%c("follC1", "follC2", "follC3", "follC4", "follC5"), "C"))
+foll.count.forage = foll.count.forage %>% mutate(foll.key=replace(foll.key, foll%in%c("follD1", "follD2", "follD3", "follD4", "follD5"), "D"))
+foll.count.forage = foll.count.forage %>% mutate(foll.key=replace(foll.key, foll%in%c("follE1", "follE2", "follE3", "follE4", "follE5"), "E"))
+foll.count.forage = foll.count.forage %>% mutate(foll.key=replace(foll.key, foll%in%c("follF1", "follF2", "follF3", "follF4", "follF5"), "F"))
+
+unique(foll.count.forage$foll.key)# check that all NAs were replaced
+
+# use dplyr functions to get counts after grouping by foll.key and follIDs
+foll.summ.forage = foll.count.forage %>% 
+  group_by(run.num, memory, attention, preference, foll.key, foll.ID) %>% 
+  summarize(n = n()) 
+foll.summ.forage = foll.summ.forage[complete.cases(foll.summ.forage$foll.ID),]
+unique(foll.summ.forage$foll.ID)
+
+View(foll.summ.forage)
+### foll.summ.forage contains the counts of how many time steps each agent was followed by each other agent during the foraging phase
+
+#save it as a csv to save space in the R workspace
+write.csv(foll.summ.forage, "foll_summ_forage50.csv")
