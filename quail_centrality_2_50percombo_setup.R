@@ -231,7 +231,7 @@ write.csv(q.data.post, "q_data_post50.csv")
 library(tidyr)
 library(dplyr)
 
-###PROXIMITY network: pre-foraging phase###
+###PROXIMITY network: PRE-foraging phase###
 prox.count.pre = q.data.pre %>% 
   pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
                names_to = "prox", values_to = "prox.ID") 
@@ -304,7 +304,7 @@ write.csv(prox.summ.for, "prox_summ_for50.csv")
 
 
 
-###PROXIMITY network: post-foraging phase###
+###PROXIMITY network: POST-foraging phase###
 prox.count.post = q.data.post %>% 
   pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
                names_to = "prox", values_to = "prox.ID") 
@@ -347,7 +347,7 @@ write.csv(prox.summ.post, "prox_summ_post50.csv")
 
 
 
-###FOLLOWING network: pre-foraging phase###
+###FOLLOWING network: PRE-foraging phase###
 # AGENTS DON'T FOLLOW IN THE PRE-FORAGING PHASE BECAUSE NO ONE HAS FORAGED YET
 # I ran the code anyway and it does not return any counts as expected
 
@@ -388,3 +388,44 @@ View(foll.summ.forage)
 
 #save it as a csv to save space in the R workspace
 write.csv(foll.summ.forage, "foll_summ_forage50.csv")
+
+
+
+
+
+
+
+###FOLLOWING network: POST-foraging phase###
+
+q.data.post = read.csv("q_data_post50.csv", header = T)
+
+foll.count.post = q.data.post %>% 
+  pivot_longer(starts_with("foll"), #pivot_longer is the same as melt in the reshape2 package
+               names_to = "foll", values_to = "foll.ID") 
+
+
+nrow(q.data.post)*30 == nrow(foll.count.post)#foll.count has the correct number of rows
+
+foll.count.post = tibble::add_column(foll.count.post, foll.key = "NA", .after = "foll")
+
+foll.count.post = foll.count.post %>% mutate(foll.key=replace(foll.key, foll%in%c("follA1", "follA2", "follA3", "follA4", "follA5"), "A"))
+foll.count.post = foll.count.post %>% mutate(foll.key=replace(foll.key, foll%in%c("follB1", "follB2", "follB3", "follB4", "follB5"), "B"))
+foll.count.post = foll.count.post %>% mutate(foll.key=replace(foll.key, foll%in%c("follC1", "follC2", "follC3", "follC4", "follC5"), "C"))
+foll.count.post = foll.count.post %>% mutate(foll.key=replace(foll.key, foll%in%c("follD1", "follD2", "follD3", "follD4", "follD5"), "D"))
+foll.count.post = foll.count.post %>% mutate(foll.key=replace(foll.key, foll%in%c("follE1", "follE2", "follE3", "follE4", "follE5"), "E"))
+foll.count.post = foll.count.post %>% mutate(foll.key=replace(foll.key, foll%in%c("follF1", "follF2", "follF3", "follF4", "follF5"), "F"))
+
+unique(foll.count.post$foll.key)# check that all NAs were replaced
+
+# use dplyr functions to get counts after grouping by foll.key and follIDs
+foll.summ.post = foll.count.post %>% 
+  group_by(run.num, memory, attention, preference, foll.key, foll.ID) %>% 
+  summarize(n = n()) 
+foll.summ.post = foll.summ.post[complete.cases(foll.summ.post$foll.ID),]
+unique(foll.summ.post$foll.ID)
+
+View(foll.summ.post)
+### foll.summ.post contains the counts of how many time steps each agent was followed by each other agent during the POST-foraging phase
+
+#save it as a csv to save space in the R workspace
+write.csv(foll.summ.post, "foll_summ_post50.csv")
