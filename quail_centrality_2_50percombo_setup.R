@@ -429,3 +429,7 @@ View(foll.summ.post)
 
 #save it as a csv to save space in the R workspace
 write.csv(foll.summ.post, "foll_summ_post50.csv")
+
+
+
+##### NOW ALL EDGE LISTS CAN BE USED IN THE "quail_centrality_2_absposter_analysis50" R SCRIPT
