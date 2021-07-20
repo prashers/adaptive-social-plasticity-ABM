@@ -263,7 +263,7 @@ View(prox.summ.pre)
 
 #save it as a csv to save space in the R workspace
 write.csv(prox.summ.pre, "prox_summ_pre50.csv")
-
+#write.csv(prox.summ.pre, "prox_summ_pre50_NAs.csv")
 
 
 
