@@ -169,22 +169,149 @@ prox.postXpre = merge(prox.postXpre, uniq.qdo, by = "run.num") #adds mem, att, p
 
 
 
+prox.postXfor = data.frame(run.num = seq(1:nrow(prox.metrics.for))) # data frame for differences between post-foraging and pre-foraging phases
+prox.postXfor$postXfor.deg = prox.metrics.post$A.deg - prox.metrics.for$A.deg # differences in degree
+prox.postXfor$postXfor.str = prox.metrics.post$A.str - prox.metrics.for$A.str # differences in strength
+
+prox.postXfor = merge(prox.postXfor, uniq.qdo, by = "run.num") #adds mem, att, pref values to data frame with differences in producer network metrics
+
+
+
+
 
 #check distribution of network metric differences for each variable combination to see how to proceed with summarizing the data
-hist(prox.forXpre[prox.forXpre$combo.num == 7,]$forXpre.deg)
-hist(prox.forXpre[prox.forXpre$combo.num == 7,]$forXpre.str)#, breaks = seq(0, 500, 20))
+hist(prox.forXpre[prox.forXpre$combo.num == 55,]$forXpre.deg)
+hist(prox.forXpre[prox.forXpre$combo.num == 55,]$forXpre.str)#, breaks = seq(0, 500, 20))
 
 hist(prox.postXpre[prox.postXpre$combo.num == 5,]$postXpre.deg)
 hist(prox.postXpre[prox.postXpre$combo.num == 5,]$postXpre.str)#, breaks = seq(0, 500, 20))
 
 
+#medians of differences per run:
+pfxp.med = prox.forXpre %>% 
+  group_by(combo.num, run.num) %>% 
+      summarize(n=n(), med.deg = median(forXpre.deg), med.str = median(forXpre.str))
+
+pfxp.mean = pfxp.med %>% 
+  group_by(combo.num) %>% 
+  summarize(n=n(), mean.deg=mean(med.deg), mean.str = mean(med.str))
+
+pfxp.mean = merge(pfxp.mean, prox.forXpre[,4:7], by = "combo.num")
+
+
+
+par(mfrow=c(1,1))
+
+ggplot(pfxp.mean, aes(preference, attention, fill = mean.str)) +
+  #ggtitle("Producer's proximity degree between post- and pre-foraging phases") +
+  #labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+  facet_grid(rows=vars(memory)) +
+  geom_tile() +
+  scale_fill_gradient(low="white", high="red") +
+  theme_minimal()
 
 
 
 
 
+
+#post x pre
+#medians of differences per run:
+ppxp.med = prox.postXpre %>% 
+  group_by(combo.num, run.num) %>% 
+  summarize(n=n(), med.deg = median(postXpre.deg), med.str = median(postXpre.str))
+
+ppxp.mean = ppxp.med %>% 
+  group_by(combo.num) %>% 
+  summarize(n=n(), mean.deg=mean(med.deg), mean.str = mean(med.str))
+
+ppxp.mean = merge(ppxp.mean, prox.postXpre[,4:7], by = "combo.num")
+
+
+
+par(mfrow=c(1,1))
+
+ggplot(ppxp.mean, aes(preference, attention, fill = mean.str)) +
+  #ggtitle("Producer's proximity strength between post- and pre-foraging phases") +
+  #labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+  facet_grid(rows=vars(memory)) +
+  geom_tile() +
+  scale_fill_gradient(low="white", high="red") +
+  theme_minimal()
+
+
+
+
+
+#post x forage
+ppxf.med = prox.postXfor %>% 
+  group_by(combo.num, run.num) %>% 
+  summarize(n=n(), med.deg = median(postXfor.deg), med.str = median(postXfor.str))
+
+ppxf.mean = ppxf.med %>% 
+  group_by(combo.num) %>% 
+  summarize(n=n(), mean.deg=mean(med.deg), mean.str = mean(med.str))
+
+ppxf.mean = merge(ppxf.mean, prox.postXfor[,4:7], by = "combo.num")
+
+
+
+par(mfrow=c(1,1))
+
+ggplot(ppxf.mean, aes(preference, attention, fill = mean.str)) +
+  #ggtitle("Producer's proximity strength between post- and foraging phases") +
+  #labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+  facet_grid(rows=vars(memory)) +
+  geom_tile() +
+  #scale_fill_gradient(low="white", high="red") +
+  scale_color_brewer(palette="Greens") +
+  theme_minimal()
+
+
+
+
+
+
+
+
+
+#summarize data (median) for each variable combination before making heat maps
 
 # colorbrewer package, spectral color gradient for the heat maps
+
+prox.postXpre.mem = as.factor(prox.postXpre$memory) 
+prox.postXpre.att = as.factor(prox.postXpre$attention) 
+prox.postXpre.pref = as.factor(prox.postXpre$preference)
+prox.postXpre.deg = prox.postXpre$postXpre.deg
+prox.postXpre.str = prox.postXpre$postXpre.str
+
+prox.postXpre.deg.data = data.frame(prox.postXpre.mem, prox.postXpre.att, prox.postXpre.pref, prox.postXpre.deg)
+
+ggplot(prox.postXpre.deg.data, aes(prox.postXpre.pref, prox.postXpre.att, fill = prox.postXpre.deg)) +
+  ggtitle("Producer's proximity degree between post- and pre-foraging phases") +
+  labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+  facet_grid(rows=vars(prox.postXpre.mem)) +
+  geom_tile() +
+  scale_fill_gradient(low="white", high="red") +
+  theme_minimal()
+
+
+prox.postXpre.str.data = data.frame(prox.postXpre.mem, prox.postXpre.att, prox.postXpre.pref, prox.postXpre.str)
+
+ggplot(prox.postXpre.str.data, aes(prox.postXpre.pref, prox.postXpre.att, fill = prox.postXpre.str)) +
+  ggtitle("Producer's proximity strength between post- and pre-foraging phases") +
+  labs(y = "Attention", x = "Preference", fill = "Difference in strength") +
+  facet_grid(rows=vars(prox.postXpre.mem)) +
+  geom_tile() +
+  scale_fill_gradient(low="white", high="red") +
+  theme_minimal()
+
+
+
+
+
+
+
 
 
 
