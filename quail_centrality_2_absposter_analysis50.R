@@ -141,8 +141,11 @@ for (i in unique(foll.summ.post.letters$run.num)) {
   eg = igraph::graph_from_incidence_matrix(current.matrix, directed=TRUE, mode="in", weighted=TRUE)#, weighted = TRUE)
   #igraph::E(eg)$weight #weights exist in the igraph object
   
-  current.degree = igraph::degree(eg)
-  current.strength = igraph::strength(eg) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
+  current.degree = igraph::degree(eg, mode = "in")
+  current.degree = current.degree[current.degree != 0]
+  
+  current.strength = igraph::strength(eg, mode = "in") #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
+  current.strength = current.strength[current.strength != 0]
   
   current.metrics = cbind(current.degree,current.strength)
   
@@ -151,7 +154,7 @@ for (i in unique(foll.summ.post.letters$run.num)) {
   }
   
 }
-timestamp()
+
 View(foll.metrics.post) #check 
 summary(foll.metrics.post$A.deg)#Max degree should be 5, max strength should be 500 because each individual can be in proximity with each of the other 5 agents for all 100 time steps in each phase (it's ok if these maximums are not reached though)
 
@@ -178,11 +181,11 @@ prox.postXpre = merge(prox.postXpre, uniq.qdo, by = "run.num") #adds mem, att, p
 
 
 
-foll.postxpre = data.frame(run.num = seq(1:nrow(foll.metrics.pre))) # data frame for differences between post-foraging and pre-foraging phases
-foll.postXpre$postXpre.deg = foll.metrics.post$A.deg - foll.metrics.pre$A.deg # differences in degree
-foll.postXpre$postXpre.str = foll.metrics.post$A.str - foll.metrics.pre$A.str # differences in strength
+foll.postxfor = data.frame(run.num = seq(1:nrow(foll.metrics.for))) # data frame for differences between post-foraging and pre-foraging phases
+foll.postXfor$postXfor.deg = foll.metrics.post$A.deg - foll.metrics.for$A.deg # differences in degree
+foll.postXfor$postXfor.str = foll.metrics.post$A.str - foll.metrics.for$A.str # differences in strength
 
-foll.postXpre = merge(foll.postXpre, uniq.qdo, by = "run.num") #adds mem, att, pref values to data frame with differences in producer network metrics
+foll.postXfor = merge(foll.postXfor, uniq.qdo, by = "run.num") #adds mem, att, pref values to data frame with differences in producer network metrics
 
 
 
