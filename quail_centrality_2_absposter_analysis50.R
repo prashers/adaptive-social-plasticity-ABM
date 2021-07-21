@@ -161,19 +161,19 @@ prox.forXpre = merge(prox.forXpre, uniq.qdo, by = "run.num") #adds mem, att, pre
 
 
 
+prox.postXfor = data.frame(run.num = seq(1:nrow(prox.metrics.for))) # data frame for differences between post-foraging and foraging phases
+prox.postXfor$postXfor.deg = prox.metrics.post$A.deg - prox.metrics.for$A.deg # differences in degree
+prox.postXfor$postXfor.str = prox.metrics.post$A.str - prox.metrics.for$A.str # differences in strength
+
+prox.postXfor = merge(prox.postXfor, uniq.qdo, by = "run.num") #adds mem, att, pref values to data frame with differences in producer network metrics
+
+
+
 prox.postXpre = data.frame(run.num = seq(1:nrow(prox.metrics.pre))) # data frame for differences between post-foraging and pre-foraging phases
 prox.postXpre$postXpre.deg = prox.metrics.post$A.deg - prox.metrics.pre$A.deg # differences in degree
 prox.postXpre$postXpre.str = prox.metrics.post$A.str - prox.metrics.pre$A.str # differences in strength
 
 prox.postXpre = merge(prox.postXpre, uniq.qdo, by = "run.num") #adds mem, att, pref values to data frame with differences in producer network metrics
-
-
-
-prox.postXfor = data.frame(run.num = seq(1:nrow(prox.metrics.for))) # data frame for differences between post-foraging and pre-foraging phases
-prox.postXfor$postXfor.deg = prox.metrics.post$A.deg - prox.metrics.for$A.deg # differences in degree
-prox.postXfor$postXfor.str = prox.metrics.post$A.str - prox.metrics.for$A.str # differences in strength
-
-prox.postXfor = merge(prox.postXfor, uniq.qdo, by = "run.num") #adds mem, att, pref values to data frame with differences in producer network metrics
 
 
 
@@ -201,7 +201,7 @@ hist(prox.postXpre[prox.postXpre$combo.num == 5,]$postXpre.str)#, breaks = seq(0
 #pfxp.mean = merge(pfxp.mean, prox.forXpre[,4:7], by = "combo.num")
 
 
-#finding medians of network metric differences for each combo:
+#finding medians of network metric differences between foraging and pre-foraging phases for each combo:
 pfxp.med = prox.forXpre %>% 
     group_by(combo.num) %>% 
     summarize(n=n(), med.deg=median(forXpre.deg), med.str = median(forXpre.str))
@@ -218,6 +218,9 @@ ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg
   scale_fill_gradient(low="white", high="red") +
   theme_minimal()
 
+
+pdf("StrengthForxPre.pdf", width=7, height=13,)
+
 #plot of median difference in producer strength between foraging and pre-foraging phases 
 ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
   ggtitle("Difference in producer's proximity strength between foraging and pre-foraging phases") +
@@ -225,11 +228,15 @@ ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   facet_grid(rows=vars(memory)) +
   geom_tile() +
   scale_fill_gradient(low="white", high="blue") +
-  theme_minimal()
+  theme_minimal() +
+  theme(aspect.ratio=1, text=element_text(size=15))
+
+dev.off()
 
 
 
-#post x forage
+
+#finding medians of network metric differences between post- and foraging phases for each combo:
 ppxf.med = prox.postXfor %>% 
   group_by(combo.num) %>% 
   summarize(n=n(), med.deg = median(postXfor.deg), med.str = median(postXfor.str))
@@ -257,8 +264,9 @@ ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str
 
 
 
-#post x pre
-#medians of differences per combo:
+
+
+#finding medians of network metric differences between post- and pre-foraging phases for each combo:
 ppxp.med = prox.postXpre %>% 
   group_by(combo.num) %>% 
   summarize(n=n(), med.deg=median(postXpre.deg), med.str = median(postXpre.str))
@@ -306,7 +314,7 @@ ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str
 
 
 
-
+# NOT DOING THIS FOR THE ABS POSTER PRESENTATION
 ######FOLLOWING######
 foll.summ.for = read.csv("foll_summ_forage50.csv", header=T) #edge list for foraging period - contains data from all runs
 foll.summ.for = foll.summ.for[,-1]
