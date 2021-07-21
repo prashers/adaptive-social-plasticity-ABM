@@ -219,7 +219,7 @@ ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg
   theme_minimal()
 
 
-pdf("StrengthForxPre.pdf", width=7, height=13)
+pdf("StrengthForxPre_scaled.pdf", width=7, height=13)
 
 #plot of median difference in producer strength between foraging and pre-foraging phases 
 ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
@@ -227,7 +227,7 @@ ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  scale_fill_gradient(low="white", high="blue") +
+  scale_fill_gradient(low="white", high="blue", breaks=c(-400, 0, 400), limits=c(-400, 500)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 
@@ -244,7 +244,7 @@ ppxf.med = prox.postXfor %>%
 ppxf.med = merge(ppxf.med, unique(prox.postXfor[,4:7]), by = "combo.num")
 
 
-#plot of median difference in producer degree between post- and pre-foraging phases
+#plot of median difference in producer degree between post- and foraging phases
 ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.deg)) +
   ggtitle("Difference in producer's proximity degree between post- and foraging phases") +
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Degree") +
@@ -254,15 +254,15 @@ ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.deg
   theme_minimal()
 
 
-pdf("StrengthPostxFor.pdf", width=7, height=13)
+pdf("StrengthPostxFor_scaled.pdf", width=7, height=13)
 
-#plot of median difference in producer strength between foraging and pre-foraging phases 
+#plot of median difference in producer strength between post- and foraging phases 
 ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
-  ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
+  ggtitle("Difference in producer's proximity strength between post- and foraging phases") +
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  scale_fill_gradient(low="white", high="blue") +
+  scale_fill_gradient(low="white", high="blue", breaks=c(-400, 0, 400), limits=c(-400, 500)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 
@@ -290,15 +290,15 @@ ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg
   theme_minimal()
 
 
-pdf("StrengthPostxPre.pdf", width=7, height=13)
+pdf("StrengthPostxPre_scaled.pdf", width=7, height=13)
 
-#plot of median difference in producer strength between foraging and pre-foraging phases 
+#plot of median difference in producer strength between post and pre-foraging phases 
 ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
   ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  scale_fill_gradient(low="white", high="blue") +
+  scale_fill_gradient(low="white", high="blue", breaks=c(-400, 0, 400), limits=c(-400, 500)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 
@@ -311,8 +311,9 @@ dev.off()
 
 
 
-
-
+# I THINK I NEED SCALE OF COLOR GRADIENT TO BE CONSISTENT ACROSS THE THREE PLOTS, SO IT IS POSSIBLE TO COMPARE THE RELATIVE DIFFERENCES BETWEEN PHASES
+# LOWEST STRENGTH DIFFERENCE ACROSS ALL PHASE PAIRS IS -376 AND HIGHEST IS 496
+# MAKE THE LEGEND GO FROM -400 TO 500
 
 
 
