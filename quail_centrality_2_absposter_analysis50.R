@@ -219,7 +219,7 @@ ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg
   theme_minimal()
 
 
-pdf("StrengthForxPre.pdf", width=7, height=13,)
+pdf("StrengthForxPre.pdf", width=7, height=13)
 
 #plot of median difference in producer strength between foraging and pre-foraging phases 
 ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
@@ -253,6 +253,9 @@ ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.deg
   scale_fill_gradient(low="white", high="red") +
   theme_minimal()
 
+
+pdf("StrengthPostxFor.pdf", width=7, height=13)
+
 #plot of median difference in producer strength between foraging and pre-foraging phases 
 ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
   ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
@@ -260,7 +263,10 @@ ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   facet_grid(rows=vars(memory)) +
   geom_tile() +
   scale_fill_gradient(low="white", high="blue") +
-  theme_minimal()
+  theme_minimal() +
+  theme(aspect.ratio=1, text=element_text(size=15))
+
+dev.off()
 
 
 
@@ -283,6 +289,9 @@ ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg
   scale_fill_gradient(low="white", high="red") +
   theme_minimal()
 
+
+pdf("StrengthPostxPre.pdf", width=7, height=13)
+
 #plot of median difference in producer strength between foraging and pre-foraging phases 
 ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
   ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
@@ -290,7 +299,10 @@ ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   facet_grid(rows=vars(memory)) +
   geom_tile() +
   scale_fill_gradient(low="white", high="blue") +
-  theme_minimal()
+  theme_minimal() +
+  theme(aspect.ratio=1, text=element_text(size=15))
+
+dev.off()
 
 
 
