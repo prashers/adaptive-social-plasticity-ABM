@@ -178,8 +178,9 @@ prox.postXfor = merge(prox.postXfor, uniq.qdo, by = "run.num") #adds mem, att, p
 
 
 
-
+#summarize data (median) for each variable combination before making heat maps
 #check distribution of network metric differences for each variable combination to see how to proceed with summarizing the data
+#If the data are skewed it is better to summarize it using the median
 hist(prox.forXpre[prox.forXpre$combo.num == 55,]$forXpre.deg)
 hist(prox.forXpre[prox.forXpre$combo.num == 55,]$forXpre.str)#, breaks = seq(0, 500, 20))
 
@@ -187,131 +188,101 @@ hist(prox.postXpre[prox.postXpre$combo.num == 5,]$postXpre.deg)
 hist(prox.postXpre[prox.postXpre$combo.num == 5,]$postXpre.str)#, breaks = seq(0, 500, 20))
 
 
-#medians of differences per run:
+
+#finding medians of network metric differences for each run:
+#pfxp.med = prox.forXpre %>% 
+#  group_by(combo.num, run.num) %>% 
+#      summarize(n=n(), med.deg = median(forXpre.deg), med.str = median(forXpre.str)) #EACH RUN ONLY HAS ONE DIFFERENCE VALUE FOR DEGREE AND STRENGTH, SO I THINK I JUST NEED TO TAKE THE MEDIAN FOR EACH COMBO NUMBER
+
+#pfxp.mean = pfxp.med %>% 
+#  group_by(combo.num) %>% 
+#  summarize(n=n(), mean.deg=mean(med.deg), mean.str = mean(med.str))
+
+#pfxp.mean = merge(pfxp.mean, prox.forXpre[,4:7], by = "combo.num")
+
+
+#finding medians of network metric differences for each combo:
 pfxp.med = prox.forXpre %>% 
-  group_by(combo.num, run.num) %>% 
-      summarize(n=n(), med.deg = median(forXpre.deg), med.str = median(forXpre.str))
+    group_by(combo.num) %>% 
+    summarize(n=n(), med.deg=median(forXpre.deg), med.str = median(forXpre.str))
 
-pfxp.mean = pfxp.med %>% 
-  group_by(combo.num) %>% 
-  summarize(n=n(), mean.deg=mean(med.deg), mean.str = mean(med.str))
-
-pfxp.mean = merge(pfxp.mean, prox.forXpre[,4:7], by = "combo.num")
+pfxp.med = merge(pfxp.med, unique(prox.forXpre[,4:7]), by = "combo.num")
 
 
-
-par(mfrow=c(1,1))
-
-ggplot(pfxp.mean, aes(preference, attention, fill = mean.str)) +
-  #ggtitle("Producer's proximity degree between post- and pre-foraging phases") +
-  #labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+#plot of median difference in producer degree between foraging and pre-foraging phases
+ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg)) +
+  ggtitle("Difference in producer's proximity degree between foraging and pre-foraging phases") +
+  labs(y = "Attention", x = "Preference", fill = "Median Difference in Degree") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
   scale_fill_gradient(low="white", high="red") +
   theme_minimal()
 
-
-
-
-
-
-#post x pre
-#medians of differences per run:
-ppxp.med = prox.postXpre %>% 
-  group_by(combo.num, run.num) %>% 
-  summarize(n=n(), med.deg = median(postXpre.deg), med.str = median(postXpre.str))
-
-ppxp.mean = ppxp.med %>% 
-  group_by(combo.num) %>% 
-  summarize(n=n(), mean.deg=mean(med.deg), mean.str = mean(med.str))
-
-ppxp.mean = merge(ppxp.mean, prox.postXpre[,4:7], by = "combo.num")
-
-
-
-par(mfrow=c(1,1))
-
-ggplot(ppxp.mean, aes(preference, attention, fill = mean.str)) +
-  #ggtitle("Producer's proximity strength between post- and pre-foraging phases") +
-  #labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+#plot of median difference in producer strength between foraging and pre-foraging phases 
+ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+  ggtitle("Difference in producer's proximity strength between foraging and pre-foraging phases") +
+  labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  scale_fill_gradient(low="white", high="red") +
+  scale_fill_gradient(low="white", high="blue") +
   theme_minimal()
-
-
 
 
 
 #post x forage
 ppxf.med = prox.postXfor %>% 
-  group_by(combo.num, run.num) %>% 
+  group_by(combo.num) %>% 
   summarize(n=n(), med.deg = median(postXfor.deg), med.str = median(postXfor.str))
 
-ppxf.mean = ppxf.med %>% 
-  group_by(combo.num) %>% 
-  summarize(n=n(), mean.deg=mean(med.deg), mean.str = mean(med.str))
-
-ppxf.mean = merge(ppxf.mean, prox.postXfor[,4:7], by = "combo.num")
+ppxf.med = merge(ppxf.med, unique(prox.postXfor[,4:7]), by = "combo.num")
 
 
-
-par(mfrow=c(1,1))
-
-ggplot(ppxf.mean, aes(preference, attention, fill = mean.str)) +
-  #ggtitle("Producer's proximity strength between post- and foraging phases") +
-  #labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
+#plot of median difference in producer degree between post- and pre-foraging phases
+ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.deg)) +
+  ggtitle("Difference in producer's proximity degree between post- and foraging phases") +
+  labs(y = "Attention", x = "Preference", fill = "Median Difference in Degree") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  #scale_fill_gradient(low="white", high="red") +
-  scale_color_brewer(palette="Greens") +
+  scale_fill_gradient(low="white", high="red") +
+  theme_minimal()
+
+#plot of median difference in producer strength between foraging and pre-foraging phases 
+ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+  ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
+  labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
+  facet_grid(rows=vars(memory)) +
+  geom_tile() +
+  scale_fill_gradient(low="white", high="blue") +
   theme_minimal()
 
 
 
+#post x pre
+#medians of differences per combo:
+ppxp.med = prox.postXpre %>% 
+  group_by(combo.num) %>% 
+  summarize(n=n(), med.deg=median(postXpre.deg), med.str = median(postXpre.str))
+
+ppxp.med = merge(ppxp.med, unique(prox.postXpre[,4:7]), by = "combo.num")
 
 
-
-
-
-
-#summarize data (median) for each variable combination before making heat maps
-
-# colorbrewer package, spectral color gradient for the heat maps
-
-prox.postXpre.mem = as.factor(prox.postXpre$memory) 
-prox.postXpre.att = as.factor(prox.postXpre$attention) 
-prox.postXpre.pref = as.factor(prox.postXpre$preference)
-prox.postXpre.deg = prox.postXpre$postXpre.deg
-prox.postXpre.str = prox.postXpre$postXpre.str
-
-prox.postXpre.deg.data = data.frame(prox.postXpre.mem, prox.postXpre.att, prox.postXpre.pref, prox.postXpre.deg)
-
-ggplot(prox.postXpre.deg.data, aes(prox.postXpre.pref, prox.postXpre.att, fill = prox.postXpre.deg)) +
-  ggtitle("Producer's proximity degree between post- and pre-foraging phases") +
-  labs(y = "Attention", x = "Preference", fill = "Difference in degree") +
-  facet_grid(rows=vars(prox.postXpre.mem)) +
+#plot of median difference in producer degree between post- and pre-foraging phases
+ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg)) +
+  ggtitle("Difference in producer's proximity degree between post- and pre-foraging phases") +
+  labs(y = "Attention", x = "Preference", fill = "Median Difference in Degree") +
+  facet_grid(rows=vars(memory)) +
   geom_tile() +
   scale_fill_gradient(low="white", high="red") +
   theme_minimal()
 
-
-prox.postXpre.str.data = data.frame(prox.postXpre.mem, prox.postXpre.att, prox.postXpre.pref, prox.postXpre.str)
-
-ggplot(prox.postXpre.str.data, aes(prox.postXpre.pref, prox.postXpre.att, fill = prox.postXpre.str)) +
-  ggtitle("Producer's proximity strength between post- and pre-foraging phases") +
-  labs(y = "Attention", x = "Preference", fill = "Difference in strength") +
-  facet_grid(rows=vars(prox.postXpre.mem)) +
+#plot of median difference in producer strength between foraging and pre-foraging phases 
+ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+  ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
+  labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
+  facet_grid(rows=vars(memory)) +
   geom_tile() +
-  scale_fill_gradient(low="white", high="red") +
+  scale_fill_gradient(low="white", high="blue") +
   theme_minimal()
-
-
-
-
-
-
-
 
 
 
