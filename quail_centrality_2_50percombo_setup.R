@@ -1,4 +1,6 @@
-q.data.full = read.csv("quail_centrality_2 ABSPoster50RunsPerCombo-table.csv", skip = 6, header = T)
+#q.data.full = read.csv("quail_centrality_2 ABSPoster50RunsPerCombo-table.csv", skip = 6, header = T)
+q.data.full = read.csv("quail_centrality_2 ABSPoster50RunsPerCombo+succ-foragers-table.csv", skip = 6, header = T)
+
 nrow(q.data.full)
 str(q.data.full)
 min(q.data.full$ticks)
@@ -27,7 +29,8 @@ names(q.data.full)
 #"affil.IDs", list of WHO numbers of each forager's affiliates (outgoing affil-link neighbors) - all zeros in this case, because prior-affils switch was kept off
 #"prox.cent.list", list containing each agent's centrality in the proximity network (number of other agents within a certain distance of the individual)
 #"proxim.IDs", list of WHO numbers of the agents within proximity of each individual
-#"memory.succ.foragers", the memory list, which contains the IDs of foragers that have successfully eaten in the past <memory> time steps - Just for reference. Not used in model behavior 
+          # "current.succ.foragers", the list containing IDs of agents that successfully foraged in each time step
+          # OR "memory.succ.foragers", the memory list, which contains the IDs of foragers that have successfully eaten in the past <memory> time steps - Just for reference. Not used in model behavior 
 #"fss.list", list containing first-sf-seen value of each agent
 #"foll.cent.list", list containing each agent's centrality in the following network (number of other agents following the individual - count of incoming follow links)
 #"foll.IDs", list containing WHO numbers of the agents following each individual
@@ -39,7 +42,8 @@ names(q.data.full)
 # remove unnecessary columns:
 q.data = q.data.full[, -(5:12)]
 names(q.data)
-names(q.data) = c("run.num", "memory", "attention", "preference", "ticks", "affil.IDs", "prox.centrality.list", "proxim.IDs", "memory.succ.foragers", "fss.list", "foll.centrality.list", "foll.IDs", "coor.list")
+#names(q.data) = c("run.num", "memory", "attention", "preference", "ticks", "affil.IDs", "prox.centrality.list", "proxim.IDs", "memory.succ.foragers", "fss.list", "foll.centrality.list", "foll.IDs", "coor.list")
+names(q.data) = c("run.num", "memory", "attention", "preference", "ticks", "affil.IDs", "prox.centrality.list", "proxim.IDs", "current.succ.foragers", "fss.list", "foll.centrality.list", "foll.IDs", "coor.list")
 head(q.data)
 
 
@@ -195,7 +199,7 @@ colnames(q.data.ord)[8] = "pr.centrality.list" #rename prox.centrality.list colu
 colnames(q.data.ord)[12] = "fo.centrality.list" #rename foll.centrality.list column
 
 ##### add all separated columns to the big dataframe 
-q.data.split = cbind(q.data.ord[, -c(7,9, 10, 13,14)], split.prox, split.foll) #, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
+q.data.split = cbind(q.data.ord[, -c(7,9, 13,14)], split.prox, split.foll) #, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
 head(q.data.split)
 tail(q.data.split)
 
@@ -270,11 +274,39 @@ write.csv(prox.summ.pre, "prox_summ_pre50.csv")
 
 
 ###PROXIMITY network: foraging phase###
-prox.count.for = q.data.forage %>% 
+
+#For each run, remove rows before the producer first accesses food so we can see effects during period that agents can actually be foraging/following 
+q.data.forage[q.data.forage$current.succ.foragers==0,] #No instances of just a 0 without brackets, so no need to change anything in the column
+
+min(grep("0", q.data.forage$current.succ.foragers, fixed=T)) # shows numerical index of all the rows where current.succ.foragers contains a zero - the minimum value within each model run should be the first time the producer accessed the food patch
+
+
+qdf.fed = data.frame()
+n.loops = length(unique(q.data.forage$run.num))
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
+
+for (i in unique(q.data.forage$run.num)) {
+  setTxtProgressBar(pb,i)#update progress bar
+  
+  mod.run = q.data.forage[q.data.forage$run.num==i,] # subset with data from one model run
+  first.access = min(grep("0", mod.run$current.succ.foragers, fixed=T)) # index (row number) of the first time step in which the producer ate in the current model run
+  
+  mod.run.fed = mod.run[first.access:nrow(mod.run),] # subset of mod.run taking only rows from first.access to the end of mod.run (all the time steps after the producer first ate)
+  qdf.fed = rbind(qdf.fed, mod.run.fed) # save subset in external dataframe  
+}#end of loop
+
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time
+
+
+
+prox.count.for = qdf.fed %>% 
   pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
                names_to = "prox", values_to = "prox.ID") 
 
-nrow(q.data.forage)*30 == nrow(prox.count.for)#if TRUE prox.count.for has the correct number of rows
+nrow(qdf.fed)*30 == nrow(prox.count.for)#if TRUE prox.count.for has the correct number of rows
 
 prox.count.for = tibble::add_column(prox.count.for, prox.key = "NA", .after = "prox")
 

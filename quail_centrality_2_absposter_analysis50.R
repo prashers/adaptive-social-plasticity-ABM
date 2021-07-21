@@ -189,18 +189,6 @@ hist(prox.postXpre[prox.postXpre$combo.num == 5,]$postXpre.str)#, breaks = seq(0
 
 
 
-#finding medians of network metric differences for each run:
-#pfxp.med = prox.forXpre %>% 
-#  group_by(combo.num, run.num) %>% 
-#      summarize(n=n(), med.deg = median(forXpre.deg), med.str = median(forXpre.str)) #EACH RUN ONLY HAS ONE DIFFERENCE VALUE FOR DEGREE AND STRENGTH, SO I THINK I JUST NEED TO TAKE THE MEDIAN FOR EACH COMBO NUMBER
-
-#pfxp.mean = pfxp.med %>% 
-#  group_by(combo.num) %>% 
-#  summarize(n=n(), mean.deg=mean(med.deg), mean.str = mean(med.str))
-
-#pfxp.mean = merge(pfxp.mean, prox.forXpre[,4:7], by = "combo.num")
-
-
 #finding medians of network metric differences between foraging and pre-foraging phases for each combo:
 pfxp.med = prox.forXpre %>% 
     group_by(combo.num) %>% 
@@ -219,6 +207,8 @@ ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg
   theme_minimal()
 
 
+
+pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
 pdf("StrengthForxPre_scaled.pdf", width=7, height=13)
 
 #plot of median difference in producer strength between foraging and pre-foraging phases 
@@ -227,7 +217,8 @@ ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  scale_fill_gradient(low="white", high="blue", breaks=c(-400, 0, 400), limits=c(-400, 500)) +
+  #  scale_fill_gradient(low="white", high="blue", breaks=c(-150, 0, 400), limits=c(-150, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
+  scale_fill_gradientn(colours = pal(100), breaks=c(-125, 0, 400), limits=c(-125, 500)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 
@@ -262,7 +253,8 @@ ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  scale_fill_gradient(low="white", high="blue", breaks=c(-400, 0, 400), limits=c(-400, 500)) +
+#  scale_fill_gradient(low="white", high="blue", breaks=c(-150, 0, 400), limits=c(-150, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
+  scale_fill_gradientn(colours = pal(100), breaks=c(-125, 0, 400), limits=c(-125, 500)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 
@@ -298,7 +290,8 @@ ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  scale_fill_gradient(low="white", high="blue", breaks=c(-400, 0, 400), limits=c(-400, 500)) +
+  #  scale_fill_gradient(low="white", high="blue", breaks=c(-150, 0, 400), limits=c(-150, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
+  scale_fill_gradientn(colours = pal(100), breaks=c(-125, 0, 400), limits=c(-125, 500)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 
@@ -312,9 +305,8 @@ dev.off()
 
 
 # I THINK I NEED SCALE OF COLOR GRADIENT TO BE CONSISTENT ACROSS THE THREE PLOTS, SO IT IS POSSIBLE TO COMPARE THE RELATIVE DIFFERENCES BETWEEN PHASES
-# LOWEST STRENGTH DIFFERENCE ACROSS ALL PHASE PAIRS IS -376 AND HIGHEST IS 496
-# MAKE THE LEGEND GO FROM -400 TO 500
-
+# LOWEST MEDIAN STRENGTH DIFFERENCE ACROSS ALL PHASE PAIRS IS -121 AND HIGHEST IS 440
+# MAKE THE LEGEND GO FROM -125 TO 500
 
 
 
