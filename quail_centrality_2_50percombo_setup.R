@@ -329,7 +329,8 @@ unique(prox.summ.for$prox.ID)
 
 View(prox.summ.for)
 ### prox.summ.for contains the counts of how many time steps each agent was in proximity to each other agent during the foraging phase
-write.csv(prox.summ.for, "prox_summ_for50.csv")
+#write.csv(prox.summ.for, "prox_summ_for50.csv")
+write.csv(prox.summ.for, "prox_summ_for50_fed.csv")
 
 
 
@@ -378,7 +379,7 @@ write.csv(prox.summ.post, "prox_summ_post50.csv")
 
 
 
-
+#SKIPPING THIS FOR ABS POSTER - ONLY PRESENTING ON PROXIMITY NETWORK CENTRALITY
 ###FOLLOWING network: PRE-foraging phase###
 # AGENTS DON'T FOLLOW IN THE PRE-FORAGING PHASE BECAUSE NO ONE HAS FORAGED YET
 # I ran the code anyway and it does not return any counts as expected
