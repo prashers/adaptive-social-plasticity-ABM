@@ -11,11 +11,17 @@ matrix.please <- function(x) {
 }
 
 
+q.data.pre = read.csv("q_data_pre50.csv", header=T)
+qdf.fed = read.csv("qdf_fed.csv", header=T)
+q.data.post = read.csv("q_data_post50.csv", header=T)
+
+
 ######PROXIMITY######
 prox.summ.pre = read.csv("prox_summ_pre50.csv", header=T) #edge list for PRE-foraging period - contains data from all runs
 prox.summ.pre = prox.summ.pre[,-1]
 
-prox.summ.for = read.csv("prox_summ_for50.csv", header=T) #edge list for foraging period - contains data from all runs
+#prox.summ.for = read.csv("prox_summ_for50.csv", header=T) #edge list for foraging period - contains data from all runs
+prox.summ.for = read.csv("prox_summ_for50_fed.csv", header=T) #edge list for foraging period, counting only time steps after producer has first fed - contains data from all runs
 prox.summ.for = prox.summ.for[,-1]
 
 prox.summ.post = read.csv("prox_summ_post50.csv", header=T) #edge list for POST-foraging period - contains data from all runs
@@ -24,7 +30,7 @@ prox.summ.post = prox.summ.post[,-1]
 
 ###PROXIMITY network: PRE-foraging phase###
 
-prox.summ.pre.letters = as.data.frame(ungroup(prox.summ.pre))
+prox.summ.pre.letters = as.data.frame(prox.summ.pre)
 for (i in 0:5) { #Loop to replace numbers in prox.ID column with letters 
   j = c("A","B","C","D","E","F")
   prox.summ.pre.letters[prox.summ.pre.letters$prox.ID == i,]$prox.ID = j[i+1]
@@ -45,10 +51,10 @@ for (i in unique(prox.summ.pre.letters$run.num)) {
   current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=0)
   current.matrix.half[is.na(current.matrix.half)] = 0
   eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
-  #igraph::E(eg)$weight #weights exist in the igraph object
+  igraph::E(eg)$norm.weight = igraph::E(eg)$weight/nrow(q.data.pre[q.data.pre$run.num == i,]) #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase)
   
   current.degree = igraph::degree(eg)
-  current.strength = igraph::strength(eg) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
+  current.strength = igraph::strength(eg, weights = igraph::E(eg)$norm.weight) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
   
   current.metrics = cbind(current.degree,current.strength)
   
@@ -60,14 +66,14 @@ for (i in unique(prox.summ.pre.letters$run.num)) {
 timestamp()
 View(prox.metrics.pre) #check 
 summary(prox.metrics.pre$A.deg)#Max degree should be 5, max strength should be 500 because each individual can be in proximity with each of the other 5 agents for all 100 time steps in each phase (it's ok if these maximums are not reached though)
-
+summary(prox.metrics.pre$A.str)
 
 
 
 
 ###PROXIMITY network: foraging phase###
 
-prox.summ.for.letters = as.data.frame(ungroup(prox.summ.for))
+prox.summ.for.letters = as.data.frame(prox.summ.for)
 for (i in 0:5) { #Loop to replace numbers in prox.ID column with letters 
   j = c("A","B","C","D","E","F")
   prox.summ.for.letters[prox.summ.for.letters$prox.ID == i,]$prox.ID = j[i+1]
@@ -87,10 +93,10 @@ for (i in unique(prox.summ.for.letters$run.num)) {
   current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=0)
   current.matrix.half[is.na(current.matrix.half)] = 0
   eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
-  #igraph::E(eg)$weight #weights exist in the igraph object
+  igraph::E(eg)$norm.weight = igraph::E(eg)$weight/nrow(qdf.fed[qdf.fed$run.num == i,]) #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase)
   
   current.degree = igraph::degree(eg)
-  current.strength = igraph::strength(eg) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
+  current.strength = igraph::strength(eg, weights = igraph::E(eg)$norm.weight) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
   
   current.metrics = cbind(current.degree,current.strength)
   
@@ -99,10 +105,10 @@ for (i in unique(prox.summ.for.letters$run.num)) {
   }
   
 }
-
+timestamp()
 View(prox.metrics.for) #check 
 summary(prox.metrics.for$A.deg)#Max degree should be 5, max strength should be 500 because each individual can be in proximity with each of the other 5 agents for all 100 time steps in each phase (it's ok if these maximums are not reached though)
-
+summary(prox.metrics.for$A.str)
 
 
 
@@ -129,10 +135,10 @@ for (i in unique(prox.summ.post.letters$run.num)) {
   current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=0)
   current.matrix.half[is.na(current.matrix.half)] = 0
   eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
-  #igraph::E(eg)$weight #weights exist in the igraph object
+  igraph::E(eg)$norm.weight = igraph::E(eg)$weight/nrow(q.data.post[q.data.post$run.num == i,]) #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase)
   
   current.degree = igraph::degree(eg)
-  current.strength = igraph::strength(eg) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
+  current.strength = igraph::strength(eg, weights = igraph::E(eg)$norm.weight) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
   
   current.metrics = cbind(current.degree,current.strength)
   
@@ -141,9 +147,10 @@ for (i in unique(prox.summ.post.letters$run.num)) {
   }
   
 }
+timestamp()
 View(prox.metrics.post) #check 
 summary(prox.metrics.post$A.deg) #Max degree should be 5, max strength should be 500 because each individual can be in proximity with each of the other 5 agents for all 100 time steps in each phase (it's ok if these maximums are not reached though)
-
+summary(prox.metrics.post$A.str)
 
 
 
@@ -181,8 +188,10 @@ prox.postXpre = merge(prox.postXpre, uniq.qdo, by = "run.num") #adds mem, att, p
 #summarize data (median) for each variable combination before making heat maps
 #check distribution of network metric differences for each variable combination to see how to proceed with summarizing the data
 #If the data are skewed it is better to summarize it using the median
+par(mfrow=c(2,2))
+
 hist(prox.forXpre[prox.forXpre$combo.num == 55,]$forXpre.deg)
-hist(prox.forXpre[prox.forXpre$combo.num == 55,]$forXpre.str)#, breaks = seq(0, 500, 20))
+hist(prox.forXpre[prox.forXpre$combo.num == 125,]$forXpre.str)#, breaks = seq(0, 500, 20))
 
 hist(prox.postXpre[prox.postXpre$combo.num == 5,]$postXpre.deg)
 hist(prox.postXpre[prox.postXpre$combo.num == 5,]$postXpre.str)#, breaks = seq(0, 500, 20))
@@ -217,8 +226,8 @@ ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  #  scale_fill_gradient(low="white", high="blue", breaks=c(-150, 0, 400), limits=c(-150, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
-  scale_fill_gradientn(colours = pal(100), breaks=c(-125, 0, 400), limits=c(-125, 500)) +
+  #  scale_fill_gradient(low="white", high="blue", breaks=c(-125, 0, 400), limits=c(-125, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
+  scale_fill_gradientn(colours = pal(100), breaks=c(-2.75, 0, 4.3), limits=c(-2.75, 4.3)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 
@@ -253,8 +262,8 @@ ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-#  scale_fill_gradient(low="white", high="blue", breaks=c(-150, 0, 400), limits=c(-150, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
-  scale_fill_gradientn(colours = pal(100), breaks=c(-125, 0, 400), limits=c(-125, 500)) +
+#  scale_fill_gradient(low="white", high="blue", breaks=c(-125, 0, 400), limits=c(-125, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
+  scale_fill_gradientn(colours = pal(100), breaks=c(-2.75, 0, 4.3), limits=c(-2.75, 4.3)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 
@@ -290,8 +299,8 @@ ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str
   labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
   facet_grid(rows=vars(memory)) +
   geom_tile() +
-  #  scale_fill_gradient(low="white", high="blue", breaks=c(-150, 0, 400), limits=c(-150, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
-  scale_fill_gradientn(colours = pal(100), breaks=c(-125, 0, 400), limits=c(-125, 500)) +
+  #  scale_fill_gradient(low="white", high="blue", breaks=c(-125, 0, 400), limits=c(-125, 500)) + #including these 'breaks' and 'limits' arguments allows for same scale across the plots
+  scale_fill_gradientn(colours = pal(100), breaks=c(-2.75, 0, 4.3), limits=c(-2.75, 4.3)) +
   theme_minimal() +
   theme(aspect.ratio=1, text=element_text(size=15))
 

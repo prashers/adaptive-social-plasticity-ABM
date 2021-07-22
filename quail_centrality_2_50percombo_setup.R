@@ -300,6 +300,7 @@ end.time = Sys.time()
 run.time = end.time - start.time
 run.time
 
+write.csv(qdf.fed, "qdf_fed.csv")
 
 
 prox.count.for = qdf.fed %>% 
