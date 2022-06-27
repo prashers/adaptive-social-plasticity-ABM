@@ -61,26 +61,25 @@ for(i in group.sizes){ #Proximity network
     
     current.matrix = current.edge.list %>% reshape2::dcast(prox.key ~ prox.ID) 
     current.matrix = matrix.please(current.matrix)
-    current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=0)
-    current.matrix.half[is.na(current.matrix.half)] = 0
+    current.matrix = current.matrix[,!(colnames(current.matrix) %in% "111")]
+
     
-    if (sum(!(LETTERS[1:i] %in% rownames(current.matrix.half))) > 0) { #if there is at least one individual missing from current.matrix.half
+    if (sum(!(LETTERS[1:i] %in% colnames(current.matrix))) > 0) { #if there is at least one individual missing from current.matrix
       
-      missing.indiv = LETTERS[which(!(LETTERS[1:i] %in% rownames(current.matrix.half)))] # determine which individual(s) is/are missing
+      missing.indiv = LETTERS[which(!(LETTERS[1:i] %in% colnames(current.matrix)))] # determine which individual(s) is/are missing
       
       for(k in missing.indiv) { #add a row and column to the matrix for each missing individual
-        ind.vec = rep(0, nrow(current.matrix.half))
-        current.matrix.half = cbind(current.matrix.half, ind.vec)
-        colnames(current.matrix.half)[colnames(current.matrix.half) == "ind.vec"] = k
-        
-        ind.vec = rep(0, ncol(current.matrix.half))
-        current.matrix.half = rbind(current.matrix.half, ind.vec)
-        rownames(current.matrix.half)[rownames(current.matrix.half) == "ind.vec"] = k
+        ind.vec = rep(0, nrow(current.matrix))
+        current.matrix = cbind(current.matrix, ind.vec)
+        colnames(current.matrix)[colnames(current.matrix) == "ind.vec"] = k
       }
     }
     
+    current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=0)
+    current.matrix.half[is.na(current.matrix.half)] = 0
+    
     eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
-    igraph::E(eg)$norm.weight = igraph::E(eg)$weight/300 #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase)
+    igraph::E(eg)$norm.weight = igraph::E(eg)$weight/100 #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase)
     
     current.degree = igraph::degree(eg)
     current.strength = igraph::strength(eg, weights = igraph::E(eg)$norm.weight) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
@@ -91,9 +90,9 @@ for(i in group.sizes){ #Proximity network
     
   }
   
-  View(prox.metrics.pre) #check 
-  length(prox.metrics.pre$run.num) #should have all run.numbers present 
-  summary(prox.metrics.pre$A.deg)#Max degree should be 5, max strength should be 500 because each individual can be in proximity with each of the other 5 agents for all 100 time steps in each phase (it's ok if these maximums are not reached though)
-  summary(prox.metrics.pre$A.str)
+  #View(prox.metrics.pre) #check 
+  #length(prox.metrics.pre$run.num) #should have all run.numbers present 
+  #summary(prox.metrics.pre$A.deg)#Max degree should be 1 less than group size, max strength should be 500 because each individual can be in proximity with each of the other 5 agents for all 100 time steps in each phase (it's ok if these maximums are not reached though)
+  #summary(prox.metrics.pre$A.str)
    
 }

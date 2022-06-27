@@ -185,6 +185,9 @@ run.time # ran in 3.25 minutes for 5 runs per combo
 group.sizes = unique(q.data.ord$group.size)
 rm(q.data.ord, split.prox, split.proximIDs, x, loop.data)
 
+#START HERE IF RE-RUNNING WITH EMPTY R ENVIRONMENT AFTER SAVING q_data_split files
+group.sizes = c(3, 6, 10, 15, 20)
+
 prox.labels = vector() #I use this in the next big loop to fill in the 'prox.key' column
 for(i in 1:20) {
   temp.labels = paste0("prox", letters[i])
