@@ -25,8 +25,8 @@ q.data.full = q.data.full[,!(names(q.data.full) %in% c("memory.succ.foragers", "
 
 names(q.data.full)
 
-#Column info:
-# "X.run.number." is the model run ID - in this case, there is a unique number for each parameter combination 
+#Remaining column info:
+# "X.run.number." is the model run ID - a different number for each run of the model. the first 50 should be for the first combination of parameters 
 # "group.size" is one of the five parameters that can vary between run IDs
   #It sets the number of agents for each model run
 # "memory" is one of the five parameters that can vary between run IDs. 
@@ -68,7 +68,7 @@ num.combos = nrow(unique(q.data.ord[,2:6])) #number of unique group.size, mem, a
 # I want to add a column that tells me the combo number (1:1250)
 
 nrow(q.data.ord[q.data.ord$group.size==3 & q.data.ord$memory == 0 & q.data.ord$attention == 0 & q.data.ord$preference == 0 & q.data.ord$approach.food=="false",]) # every combo has 1505 rows
-q.data.ord[rownames(q.data.ord) == 3011, colnames(q.data.ord) %in% c("group.size", "memory", "attention", "preference", "approach.food")] #checking whether combo changes every 1505 rows
+q.data.ord[rownames(q.data.ord) == 1506, colnames(q.data.ord) %in% c("group.size", "memory", "attention", "preference", "approach.food")] #checking whether combo changes every 1505 rows
 
 combo = vector()
 for (i in 1:num.combos) {
@@ -98,14 +98,12 @@ q.data.ord[q.data.ord$ticks %in% 201:300,]$phase = "post-forage"
 ### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns
 ### need to separate data into different dataframes for each group size, because that will influence how many columns that data is split into
 
-n.loops = length(unique(q.data.ord$group.size))
+n.loops = max(unique(q.data.ord$group.size))
 pb = txtProgressBar(min=0, max = n.loops, style=3)
 start.time = Sys.time()
 
 
 for (i in unique(q.data.ord$group.size)) {
-  
-  setTxtProgressBar(pb,i)#update progress bar
   
   loop.data = q.data.ord[q.data.ord$group.size==i,] #subset of data for current group size
   
@@ -173,10 +171,13 @@ for (i in unique(q.data.ord$group.size)) {
   }
   
   
+  
+  setTxtProgressBar(pb,i)#update progress bar
+  
 } #end of big loop
 end.time = Sys.time()
 run.time = end.time - start.time
-run.time
+run.time # ran in 3.25 minutes for 5 runs per combo
 
 
 
@@ -196,13 +197,11 @@ library(tidyr)
 library(dplyr)
 
 
-n.loops = length(group.sizes)
+n.loops = max(group.sizes)
 pb = txtProgressBar(min=0, max = n.loops, style=3)
 start.time = Sys.time()
 
 for(i in group.sizes){
-  
-  setTxtProgressBar(pb,i)#update progress bar
   
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
@@ -276,8 +275,13 @@ for(i in group.sizes){
   prox.count.pre = prox.count.pre %>% 
     group_by(run.num, memory, attention, preference, approach.food, prox.key, prox.ID) %>% 
     summarize(n = n()) 
-  prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),]
+  
+  #prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),] #using complete.cases like this removes a lot of runs in which agents were never near each other
   #unique(prox.count.pre$prox.ID)
+  #range(prox.count.pre$n) #WHY IS THE MAX 200? Max is 200 because it is counting 100 rows for each proxa/proxb... column
+  prox.count.pre[prox.count.pre$n == max(prox.count.pre$n) & is.na(prox.count.pre$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
+  prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),]#then remove unnecessary rows
+  #length(unique(prox.count.pre$run.num)) #now prox.count.pre contains all run.num values
   
   #View(prox.count.pre)
   ### prox.count.pre contains the counts of how many time steps each agent was in proximity to each other agent during the PRE-FORAGING phase
@@ -311,13 +315,13 @@ for(i in group.sizes){
 #  start.time = Sys.time()
   
 #  for (i in unique(q.data.forage$run.num)) {
-    setTxtProgressBar(pb,i)#update progress bar
-    
-    mod.run = q.data.forage[q.data.forage$run.num==i,] # subset with data from one model run
-    first.access = min(grep("0", mod.run$current.succ.foragers, fixed=T)) # index (row number) of the first time step in which the producer ate in the current model run
-    
-    mod.run.fed = mod.run[first.access:nrow(mod.run),] # subset of mod.run taking only rows from first.access to the end of mod.run (all the time steps after the producer first ate)
-    qdf.fed = rbind(qdf.fed, mod.run.fed) # save subset in external dataframe  
+#    setTxtProgressBar(pb,i)#update progress bar
+#    
+#    mod.run = q.data.forage[q.data.forage$run.num==i,] # subset with data from one model run
+#    first.access = min(grep("0", mod.run$current.succ.foragers, fixed=T)) # index (row number) of the first time step in which the producer ate in the current model run
+#    
+#    mod.run.fed = mod.run[first.access:nrow(mod.run),] # subset of mod.run taking only rows from first.access to the end of mod.run (all the time steps after the producer first ate)
+#    qdf.fed = rbind(qdf.fed, mod.run.fed) # save subset in external dataframe  
   
 #    }#end of loop
   
@@ -355,8 +359,12 @@ for(i in group.sizes){
   prox.count.for = prox.count.for %>% 
     group_by(run.num, memory, attention, preference, approach.food, prox.key, prox.ID) %>% 
     summarize(n = n()) 
-  prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]
+  #prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]
   #unique(prox.count.for$prox.ID)
+  #range(prox.count.for$n)
+  prox.count.for[prox.count.for$n == max(prox.count.for$n) & is.na(prox.count.for$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
+  prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]#then remove unnecessary rows
+  #length(unique(prox.count.for$run.num)) #now prox.count.for contains all run.num values
 
   #View(prox.count.for)
   ### prox.count.for contains the counts of how many time steps each agent was in proximity to each other agent during the FORAGING phase
@@ -369,6 +377,8 @@ for(i in group.sizes){
 
 
 ###PROXIMITY network: POST-foraging phase###  
+  rm(prox.count.for)
+  
   
   prox.count.post = q.data.post %>% 
     pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
@@ -397,8 +407,12 @@ for(i in group.sizes){
   prox.count.post = prox.count.post %>% 
     group_by(run.num, memory, attention, preference, approach.food, prox.key, prox.ID) %>% 
     summarize(n = n()) 
-  prox.count.post = prox.count.post[complete.cases(prox.count.post$prox.ID),]
+  #prox.count.post = prox.count.post[complete.cases(prox.count.post$prox.ID),]
   #unique(prox.count.post$prox.ID)
+  #range(prox.count.post$n)
+  prox.count.post[prox.count.post$n == max(prox.count.post$n) & is.na(prox.count.post$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
+  prox.count.post = prox.count.post[complete.cases(prox.count.post$prox.ID),]#then remove unnecessary rows
+  #length(unique(prox.count.post$run.num)) #now prox.count.post contains all run.num values
   
   #View(prox.count.post)
   ### prox.count.post contains the counts of how many time steps each agent was in proximity to each other agent during the POST-FORAGING phase
@@ -406,13 +420,16 @@ for(i in group.sizes){
   #save it as a csv to save space in the R workspace
   write.csv(prox.count.post, "prox_count_post50.csv")
 
+  rm(prox.count.post)
   
+  
+  setTxtProgressBar(pb,i)#update progress bar
   
 }#end of second big loop
   
 end.time = Sys.time()
 run.time = end.time - start.time
-run.time  
+run.time # ran in 6 minutes for 5 runs per combo
 
 
 
