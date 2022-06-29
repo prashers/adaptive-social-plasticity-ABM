@@ -155,22 +155,22 @@ for (i in unique(q.data.ord$group.size)) {
   #View(q.data.split)
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
-    write.csv(q.data.split, "q_data_split_grpsz3.csv")
+    
   } else if(i==6) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_6")
-    write.csv(q.data.split, "q_data_split_grpsz6.csv")
+    
   } else if(i==10) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_10")
-    write.csv(q.data.split, "q_data_split_grpsz10.csv")
+    
   } else if(i==15) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_15")
-    write.csv(q.data.split, "q_data_split_grpsz15.csv")
+    
   } else if(i==20) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_20")
-    write.csv(q.data.split, "q_data_split_grpsz20.csv")
+    
   }
   
-  
+  write.csv(q.data.split, "q_data_split.csv")
   
   setTxtProgressBar(pb,i)#update progress bar
   
@@ -208,27 +208,23 @@ for(i in group.sizes){
   
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
-    q.data.split = read.csv("q_data_split_grpsz3.csv", header=T)
-    q.data.split = q.data.split[,-1]
+    
   } else if(i==6) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_6")
-    q.data.split = read.csv("q_data_split_grpsz6.csv", header=T)
-    q.data.split = q.data.split[,-1]
+    
   } else if(i==10) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_10")
-    q.data.split = read.csv("q_data_split_grpsz10.csv", header=T)
-    q.data.split = q.data.split[,-1]
+    
   } else if(i==15) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_15")
-    q.data.split = read.csv("q_data_split_grpsz15.csv", header=T)
-    q.data.split = q.data.split[,-1]
+    
   } else if(i==20) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_20")
-    q.data.split = read.csv("q_data_split_grpsz20.csv", header=T)
-    q.data.split = q.data.split[,-1]
+    
   }
   
-  
+  q.data.split = read.csv("q_data_split.csv", header = T)
+  q.data.split = q.data.split[,-1]
   
   # MATRIX WILL CONTAIN COUNTS OF HOW MANY TIME STEPS EACH DYAD WAS IN PROXIMITY (FOR PROXIMITY NETWORK) 
   # WILL HAVE A MATRIX FOR EACH PHASE WITHIN EACH MODEL RUN
