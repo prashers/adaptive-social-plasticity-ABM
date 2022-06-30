@@ -47,7 +47,7 @@ metrics.func = function(func.df) {
     current.matrix.half[is.na(current.matrix.half)] = 0
     
     eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
-    igraph::E(eg)$norm.weight = igraph::E(eg)$weight/100 #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase)
+    igraph::E(eg)$norm.weight = igraph::E(eg)$weight/100 #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase - THIS IS ONLY NECESSARY IF YOU REMOVE TIME STEPS IN FORAGING PHASE BEFORE THE PRODUCER FIRST FORAGED)
     
     current.degree = igraph::degree(eg)
     current.strength = igraph::strength(eg, weights = igraph::E(eg)$norm.weight) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
@@ -126,6 +126,9 @@ run.time # ran in 47 seconds for 5 runs per combo
 rm(pb, prox.count.pre, prox.count.for, prox.count.post, prox.metrics.out)
 
 
+n.loops = max(group.sizes)
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
 
 for(i in group.sizes){ #Proximity network
   
@@ -142,7 +145,7 @@ for(i in group.sizes){ #Proximity network
   }
  
   
-  to.read = list.files()[10] # 10th file in the working directory should be q_data_split for that group size (make sure files written in this loop are not already in the working directory)
+  #to.read = list.files()[10] # 10th file in the working directory should be q_data_split for that group size (make sure files written in this loop are not already in the working directory)
   q.data.split = read.csv("q_data_split.csv", header=T)[, -c(1, 14:393)] #exclude proximity columns (goes up to 393 for group size of 20)
   
   prox.metrics.pre = read.csv("prox_metrics_pre.csv", header = T)
@@ -155,7 +158,7 @@ for(i in group.sizes){ #Proximity network
   uniq.qds = unique(q.data.split[,c("run.num", "group.size", "memory", "attention", "preference", "approach.food", "combo.num")]) #data frame containing unique combinations of model parameters 
   
   
-  prox.forXpre = data.frame(run.num = seq(1:nrow(prox.metrics.pre))) # data frame for differences between foraging and pre-foraging phases
+  prox.forXpre = data.frame(run.num = uniq.qds$run.num) # data frame for differences between foraging and pre-foraging phases
   prox.forXpre$forXpre.deg = prox.metrics.for$A.deg - prox.metrics.pre$A.deg # differences in degree
   prox.forXpre$forXpre.str = prox.metrics.for$A.str - prox.metrics.pre$A.str # differences in strength
   
@@ -166,7 +169,7 @@ for(i in group.sizes){ #Proximity network
   write.csv(prox.forXpre, "prox_forxpre.csv")
   
   
-  prox.postXfor = data.frame(run.num = seq(1:nrow(prox.metrics.for))) # data frame for differences between post-foraging and foraging phases
+  prox.postXfor = data.frame(run.num = uniq.qds$run.num) # data frame for differences between post-foraging and foraging phases
   prox.postXfor$postXfor.deg = prox.metrics.post$A.deg - prox.metrics.for$A.deg # differences in degree
   prox.postXfor$postXfor.str = prox.metrics.post$A.str - prox.metrics.for$A.str # differences in strength
   
@@ -175,7 +178,7 @@ for(i in group.sizes){ #Proximity network
   write.csv(prox.postXfor, "prox_postxfor.csv")
   
   
-  prox.postXpre = data.frame(run.num = seq(1:nrow(prox.metrics.pre))) # data frame for differences between post-foraging and pre-foraging phases
+  prox.postXpre = data.frame(run.num = uniq.qds$run.num) # data frame for differences between post-foraging and pre-foraging phases
   prox.postXpre$postXpre.deg = prox.metrics.post$A.deg - prox.metrics.pre$A.deg # differences in degree
   prox.postXpre$postXpre.str = prox.metrics.post$A.str - prox.metrics.pre$A.str # differences in strength
   
@@ -183,5 +186,10 @@ for(i in group.sizes){ #Proximity network
   
   write.csv(prox.postXpre, "prox_postxpre.csv")
   
-  
+  setTxtProgressBar(pb,i)#update progress bar
 }
+
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time
+

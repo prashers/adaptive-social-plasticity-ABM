@@ -177,7 +177,7 @@ for (i in unique(q.data.ord$group.size)) {
 } #end of big loop
 end.time = Sys.time()
 run.time = end.time - start.time
-run.time # ran in 3.25 minutes for 5 runs per combo
+run.time # ran in 3.5 minutes for 5 runs per combo
 
 
 
