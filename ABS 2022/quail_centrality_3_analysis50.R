@@ -24,22 +24,29 @@ metrics.func = function(func.df) {
   
   
   for (j in unique(prox.count$run.num)) {
+    #print(paste(i, j, sep = "-"))
     current.edge.list = prox.count[prox.count$run.num==j, names(prox.count) %in% c("prox.key", "prox.ID", "n")] #subset of prox.summ.pre giving the edge list for the current run.num
     #eg = igraph::graph_from_data_frame(current.edge.list, directed = FALSE) # this way was doubling the degrees
     
     current.matrix = current.edge.list %>% reshape2::dcast(prox.key ~ prox.ID, value.var = "n") 
     current.matrix = matrix.please(current.matrix)
-    current.matrix = current.matrix[,!(colnames(current.matrix) %in% "111")]
+    current.matrix = current.matrix[,!(colnames(current.matrix) %in% c("111", ""))]
     
     
     if (sum(!(LETTERS[1:i] %in% colnames(current.matrix))) > 0) { #if there is at least one individual missing from current.matrix
       
       missing.indiv = LETTERS[which(!(LETTERS[1:i] %in% colnames(current.matrix)))] # determine which individual(s) is/are missing
       
-      for(k in missing.indiv) { #add a row and column to the matrix for each missing individual
+      for(k in missing.indiv) { #add a column to the matrix for each missing individual
         ind.vec = rep(0, nrow(current.matrix))
         current.matrix = cbind(current.matrix, ind.vec)
         colnames(current.matrix)[colnames(current.matrix) == "ind.vec"] = k
+        
+        #if (!(nrow(current.matrix) == i)){ # add a row for the missing individual if - I think some runs lost an individual when I removed rows with NAs in the prox.ID column (see setup script - the part where I make the prox_count_pre/for/post files)
+        #  ind.vec = rep(0, ncol(current.matrix))
+        #  current.matrix = rbind(current.matrix, ind.vec)
+        #  rownames(current.matrix)[colnames(current.matrix) == "ind.vec"] = k
+        #}
       }
     }
     
@@ -47,7 +54,7 @@ metrics.func = function(func.df) {
     current.matrix.half[is.na(current.matrix.half)] = 0
     
     eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
-    igraph::E(eg)$norm.weight = igraph::E(eg)$weight/100 #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase - THIS IS ONLY NECESSARY IF YOU REMOVE TIME STEPS IN FORAGING PHASE BEFORE THE PRODUCER FIRST FORAGED)
+    igraph::E(eg)$norm.weight = igraph::E(eg)$weight/nrow(q.data[q.data$run.num == j,]) #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase - THIS IS ONLY NECESSARY IF YOU REMOVE TIME STEPS IN FORAGING PHASE BEFORE THE PRODUCER FIRST FORAGED)
     
     current.degree = igraph::degree(eg)
     current.strength = igraph::strength(eg, weights = igraph::E(eg)$norm.weight) #, weights = current.edge.list$n) #don't need 'weights' argument if igraph object has edge weights attribute already
@@ -85,11 +92,6 @@ for(i in group.sizes){ #Proximity network
   }
  
   
-#  q.data.pre = read.csv("q_data_pre50.csv", header=T)
-#  q.data.for = read.csv("q_data_forage50.csv", header=T)
-#  #qdf.fed = read.csv("qdf_fed.csv", header=T)
-#  q.data.post = read.csv("q_data_post50.csv", header=T)
-  
   prox.count.pre = read.csv("prox_count_pre50.csv", header=T) #edge list for PRE-foraging period - contains data from all runs
   prox.count.pre = prox.count.pre[,-1]
   
@@ -101,17 +103,24 @@ for(i in group.sizes){ #Proximity network
   prox.count.post = prox.count.post[,-1]
   
   
+  q.data = read.csv("q_data_pre50.csv", header=T)
   prox.metrics.out = data.frame()
   metrics.func(prox.count.pre) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_pre.csv")
+  rm(q.data)
   
+  #  q.data.for = read.csv("q_data_forage50.csv", header=T)
+  q.data = read.csv("qdf_fed.csv", header=T)
   prox.metrics.out = data.frame()
   metrics.func(prox.count.for) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_for.csv")
+  rm(q.data)
   
+  q.data = read.csv("q_data_post50.csv", header=T)
   prox.metrics.out = data.frame()
   metrics.func(prox.count.post) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_post.csv")
+  rm(q.data)
   
   
   setTxtProgressBar(pb,i)#update progress bar
@@ -120,7 +129,7 @@ for(i in group.sizes){ #Proximity network
 
 end.time = Sys.time()
 run.time = end.time - start.time
-run.time # ran in 47 seconds for 5 runs per combo
+run.time # ran in 4 minutes for 5 runs per combo
 
 
 rm(pb, prox.count.pre, prox.count.for, prox.count.post, prox.metrics.out)
@@ -191,5 +200,5 @@ for(i in group.sizes){ #Proximity network
 
 end.time = Sys.time()
 run.time = end.time - start.time
-run.time
+run.time #36 seconds for 5 runs per combo
 

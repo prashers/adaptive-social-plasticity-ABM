@@ -277,7 +277,8 @@ for(i in group.sizes){
   
   #prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),] #using complete.cases like this removes a lot of runs in which agents were never near each other
   #unique(prox.count.pre$prox.ID)
-  #range(prox.count.pre$n) #WHY IS THE MAX 200? Max is 200 because it is counting 100 rows for each proxa/proxb... column
+  #range(prox.count.pre$n) #WHY IS THE MAX 200? Max is 200 for a group of 3 because it is counting 100 rows for each proxa/proxb... column
+  prox.count.pre$prox.ID = as.numeric(prox.count.pre$prox.ID)
   prox.count.pre[prox.count.pre$n == max(prox.count.pre$n) & is.na(prox.count.pre$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
   prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),]#then remove unnecessary rows
   #length(unique(prox.count.pre$run.num)) #now prox.count.pre contains all run.num values
@@ -298,49 +299,47 @@ for(i in group.sizes){
   rm(prox.count.pre)# remove prox.count.pre from environment to save memory
   
   
-  #USE THE CODE COMMENTED OUT HERE IF YOU WANT TO ONLY COUNT PROXIMITIES DURING THE PERIOD AFTER THE PRODUCER HAS FIRST ACCESSED THE FOOD PATCH
-  #IF YOU DO NOT USE THE FULL FORAGING PHASE, NUMBER OF TIME STEPS IN PROXIMITY COULD BE LOWER THAN IN OTHER PHASES BECAUSE YOU ARE REDUCING THE MAXIMUM POSSIBLE COUNT TO LESS THAN 100
-  #BUT IF YOU USE THE FULL FORAGING PHASE, SOME OF THE TOTAL COUNT OF PROXIMITIES IS NOT RELATED TO ANY FOLLOWING THAT THE AGENTS MIGHT BE DOING (I THINK THIS IS THE CASE NO MATTER WHAT THOUGH, EXCEPT WHEN PARAMETERS ARE MAXED OUT)
   
 #  #For each run, remove rows before the producer first accesses food so we can see effects during period that agents can actually be foraging/following 
-#  #q.data.forage[q.data.forage$current.succ.foragers==0,] #No instances of just a 0 without brackets, so no need to change anything in the column
+#  #this reduces the total number of time steps that can be counted toward the number of time steps that an agent foraged in the foraging phase, but I deal with that by standardizing edge weights by the number of total time steps in each phase (see analysis R script)
+   #q.data.forage[q.data.forage$current.succ.foragers==0,] #No instances of just a 0 without brackets, so no need to change anything in the column
   
 #  #min(grep("0", q.data.forage$current.succ.foragers, fixed=T)) # shows numerical index of all the rows where current.succ.foragers contains a zero - the minimum value within each model run should be the first time the producer accessed the food patch
   
   
-#  qdf.fed = data.frame()
-#  n.loops = length(unique(q.data.forage$run.num))
-#  pb = txtProgressBar(min=0, max = n.loops, style=3)
+  qdf.fed = data.frame()
+#  n.loops = max(unique(q.data.forage$run.num))
+#  pb = txtProgressBar(min = min(q.data.forage$run.num), max = n.loops, style=3)
 #  start.time = Sys.time()
   
-#  for (i in unique(q.data.forage$run.num)) {
-#    setTxtProgressBar(pb,i)#update progress bar
-#    
-#    mod.run = q.data.forage[q.data.forage$run.num==i,] # subset with data from one model run
-#    first.access = min(grep("0", mod.run$current.succ.foragers, fixed=T)) # index (row number) of the first time step in which the producer ate in the current model run
-#    
-#    mod.run.fed = mod.run[first.access:nrow(mod.run),] # subset of mod.run taking only rows from first.access to the end of mod.run (all the time steps after the producer first ate)
-#    qdf.fed = rbind(qdf.fed, mod.run.fed) # save subset in external dataframe  
+  for (j in unique(q.data.forage$run.num)) {
+#    setTxtProgressBar(pb,j)#update progress bar
+    
+    mod.run = q.data.forage[q.data.forage$run.num==j,] # subset with data from one model run
+    first.access = min(grep("0", mod.run$current.succ.foragers, fixed=T)) # index (row number) of the first time step in which the producer ate in the current model run
+    
+    mod.run.fed = mod.run[first.access:nrow(mod.run),] # subset of mod.run taking only rows from first.access to the end of mod.run (all the time steps after the producer first ate)
+    qdf.fed = rbind(qdf.fed, mod.run.fed) # save subset in external dataframe  
   
-#    }#end of loop
+    }#end of loop
   
 #  end.time = Sys.time()
 #  run.time = end.time - start.time
-#  run.time
+#  run.time #ran in 4 minutes for group of 20
   
-#  write.csv(qdf.fed, "qdf_fed.csv")
+  write.csv(qdf.fed, "qdf_fed.csv")
   
   
-  prox.count.for = q.data.forage %>% 
+  prox.count.for = qdf.fed %>% 
     pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
                  names_to = "prox", values_to = "prox.ID") 
 
 
-  #nrow(q.data.forage)*(i*(i-1)) == nrow(prox.count.for)#check that prox.count has the correct number of rows
+  #nrow(qdf.fed)*(i*(i-1)) == nrow(prox.count.for)#check that prox.count has the correct number of rows
 
   prox.count.for = tibble::add_column(prox.count.for, prox.key = "NA", .after = "prox")
 
-  rm(q.data.forage) # remove q.data.forage from environment to save memory
+  rm(q.data.forage,qdf.fed) # remove q.data.forage from environment to save memory
 
   for(j in 1:20){ #LOOP TO FILL IN THE 'prox' COLUMN
     if(j > i){break} #end the loop if j > i
@@ -360,8 +359,20 @@ for(i in group.sizes){
     summarize(n = n()) 
   #prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]
   #unique(prox.count.for$prox.ID)
-  #range(prox.count.for$n)
+  #range(prox.count.for$n) #max n will not reach (i-1)*100 if rows before producer first forages were removed AND max will be different for each run.num 
+  prox.count.for$prox.ID = as.numeric(prox.count.for$prox.ID)
   prox.count.for[prox.count.for$n == max(prox.count.for$n) & is.na(prox.count.for$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
+  
+  for(j in min(prox.count.for$run.num):max(prox.count.for$run.num)){ #NEED THIS LOOP TO REPLACE NAs IF NO AGENTS WERE IN PROXIMITY TO EACH OTHER DURING THE FORAGING PHASE (AFTER PRODUCER FIRST FORAGED) IN A MODEL RUN
+    pcf.loop = prox.count.for[prox.count.for$run.num==j,]
+    
+    if(nrow(pcf.loop) == i && sum(is.na(pcf.loop$prox.ID)) == i) {
+      prox.count.for[prox.count.for$run.num == j,]$prox.ID = 111 #Replace NAs if no agents were in proximity to each other during the foraging phase in this model
+    }
+    
+    prox.count.for[prox.count.for$run.num == j & prox.count.for$n == max(pcf.loop$n) & is.na(prox.count.for$prox.ID),]$prox.ID = 111 #each run number has a different maximum value for 'n' because the producer first foraged at a different time step in each run, so this is to make sure I keep all individual IDs for each run for the next R script
+    
+  }
   prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]#then remove unnecessary rows
   #length(unique(prox.count.for$run.num)) #now prox.count.for contains all run.num values
 
@@ -376,7 +387,7 @@ for(i in group.sizes){
 
 
 ###PROXIMITY network: POST-foraging phase###  
-  rm(prox.count.for)
+  rm(prox.count.for, pcf.loop)
   
   
   prox.count.post = q.data.post %>% 
@@ -409,6 +420,7 @@ for(i in group.sizes){
   #prox.count.post = prox.count.post[complete.cases(prox.count.post$prox.ID),]
   #unique(prox.count.post$prox.ID)
   #range(prox.count.post$n)
+  prox.count.post$prox.ID = as.numeric(prox.count.post$prox.ID)
   prox.count.post[prox.count.post$n == max(prox.count.post$n) & is.na(prox.count.post$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
   prox.count.post = prox.count.post[complete.cases(prox.count.post$prox.ID),]#then remove unnecessary rows
   #length(unique(prox.count.post$run.num)) #now prox.count.post contains all run.num values
@@ -428,7 +440,7 @@ for(i in group.sizes){
   
 end.time = Sys.time()
 run.time = end.time - start.time
-run.time # ran in 6 minutes for 5 runs per combo
+run.time # ran in 11.5 minutes for 5 runs per combo
 
 
 
