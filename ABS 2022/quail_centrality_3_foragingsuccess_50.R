@@ -54,7 +54,6 @@ for(i in group.sizes) {
   rm(data.to.add)
   for.success = for.success[order(for.success$run.num),]
   
-  
   # for average energy level of foragers, remove all rows where ticks is not 300; separate forager energy levels into separate columns; pivot longer so the energy levels are stacked in the same column; calculate average per run number or combo number
   q.data = q.data[q.data$ticks==300,]
   #nrow(q.data)
@@ -74,7 +73,13 @@ for(i in group.sizes) {
   q.data$energy = as.numeric(q.data$energy)
   q.data = q.data[q.data$agent != "A",] %>% #IGNORING ROWS FOR PRODUCER BECAUSE I AM INTERESTED IN THE AVERAGE ENERGY LEVEL OF THE OTHER FORAGERS
     group_by(run.num) %>%
-    summarize(mean.energy = mean(energy), var.energy = var(energy)) #I checked that the mean values were accurate by using mutate() here instead of summarize
+    mutate(mean.run.energy = mean(energy), var.run.energy = var(energy)) #I checked that the mean values were accurate by using mutate() here instead of summarize
+  
+  q.data = q.data %>%
+    group_by(combo.num) %>%
+    mutate(mean.combo.energy = mean(energy), var.combo.energy = var(energy))
+  
+  q.data = unique(q.data[,c("run.num", "combo.num", "mean.run.energy", "var.run.energy", "mean.combo.energy", "var.combo.energy")])
   
   # add average energy level of foragers per run number to for.success data frame and write it to a csv file
   for.success = merge(for.success, q.data, by = "run.num")# I am merging to be safe, but the data should be in the correct order in both data frames, so I could just do for.success$mean.energy = q.data$mean.energy
@@ -85,6 +90,6 @@ for(i in group.sizes) {
 }#END OF LOOP
 end.time = Sys.time()
 run.time = end.time - start.time
-run.time #ran in 32 seconds for 5 runs per combo
+run.time #ran in 30 seconds for 5 runs per combo
 
 #for_success.csv can now be used for plotting, etc.
