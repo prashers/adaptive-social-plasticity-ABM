@@ -1,36 +1,40 @@
-
-library(readr) #needed for importing the data file in chunks
 library(stringr)
+
+
+
+
 
 #can remove prior.affils, unfam.prod, eat.delay, alt-food, and affil.IDs columns before reading in the csv file to reduce file size (FILE TOO LARGE TO OPEN IN EXCEL...)
 #probably don't need memory.succ.foragers
 
-
-
-f = function(x, pos) subset(x, select = -c(`prior-affils?`, `unfam-prod?`, `eat-delay?`, `alt-food?`, `affil-IDs`, `reset-food?`, `[step]`, `memory-succ-foragers`, `foll-centrality-list`, `foll-IDs`, `current-xycor`, `prox-centrality-list`, `fss-list`))#getting rid of all these columns allowed me to read in the file with all group sizes without errors
-q.data.full = read_csv_chunked("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/quail_centrality_3_50percombo.csv", callback = DataFrameCallback$new(f), skip = 6)
+q.data.full = read.csv("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/quail_centrality_3 5percombo.csv", skip = 6, header = T)
 
 head(q.data.full)
 nrow(q.data.full)
 str(q.data.full)
 min(q.data.full$ticks)
 max(q.data.full$ticks)
-unique(q.data.full$`group-size`)
+
+sum(q.data.full$X.step.==q.data.full$ticks) # "X.step." and "ticks" are the same, so I will remove "X.step."
+
+#remove unnecessary columns
+q.data.full = q.data.full[,!(names(q.data.full) %in% c("prior.affils.", "unfam.prod.", "eat.delay.", "alt.food.", "affil.IDs", "reset.food.", "X.step."))]
+q.data.full = q.data.full[,!(names(q.data.full) %in% c("memory.succ.foragers", "foll.centrality.list", "foll.IDs", "current.xycor"))] #may want to include some of these columns in the future
 
 names(q.data.full)
 
 #Remaining column info:
 # "X.run.number." is the model run ID - a different number for each run of the model. the first 50 should be for the first combination of parameters 
 # "group.size" is one of the five parameters that can vary between run IDs
-  #It sets the number of agents for each model run
+#It sets the number of agents for each model run
 # "memory" is one of the five parameters that can vary between run IDs. 
-  #It sets the maximum number of time steps that a successful forager can be remembered
+#It sets the maximum number of time steps that a successful forager can be remembered
 #"attention" is one of the five parameters that can vary between run IDs.
-  #It sets the probability that agents will enter a successful forager into memory if their memory slot is empty
+#It sets the probability that agents will enter a successful forager into memory if their memory slot is empty
 #"preference" is one of the three parameters that can vary between run IDs.
-  #It sets the probability that agents will follow the successful forager in their memory
+#It sets the probability that agents will follow the successful forager in their memory
 #"approach.food." is one of the five parameters that can vary between run IDs.
-  #It determines whether foragers other than the producer approach food when their energy level gets low
+#It determines whether foragers other than the producer approach food when their energy level gets low
 #"ticks", time step within current model run - as appears in netlogo
 #"prox.centrality.list", list containing each agent's degree centrality in the proximity network (number of other agents within a certain distance of the individual)
 #"proxim.IDs", list of WHO numbers of the agents within proximity of each individual
@@ -43,38 +47,32 @@ names(q.data.full)
 #"energy.list" list containing each agent's energy level in the current time step
 
 
-q.data.full = as.data.frame(q.data.full)
 #renaming a few columns
-names(q.data.full)[names(q.data.full) == "[run number]"] <- "run.num"
-names(q.data.full)[names(q.data.full) == "group-size"] <- "group.size"
-names(q.data.full)[names(q.data.full) == "approach-food?"] <- "approach.food"
-names(q.data.full)[names(q.data.full) == "current-succ-foragers"] <- "current.succ.foragers"
-names(q.data.full)[names(q.data.full) == "proxim-IDs"] <- "proxim.IDs"
-names(q.data.full)[names(q.data.full) == "energy-list"] <- "energy.list"
-names(q.data.full)[names(q.data.full) == "reset-num"] <- "reset.num"
+names(q.data.full)[names(q.data.full) == "X.run.number."] <- "run.num" #this was for 5 runs per combo - not sure why column names are different for 50 - maybe bc I used a different function to import the data
+names(q.data.full)[names(q.data.full) == "approach.food."] <- "approach.food" #this was for 5 runs per combo - not sure why column names are different for 50 - maybe bc I used a different function to import the data
+#names(q.data.full)[names(q.data.full) == "prox.centrality.list"] <- "pr.centrality.list" #need to rename this to make use of 'starts_with' argument easier?
+#names(q.data.full)[names(q.data.full) == "foll.centrality.list"] <- "fo.centrality.list"
+
 names(q.data.full)
 
-gc() #clear garbage
 
 #reordering the data frame
 q.data.ord = q.data.full[order(q.data.full$run.num, q.data.full$ticks),] #reorder data by run number and time step within run number
 head(rownames(q.data.ord))
 rownames(q.data.ord) = 1:nrow(q.data.ord)
 tail(rownames(q.data.ord))
+rm(q.data.full) #remove unordered data frame to save memory
 
-rm(q.data.full, f) #remove unordered data frame to save memory
-gc()
 
 #num.combos = nrow(unique(q.data.ord[,2:6])) #number of unique group.size, mem, att, pref, approach.food combinations
-num.combos = 1250 # Previous line would not run because memory low, but number of combos should be the same as when I had 5 runs per combo, because the number of parameters/parameter values I am looking at is the same
 # I want to add a column that tells me the combo number (1:1250)
 
-nrow(q.data.ord[q.data.ord$group.size==3 & q.data.ord$memory == 0 & q.data.ord$attention == 0 & q.data.ord$preference == 0 & q.data.ord$approach.food==FALSE,]) # every combo has 15050 rows
-q.data.ord[rownames(q.data.ord) == 15050, colnames(q.data.ord) %in% c("group.size", "memory", "attention", "preference", "approach.food")] #checking whether combo changes every 15050 rows
+nrow(q.data.ord[q.data.ord$group.size==3 & q.data.ord$memory == 0 & q.data.ord$attention == 0 & q.data.ord$preference == 0 & q.data.ord$approach.food=="false",]) # every combo has 1505 rows
+q.data.ord[rownames(q.data.ord) == 1506, colnames(q.data.ord) %in% c("group.size", "memory", "attention", "preference", "approach.food")] #checking whether combo changes every 1505 rows
 
 combo = vector()
 for (i in 1:num.combos) {
-  x = rep(i, 15050)
+  x = rep(i, 1505)
   combo = append(combo, x, after=length(combo))
 }
 length(combo)
@@ -96,34 +94,18 @@ q.data.ord[q.data.ord$ticks %in% 101:200,]$phase = "forage"
 q.data.ord[q.data.ord$ticks %in% 201:300,]$phase = "post-forage"
 
 
-setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022")
-write.csv(q.data.ord, "q_data_ord_50percombo.csv") #saving csv here so I can run the big loop after restarting R with clean memory
-
-
-
-###########################################
-###########################################
-#START HERE IF YOU'VE JUST REOPENED R AFTER SAVING q.data.ord IN A CSV 
-
 ### need to be able to count the number of times an agent was in proximity to, or being followed by, each other agent
 ### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns
 ### need to separate data into different dataframes for each group size, because that will influence how many columns that data is split into
-
-group.sizes = c(3,6,10,15,20)
 
 n.loops = max(unique(q.data.ord$group.size))
 pb = txtProgressBar(min=0, max = n.loops, style=3)
 start.time = Sys.time()
 
 
-for (i in group.sizes) {
+for (i in unique(q.data.ord$group.size)) {
   
-  #loop.data = q.data.ord[q.data.ord$group.size==i,] #subset of data for current group size
-  
-  # I AM GOING TO TRY READING IN DATA FOR EACH GROUP SIZE INSIDE THE LOOP SO I DON'T HAVE THE LARGER DATA FRAME TAKING UP MEMORY
-  f = function(x, pos) subset(x, group.size == i, select = -c(1))
-  loop.data = read_csv_chunked("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/q_data_ord_50percombo.csv", callback = DataFrameCallback$new(f))
-  loop.data = as.data.frame(loop.data)
+  loop.data = q.data.ord[q.data.ord$group.size==i,] #subset of data for current group size
   
   ######SPLITTING COORDINATES IS NOT IMPORTANT FOR ABS 2022 presentation, SO I AM SKIPPING IT - SEE "quail_centrality_2_50percombo_setup.R" for relevant code for a group of six######
   
@@ -144,9 +126,9 @@ for (i in group.sizes) {
     x = as.data.frame(x)
     
     for(k in 1:ncol(x)) {
-        colnames(x)[k] = paste0("prox", letters[j], k)
+      colnames(x)[k] = paste0("prox", letters[j], k)
     }
-     
+    
     
     split.prox = cbind(split.prox, x)
   }
@@ -154,7 +136,7 @@ for (i in group.sizes) {
   #head(split.prox)
   #tail(split.prox)
   
-
+  
   #unique(split.prox$proxb2) # split.prox has some blanks if there were not 5 values for proximIDs in an agent's split.proximIDs column 
   split.prox[split.prox==""] = NA #replace all blank cells with NA
   split.prox[split.prox=="NA"] = NA #replace all characters "NA" with missing values
@@ -284,8 +266,8 @@ for(i in group.sizes){
     prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox %in% prox.letter, LETTERS[j]))
     
   }
-#  View(prox.count.pre)
-#  unique(prox.count.pre$prox.key)# check that all NAs were replaced
+  #  View(prox.count.pre)
+  #  unique(prox.count.pre$prox.key)# check that all NAs were replaced
   
   
   # use dplyr functions to get counts after grouping by prox.key and proxIDs
@@ -318,32 +300,32 @@ for(i in group.sizes){
   
   
   
-#  #For each run, remove rows before the producer first accesses food so we can see effects during period that agents can actually be foraging/following 
-#  #this reduces the total number of time steps that can be counted toward the number of time steps that an agent foraged in the foraging phase, but I deal with that by standardizing edge weights by the number of total time steps in each phase (see analysis R script)
-   #q.data.forage[q.data.forage$current.succ.foragers==0,] #No instances of just a 0 without brackets, so no need to change anything in the column
+  #  #For each run, remove rows before the producer first accesses food so we can see effects during period that agents can actually be foraging/following 
+  #  #this reduces the total number of time steps that can be counted toward the number of time steps that an agent foraged in the foraging phase, but I deal with that by standardizing edge weights by the number of total time steps in each phase (see analysis R script)
+  #q.data.forage[q.data.forage$current.succ.foragers==0,] #No instances of just a 0 without brackets, so no need to change anything in the column
   
-#  #min(grep("0", q.data.forage$current.succ.foragers, fixed=T)) # shows numerical index of all the rows where current.succ.foragers contains a zero - the minimum value within each model run should be the first time the producer accessed the food patch
+  #  #min(grep("0", q.data.forage$current.succ.foragers, fixed=T)) # shows numerical index of all the rows where current.succ.foragers contains a zero - the minimum value within each model run should be the first time the producer accessed the food patch
   
   
   qdf.fed = data.frame()
-#  n.loops = max(unique(q.data.forage$run.num))
-#  pb = txtProgressBar(min = min(q.data.forage$run.num), max = n.loops, style=3)
-#  start.time = Sys.time()
+  #  n.loops = max(unique(q.data.forage$run.num))
+  #  pb = txtProgressBar(min = min(q.data.forage$run.num), max = n.loops, style=3)
+  #  start.time = Sys.time()
   
   for (j in unique(q.data.forage$run.num)) {
-#    setTxtProgressBar(pb,j)#update progress bar
+    #    setTxtProgressBar(pb,j)#update progress bar
     
     mod.run = q.data.forage[q.data.forage$run.num==j,] # subset with data from one model run
     first.access = min(grep("0", mod.run$current.succ.foragers, fixed=T)) # index (row number) of the first time step in which the producer ate in the current model run
     
     mod.run.fed = mod.run[first.access:nrow(mod.run),] # subset of mod.run taking only rows from first.access to the end of mod.run (all the time steps after the producer first ate)
     qdf.fed = rbind(qdf.fed, mod.run.fed) # save subset in external dataframe  
+    
+  }#end of loop
   
-    }#end of loop
-  
-#  end.time = Sys.time()
-#  run.time = end.time - start.time
-#  run.time #ran in 4 minutes for group of 20
+  #  end.time = Sys.time()
+  #  run.time = end.time - start.time
+  #  run.time #ran in 4 minutes for group of 20
   
   write.csv(qdf.fed, "qdf_fed.csv")
   
@@ -351,26 +333,26 @@ for(i in group.sizes){
   prox.count.for = qdf.fed %>% 
     pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
                  names_to = "prox", values_to = "prox.ID") 
-
-
+  
+  
   #nrow(qdf.fed)*(i*(i-1)) == nrow(prox.count.for)#check that prox.count has the correct number of rows
-
+  
   prox.count.for = tibble::add_column(prox.count.for, prox.key = "NA", .after = "prox")
-
+  
   rm(q.data.forage,qdf.fed) # remove q.data.forage from environment to save memory
-
+  
   for(j in 1:20){ #LOOP TO FILL IN THE 'prox' COLUMN
     if(j > i){break} #end the loop if j > i
-  
+    
     prox.letter = unique(prox.count.for[startsWith(prox.count.for$prox, prox.labels[j]), ]$prox)
-  
+    
     prox.count.for = prox.count.for %>% mutate(prox.key=replace(prox.key, prox %in% prox.letter, LETTERS[j]))
-  
+    
   }
-#  View(prox.count.for)
-#  unique(prox.count.for$prox.key)# check that all NAs were replaced
-
-
+  #  View(prox.count.for)
+  #  unique(prox.count.for$prox.key)# check that all NAs were replaced
+  
+  
   # use dplyr functions to get counts after grouping by prox.key and proxIDs
   prox.count.for = prox.count.for %>% 
     group_by(run.num, memory, attention, preference, approach.food, prox.key, prox.ID) %>% 
@@ -393,18 +375,18 @@ for(i in group.sizes){
   }
   prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]#then remove unnecessary rows
   #length(unique(prox.count.for$run.num)) #now prox.count.for contains all run.num values
-
+  
   #View(prox.count.for)
   ### prox.count.for contains the counts of how many time steps each agent was in proximity to each other agent during the FORAGING phase
-
+  
   #save it as a csv to save space in the R workspace
   write.csv(prox.count.for, "prox_count_for50.csv")
   
   
   
-
-
-###PROXIMITY network: POST-foraging phase###  
+  
+  
+  ###PROXIMITY network: POST-foraging phase###  
   rm(prox.count.for, pcf.loop)
   
   
@@ -448,14 +430,14 @@ for(i in group.sizes){
   
   #save it as a csv to save space in the R workspace
   write.csv(prox.count.post, "prox_count_post50.csv")
-
+  
   rm(prox.count.post)
   
   
   setTxtProgressBar(pb,i)#update progress bar
   
 }#end of second big loop
-  
+
 end.time = Sys.time()
 run.time = end.time - start.time
 run.time # ran in 11.5 minutes for 5 runs per combo
