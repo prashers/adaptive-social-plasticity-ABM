@@ -104,6 +104,8 @@ write.csv(q.data.ord, "q_data_ord_50percombo.csv") #saving csv here so I can run
 ###########################################
 ###########################################
 #START HERE IF YOU'VE JUST REOPENED R AFTER SAVING q.data.ord IN A CSV 
+library(readr) 
+library(stringr)
 
 ### need to be able to count the number of times an agent was in proximity to, or being followed by, each other agent
 ### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns

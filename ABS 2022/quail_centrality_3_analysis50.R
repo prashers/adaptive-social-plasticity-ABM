@@ -109,6 +109,7 @@ for(i in group.sizes){ #Proximity network
   metrics.func(prox.count.pre) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_pre.csv")
   rm(q.data)
+  gc()
   
   #  q.data.for = read.csv("q_data_forage50.csv", header=T)
   q.data = read_csv("qdf_fed.csv", col_types = cols())
@@ -117,6 +118,7 @@ for(i in group.sizes){ #Proximity network
   metrics.func(prox.count.for) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_for.csv")
   rm(q.data)
+  gc()
   
   q.data = read_csv("q_data_post50.csv", col_types = cols())
   q.data = as.data.frame(q.data)
@@ -124,6 +126,7 @@ for(i in group.sizes){ #Proximity network
   metrics.func(prox.count.post) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_post.csv")
   rm(q.data)
+  gc()
   
   
   setTxtProgressBar(pb,i)#update progress bar
@@ -156,6 +159,7 @@ for(i in group.sizes){ #calculating differences in proximity network metrics bet
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_20")
   }
  
+  gc()
   
   #to.read = list.files()[10] # 10th file in the working directory should be q_data_split for that group size (make sure files written in this loop are not already in the working directory)
   q.data.split = read_csv("q_data_split.csv", col_types = cols())

@@ -24,6 +24,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, M
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_20")
   }
  
+  
   prox.forXpre = read_csv("prox_forxpre.csv", col_types = cols()) # including the 'col_types = cols()' argument suppresses the unnecessary column specification messages from read_csv
   prox.forXpre = as.data.frame(prox.forXpre[,-1])
   prox.postXfor = read_csv("prox_postxfor.csv", col_types = cols())
@@ -71,7 +72,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, M
   median.energy.range = append(median.energy.range, range(for.success$med.combo.energy), after = length(median.energy.range))
   var.energy.range = append(var.energy.range, range(for.success$var.combo.energy), after = length(var.energy.range))
   
-  
+  gc()
 } #END OF LOOP
 
 rm(pfxp.med, ppxf.med, ppxp.med, prox.forXpre, prox.postXfor, prox.postXpre)
@@ -313,6 +314,8 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   
 #  dev.off()
   ggsave("./plots/meanenergyXstrength.pdf", width=14, height=7)
+  
+  gc()
   
 } # END OF PLOTTING LOOP
 

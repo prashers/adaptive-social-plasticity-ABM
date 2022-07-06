@@ -24,6 +24,8 @@ for(i in group.sizes) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_20")
   }
   
+  gc()
+  
   #q.data = read.csv("q_data_split.csv", header=T)[, -c(1, 14:393)] #exclude proximity columns (goes up to 393 for group size of 20)
   
   q.data = read_csv("q_data_split.csv", col_types = cols()) # including the 'col_types = cols()' argument suppresses the unnecessary column specification messages from read_csv
