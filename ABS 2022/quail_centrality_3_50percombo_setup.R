@@ -120,6 +120,7 @@ for (i in group.sizes) {
   
   #loop.data = q.data.ord[q.data.ord$group.size==i,] #subset of data for current group size
   
+  gc()
   # I AM GOING TO TRY READING IN DATA FOR EACH GROUP SIZE INSIDE THE LOOP SO I DON'T HAVE THE LARGER DATA FRAME TAKING UP MEMORY
   f = function(x, pos) subset(x, group.size == i, select = -c(1))
   loop.data = read_csv_chunked("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/q_data_ord_50percombo.csv", callback = DataFrameCallback$new(f))
@@ -169,7 +170,7 @@ for (i in group.sizes) {
   
   
   ##### add all separated columns to the big dataframe 
-  q.data.split = cbind(loop.data[, !(names(loop.data) %in% c("prox.centrality.list", "proxim.IDs"))], split.prox) #, split.foll) #, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
+  q.data.split = cbind(loop.data[, !(names(loop.data) %in% c("proxim.IDs"))], split.prox) #, split.foll) #, split.cor) #add the new columns into the dataframe with affil.IDs, proxim.IDs, foll.IDs, and coor.list columns removed
   #View(q.data.split)
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
@@ -224,6 +225,8 @@ start.time = Sys.time()
 
 for(i in group.sizes){
   
+  gc()
+  
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
     
@@ -241,8 +244,8 @@ for(i in group.sizes){
     
   }
   
-  q.data.split = read.csv("q_data_split.csv", header = T)
-  q.data.split = q.data.split[,-1]
+  q.data.split = read_csv("q_data_split.csv", col_types = cols())
+  q.data.split = as.data.frame(q.data.split[,-1])
   
   # MATRIX WILL CONTAIN COUNTS OF HOW MANY TIME STEPS EACH DYAD WAS IN PROXIMITY (FOR PROXIMITY NETWORK) 
   # WILL HAVE A MATRIX FOR EACH PHASE WITHIN EACH MODEL RUN
@@ -315,7 +318,7 @@ for(i in group.sizes){
   ###PROXIMITY network: FORAGING phase###
   
   rm(prox.count.pre)# remove prox.count.pre from environment to save memory
-  
+  gc()
   
   
 #  #For each run, remove rows before the producer first accesses food so we can see effects during period that agents can actually be foraging/following 
@@ -406,6 +409,7 @@ for(i in group.sizes){
 
 ###PROXIMITY network: POST-foraging phase###  
   rm(prox.count.for, pcf.loop)
+  gc()
   
   
   prox.count.post = q.data.post %>% 

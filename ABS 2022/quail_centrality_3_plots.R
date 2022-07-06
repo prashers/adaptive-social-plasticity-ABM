@@ -6,10 +6,11 @@ group.sizes = c(3, 6, 10, 15, 20)
 
 str.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEDIAN STRENGTH ACROSS GROUP SIZES
 mean.energy.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEAN ENERGY LEVEL OF FORAGERS ACROSS GROUP SIZES
+median.energy.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEDIAN ENERGY LEVEL OF FORAGERS ACROSS GROUP SIZES
 var.energy.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR VARIANCE IN ENERGY LEVEL OF FORAGERS ACROSS GROUP SIZES
 
 
-for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO USE FOR THE COLOR SCALE OF PLOTS (USE THIS IF YOU WANT THE SAME SCALE ACROSS GROUP SIZES)
+for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, MEAN ENERGY, AND VARIANCE ENERGY TO USE FOR THE COLOR SCALE OF PLOTS (USE THIS IF YOU WANT THE SAME SCALE ACROSS GROUP SIZES)
   
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
@@ -23,9 +24,12 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_20")
   }
  
-  prox.forXpre = read.csv("prox_forxpre.csv", header = T)[,-1]
-  prox.postXfor = read.csv("prox_postxfor.csv", header = T)[,-1]
-  prox.postXpre = read.csv("prox_postxpre.csv", header = T)[,-1]
+  prox.forXpre = read_csv("prox_forxpre.csv", col_types = cols()) # including the 'col_types = cols()' argument suppresses the unnecessary column specification messages from read_csv
+  prox.forXpre = as.data.frame(prox.forXpre[,-1])
+  prox.postXfor = read_csv("prox_postxfor.csv", col_types = cols())
+  prox.postXfor = as.data.frame(prox.postXfor[,-1])
+  prox.postXpre = read_csv("prox_postxpre.csv", col_types = cols())
+  prox.postXpre = as.data.frame(prox.postXpre[,-1])
   
   #summarize data (median) for each variable combination before making heat maps
   #check distribution of network metric differences for each variable combination to see how to proceed with summarizing the data
@@ -60,9 +64,11 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   
   
   ###################################################################
-  for.success = read.csv("for_success.csv", header = T)[,-1]
+  for.success = read_csv("for_success.csv", col_types = cols())
+  for.success = as.data.frame(for.success[,-1])
   
   mean.energy.range = append(mean.energy.range, range(for.success$mean.combo.energy), after = length(mean.energy.range))
+  median.energy.range = append(median.energy.range, range(for.success$med.combo.energy), after = length(median.energy.range))
   var.energy.range = append(var.energy.range, range(for.success$var.combo.energy), after = length(var.energy.range))
   
   
@@ -73,7 +79,7 @@ rm(pfxp.med, ppxf.med, ppxp.med, prox.forXpre, prox.postXfor, prox.postXpre)
 
 
 
-
+#PDFs become corrupted when I use this loop, but not when I run all the code after changing the value of i manually
 for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO USE FOR THE COLOR SCALE OF PLOTS
   
   if(i==3){
@@ -91,9 +97,12 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   
   dir.create("plots") #create in a new folder in the current working directory that will hold all the plots from this loop
   
-  prox.forXpre = read.csv("prox_forxpre.csv", header = T)[,-1]
-  prox.postXfor = read.csv("prox_postxfor.csv", header = T)[,-1]
-  prox.postXpre = read.csv("prox_postxpre.csv", header = T)[,-1]
+  prox.forXpre = read_csv("prox_forxpre.csv", col_types = cols())
+  prox.forXpre = as.data.frame(prox.forXpre[,-1])
+  prox.postXfor = read_csv("prox_postxfor.csv", col_types = cols())
+  prox.postXfor = as.data.frame(prox.postXfor[,-1])
+  prox.postXpre = read_csv("prox_postxpre.csv", col_types = cols())
+  prox.postXpre = as.data.frame(prox.postXpre[,-1])
   
   
   ############################################################
@@ -117,38 +126,22 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   
   
   pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
-  pdf("./plots/StrengthForxPre_scaled_appfoodfalse.pdf", width=7, height=13)
+#  pdf("./plots/StrengthForxPre_scaled.pdf", width=7, height=13)
   
-  #plot of median difference in producer strength between foraging and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(pfxp.med[pfxp.med$approach.food=="false",], aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+  #plot of median difference in producer strength between foraging and pre-foraging phases 
+  ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between foraging and pre-foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
-  dev.off()
+#  dev.off()
+   ggsave("./plots/StrengthForxPre_scaled.pdf", width=7, height=13)
   
-  
-  #second plot for foraging vs pre-foraging
-  pdf("./plots/StrengthForxPre_scaled_appfoodtrue.pdf", width=7, height=13)
-  
-  #plot of median difference in producer strength between foraging and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS ON
-  ggplot(pfxp.med[pfxp.med$approach.food=="true",], aes(as.factor(preference), as.factor(attention), fill = med.str)) +
-    ggtitle("Difference in producer's proximity strength between foraging and pre-foraging phases") +
-    labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
-    geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
-    theme_minimal() +
-    theme(aspect.ratio=1, text=element_text(size=15))
-  
-  dev.off()
-  
-  
-  rm(pfxp.med)
+  #rm(pfxp.med) #not removing this, because I will use it for foraging success plots as well
   
   ############################################################
   ############################################################
@@ -160,36 +153,21 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ppxf.med = merge(ppxf.med, unique(prox.postXfor[,c("group.size", "memory", "attention", "preference", "approach.food", "combo.num")]), by = "combo.num")
   rm(prox.postXfor)
   
-  pdf("./plots/StrengthPostxFor_scaled_appfoodfalse.pdf", width=7, height=13)
   
-  #plot of median difference in producer strength between post- and foraging phases WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(ppxf.med[ppxf.med$approach.food=="false",], aes(as.factor(preference), as.factor(attention), fill = med.str)) +
-    ggtitle("Difference in producer's proximity strength between post- and foraging phases") +
-    labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
-    geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
-    theme_minimal() +
-    theme(aspect.ratio=1, text=element_text(size=15))
-  
-  dev.off()
-  
-  
-  #second plot for post-foraging vs foraging
-  pdf("./plots/StrengthPostxFor_scaled_appfoodtrue.pdf", width=7, height=13)
+#  pdf("./plots/StrengthPostxFor_scaled.pdf", width=7, height=13)
   
   #plot of median difference in producer strength between post- and foraging phases WHEN APPROACH.FOOD SWITCH WAS ON
-  ggplot(ppxf.med[ppxf.med$approach.food=="true",], aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+  ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between post- and foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
-  dev.off()
-  
+#  dev.off()
+   ggsave("./plots/StrengthPostxFor_scaled.pdf", width=7, height=13)
   
   rm(ppxf.med)
   
@@ -203,36 +181,20 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ppxp.med = merge(ppxp.med, unique(prox.postXpre[,c("group.size", "memory", "attention", "preference", "approach.food", "combo.num")]), by = "combo.num")
   rm(prox.postXpre)
   
-  pdf("./plots/StrengthPostxPre_scaled_appfoodfalse.pdf", width=7, height=13)
+#  pdf("./plots/StrengthPostxPre_scaled.pdf", width=7, height=13)
   
   #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(ppxp.med[ppxp.med$approach.food == "false",], aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+  ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
-  dev.off()
-   
-  
-  #second plot for post- vs pre-foraging
-  pdf("./plots/StrengthPostxPre_scaled_appfoodtrue.pdf", width=7, height=13)
-  
-  #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS ON
-  ggplot(ppxp.med[ppxp.med$approach.food == "true",], aes(as.factor(preference), as.factor(attention), fill = med.str)) +
-    ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
-    labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
-    geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
-    theme_minimal() +
-    theme(aspect.ratio=1, text=element_text(size=15))
-  
-  dev.off()
-  
+#  dev.off()
+   ggsave("./plots/StrengthPostxPre_scaled.pdf", width=7, height=13)
   
   rm(ppxp.med)
   
@@ -240,72 +202,59 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ############################################################
   ############################################################
   #PLOTS FOR FORAGING SUCCESS OF NON-PRODUCERS
-  for.success = read.csv("for_success.csv", header = T)[,-1]
+  for.success = read_csv("for_success.csv", col_types = cols())
+  for.success = as.data.frame(for.success[,-1])
+  
   
   #plot mean energy level per combo like you did for differences in producer strength
-  pdf("./plots/meanenergy_appfoodfalse.pdf", width=7, height=13)
+#  pdf("./plots/meanenergy.pdf", width=7, height=13)
   
-  #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS ON
-  ggplot(for.success[for.success$approach.food == "false",], aes(as.factor(preference), as.factor(attention), fill = mean.combo.energy)) +
+  #plot of mean energy level WHEN APPROACH.FOOD SWITCH WAS ON
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = mean.combo.energy)) +
     ggtitle("Mean energy of foragers") +
     labs(y = "Attention", x = "Preference", fill = "Mean energy level") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.energy.range), 0, max(mean.energy.range)), limits=c(min(mean.energy.range), max(mean.energy.range))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
-  dev.off()
+#  dev.off()
+   ggsave("./plots/meanenergy.pdf", width=7, height=13)
   
   
+  #plot median energy level per combo
+#  pdf("./plots/medianenergy.pdf", width=7, height=13)
   
-  pdf("./plots/meanenergy_appfoodtrue.pdf", width=7, height=13)
-  
-  #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS ON
-  ggplot(for.success[for.success$approach.food == "true",], aes(as.factor(preference), as.factor(attention), fill = mean.combo.energy)) +
-    ggtitle("Mean energy of foragers") +
-    labs(y = "Attention", x = "Preference", fill = "Mean energy level") +
-    facet_grid(rows=vars(memory)) +
+  #plot of median energy level
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
+    ggtitle("Median energy of foragers") +
+    labs(y = "Attention", x = "Preference", fill = "Median energy level") +
+    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.energy.range), 0, max(mean.energy.range)), limits=c(min(mean.energy.range), max(mean.energy.range))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(median.energy.range), 0, max(median.energy.range)), limits=c(min(median.energy.range), max(median.energy.range))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
-  dev.off()
-  
+#  dev.off()
+  ggsave("./plots/medianenergy.pdf", width=7, height=13)
   
   
   #plot variance in energy level per combo the same way
-  pdf("./plots/varenergy_appfoodfalse.pdf", width=7, height=13)
+#  pdf("./plots/varenergy.pdf", width=7, height=13)
   
-  #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(for.success[for.success$approach.food == "false",], aes(as.factor(preference), as.factor(attention), fill = var.combo.energy)) +
+  #plot of variance in energy levels
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = var.combo.energy)) +
     ggtitle("Variance in energy of foragers") +
     labs(y = "Attention", x = "Preference", fill = "Variance in energy level") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(var.energy.range), 0, max(var.energy.range)), limits=c(min(var.energy.range), max(var.energy.range))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
-  dev.off()
-  
-  
-  
-  pdf("./plots/varenergy_appfoodtrue.pdf", width=7, height=13)
-  
-  #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS ON
-  ggplot(for.success[for.success$approach.food == "true",], aes(as.factor(preference), as.factor(attention), fill = var.combo.energy)) +
-    ggtitle("Variance in energy of foragers") +
-    labs(y = "Attention", x = "Preference", fill = "Variance in energy level") +
-    facet_grid(rows=vars(memory)) +
-    geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(var.energy.range), 0, max(var.energy.range)), limits=c(min(var.energy.range), max(var.energy.range))) +
-    theme_minimal() +
-    theme(aspect.ratio=1, text=element_text(size=15))
-  
-  dev.off()
-  
+#  dev.off()
+   ggsave("./plots/varenergy.pdf", width=7, height=13)
   
   
   #calculate mean or median number of time steps that foragers ate for each combo number and plot in the same way
@@ -317,42 +266,53 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   mid.break.mean = min(ticks.per.combo$mean.ticks) + ((max(ticks.per.combo$mean.ticks) - min(ticks.per.combo$mean.ticks))/2)
   mid.break.median = min(ticks.per.combo$med.ticks) + ((max(ticks.per.combo$med.ticks) - min(ticks.per.combo$med.ticks))/2)
   
-  pdf("./plots/meanticksforaged_appfoodfalse.pdf", width=7, height=13)
   
-  #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(ticks.per.combo[ticks.per.combo$approach.food == "false",], aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
-    ggtitle("Mean # time steps foragers ate with approach.food OFF") +
-    labs(y = "Attention", x = "Preference", fill = "Mean # time steps") +
-    facet_grid(rows=vars(memory)) +
-    geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
-    theme_minimal() +
-    theme(aspect.ratio=1, text=element_text(size=15))
+#  pdf("./plots/meanticksforaged.pdf", width=7, height=13)
   
-  dev.off()
-  
-  
-  
-  pdf("./plots/meanticksforaged_appfoodtrue.pdf", width=7, height=13)
-  
-  #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(ticks.per.combo[ticks.per.combo$approach.food == "true",], aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
+  #plot of mean number of time steps foragers ate 
+  ggplot(ticks.per.combo, aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
     ggtitle("Mean # time steps foragers ate with approach.food ON") +
     labs(y = "Attention", x = "Preference", fill = "Mean # time steps") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
-  dev.off()
-  
-  
-  
+#  dev.off()
+  ggsave("./plots/meanticksforaged.pdf", width=7, height=13)
   
   
   #plot foraging success metrics by median change in producer's strength between foraging and pre-foraging phases
   
+  ticks.mrg = merge(unique(ticks.per.combo[,!names(ticks.per.combo) %in% c("run.num", "n.timesteps", "mean.run.energy", "med.run.energy", "var.run.energy")]), pfxp.med[,names(pfxp.med) %in% c("combo.num", "med.str")], by = "combo.num")
+  
+#  pdf("./plots/meanticksforagedXstrength.pdf", width=7, height=13)
+  
+  #plot of mean number of time steps foragers ate WHEN APPROACH.FOOD SWITCH WAS OFF
+  ggplot(ticks.mrg, aes(med.str, mean.ticks, color = approach.food)) +
+    ggtitle("Mean # time steps foragers ate by change in producer's strength") +
+    labs(y = "Mean # time steps", x = "Median change in producer's strength") +
+   # scale_x_continuous(name = "Median change in producer's strength", breaks = seq(floor(min(str.range)), ceiling(max(str.range)))) +
+  #  scale_y_continuous(name = "Mean # time steps", breaks = seq(floor(min(ticks.mrg$mean.ticks)), ceiling(max(ticks.mrg$mean.ticks)))) +
+   # facet_grid(rows=vars(approach.food)) +
+    geom_point() 
+    
+#  dev.off()
+  ggsave("./plots/meanticksforagedXstrength.pdf", width=14, height=7)
+  
+  
+#  pdf("./plots/meanenergyXstrength.pdf", width=7, height=13)
+  
+  #plot of mean number of time steps foragers ate WHEN APPROACH.FOOD SWITCH WAS OFF
+  ggplot(ticks.mrg, aes(med.str, mean.combo.energy, color = approach.food)) +
+    ggtitle("Mean energy level of foragers by change in producer's strength") +
+    labs(y = "Mean energy level", x = "Median change in producer's strength") +
+    # facet_grid(rows=vars(approach.food)) +
+    geom_point() 
+  
+#  dev.off()
+  ggsave("./plots/meanenergyXstrength.pdf", width=14, height=7)
   
 } # END OF PLOTTING LOOP
 

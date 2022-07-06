@@ -92,31 +92,34 @@ for(i in group.sizes){ #Proximity network
   }
  
   
-  prox.count.pre = read.csv("prox_count_pre50.csv", header=T) #edge list for PRE-foraging period - contains data from all runs
-  prox.count.pre = prox.count.pre[,-1]
+  prox.count.pre = read_csv("prox_count_pre50.csv", col_types = cols()) #edge list for PRE-foraging period - contains data from all runs
+  prox.count.pre = as.data.frame(prox.count.pre[,-1])
   
-  prox.count.for = read.csv("prox_count_for50.csv", header=T) #edge list for foraging period - contains data from all runs
+  prox.count.for = read_csv("prox_count_for50.csv", col_types = cols()) #edge list for foraging period - contains data from all runs
   #prox.count.for = read.csv("prox_count_for50_fed.csv", header=T) #edge list for foraging period, counting only time steps after producer has first fed - contains data from all runs
-  prox.count.for = prox.count.for[,-1]
+  prox.count.for = as.data.frame(prox.count.for[,-1])
   
-  prox.count.post = read.csv("prox_count_post50.csv", header=T) #edge list for POST-foraging period - contains data from all runs
-  prox.count.post = prox.count.post[,-1]
+  prox.count.post = read_csv("prox_count_post50.csv", col_types = cols()) #edge list for POST-foraging period - contains data from all runs
+  prox.count.post = as.data.frame(prox.count.post[,-1])
   
   
-  q.data = read.csv("q_data_pre50.csv", header=T)
+  q.data = read_csv("q_data_pre50.csv", col_types = cols())
+  q.data = as.data.frame(q.data)
   prox.metrics.out = data.frame()
   metrics.func(prox.count.pre) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_pre.csv")
   rm(q.data)
   
   #  q.data.for = read.csv("q_data_forage50.csv", header=T)
-  q.data = read.csv("qdf_fed.csv", header=T)
+  q.data = read_csv("qdf_fed.csv", col_types = cols())
+  q.data = as.data.frame(q.data)
   prox.metrics.out = data.frame()
   metrics.func(prox.count.for) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_for.csv")
   rm(q.data)
   
-  q.data = read.csv("q_data_post50.csv", header=T)
+  q.data = read_csv("q_data_post50.csv", col_types = cols())
+  q.data = as.data.frame(q.data)
   prox.metrics.out = data.frame()
   metrics.func(prox.count.post) # see function defined at beginning of script
   write.csv(prox.metrics.out, "prox_metrics_post.csv")
@@ -139,7 +142,7 @@ n.loops = max(group.sizes)
 pb = txtProgressBar(min=0, max = n.loops, style=3)
 start.time = Sys.time()
 
-for(i in group.sizes){ #Proximity network
+for(i in group.sizes){ #calculating differences in proximity network metrics between phases
   
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
@@ -155,11 +158,17 @@ for(i in group.sizes){ #Proximity network
  
   
   #to.read = list.files()[10] # 10th file in the working directory should be q_data_split for that group size (make sure files written in this loop are not already in the working directory)
-  q.data.split = read.csv("q_data_split.csv", header=T)[, -c(1, 14:393)] #exclude proximity columns (goes up to 393 for group size of 20)
+  q.data.split = read_csv("q_data_split.csv", col_types = cols())
+  q.data.split = as.data.frame(q.data.split[, -c(1, 14:ncol(q.data.split))]) #exclude proximity columns (goes up to 393 for group size of 20)
   
-  prox.metrics.pre = read.csv("prox_metrics_pre.csv", header = T)
-  prox.metrics.for = read.csv("prox_metrics_for.csv", header = T)
-  prox.metrics.post = read.csv("prox_metrics_post.csv", header = T)
+  prox.metrics.pre = read_csv("prox_metrics_pre.csv", col_types = cols())
+  prox.metrics.pre = as.data.frame(prox.metrics.pre)
+  
+  prox.metrics.for = read_csv("prox_metrics_for.csv", col_types = cols())
+  prox.metrics.for = as.data.frame(prox.metrics.for)
+  
+  prox.metrics.post = read_csv("prox_metrics_post.csv", col_types = cols())
+  prox.metrics.post = as.data.frame(prox.metrics.post)
 
   
   # want to see if mem, att, pref have an effect on producer's centrality using network metrics from pre-forage phase as a baseline
