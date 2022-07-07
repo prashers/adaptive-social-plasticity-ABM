@@ -90,37 +90,27 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
     
-    str.range1 = str.range[1:2]
-    str.range2 = str.range[3:4]
-    str.range3 = str.range[5:6]
+    str.range1 = str.range[1:6]
     
   } else if(i==6) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_6")
     
-    str.range1 = str.range[7:8]
-    str.range2 = str.range[9:10]
-    str.range3 = str.range[11:12]
+    str.range1 = str.range[7:12]
     
   } else if(i==10) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_10")
     
-    str.range1 = str.range[13:14]
-    str.range2 = str.range[15:16]
-    str.range3 = str.range[17:18]
+    str.range1 = str.range[13:18]
     
   } else if(i==15) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_15")
     
-    str.range1 = str.range[19:20]
-    str.range2 = str.range[21:22]
-    str.range3 = str.range[23:24]
+    str.range1 = str.range[19:24]
     
   } else if(i==20) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_20")
     
-    str.range1 = str.range[25:26]
-    str.range2 = str.range[27:28]
-    str.range3 = str.range[29:30]
+    str.range1 = str.range[25:30]
     
   }
   
@@ -192,7 +182,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
     facet_grid(rows=vars(memory)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range2), 0, max(str.range2)), limits=c(min(str.range2), max(str.range2))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -219,7 +209,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
     facet_grid(rows=vars(memory)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range3), 0, max(str.range3)), limits=c(min(str.range3), max(str.range3))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -306,8 +296,8 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   
   #plot of mean number of time steps foragers ate 
   ggplot(ticks.per.combo, aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
-    ggtitle("Mean # time steps foragers ate with approach.food ON") +
-    labs(y = "Attention", x = "Preference", fill = "Mean # time steps") +
+    ggtitle("Mean # time steps foragers ate") +
+    labs(y = "Attention", x = "Preference", fill = "Mean # time steps foraged") +
     facet_grid(rows=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
@@ -325,13 +315,15 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
 #  pdf("./plots/meanticksforagedXstrength.pdf", width=7, height=13)
   
   #plot of mean number of time steps foragers ate WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(ticks.mrg, aes(med.str, mean.ticks, color = approach.food)) +
+  ggplot(ticks.mrg, aes(med.str, mean.ticks)) + #include 'color = approach.food' after mean.ticks in this line if plotting a different color for each level of approach.food
     ggtitle("Mean # time steps foragers ate by change in producer's strength") +
-    labs(y = "Mean # time steps", x = "Median change in producer's strength") +
+    labs(y = "Mean # time steps foraged", x = "Median change in producer's strength") +
    # scale_x_continuous(name = "Median change in producer's strength", breaks = seq(floor(min(str.range)), ceiling(max(str.range)))) +
   #  scale_y_continuous(name = "Mean # time steps", breaks = seq(floor(min(ticks.mrg$mean.ticks)), ceiling(max(ticks.mrg$mean.ticks)))) +
    # facet_grid(rows=vars(approach.food)) +
-    geom_point() 
+    geom_point() +
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
     
 #  dev.off()
   ggsave("./plots/meanticksforagedXstrength.pdf", width=14, height=7)
@@ -340,11 +332,13 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
 #  pdf("./plots/meanenergyXstrength.pdf", width=7, height=13)
   
   #plot of mean number of time steps foragers ate WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(ticks.mrg, aes(med.str, mean.combo.energy, color = approach.food)) +
+  ggplot(ticks.mrg, aes(med.str, mean.combo.energy)) + #include 'color = approach.food' after mean.combo.energy in this line if plotting a different color for each level of approach.food
     ggtitle("Mean energy level of foragers by change in producer's strength") +
-    labs(y = "Mean energy level", x = "Median change in producer's strength") +
+    labs(y = "Mean energy level of foragers", x = "Median change in producer's strength") +
     # facet_grid(rows=vars(approach.food)) +
-    geom_point() 
+    geom_point() +
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
   ggsave("./plots/meanenergyXstrength.pdf", width=14, height=7)
