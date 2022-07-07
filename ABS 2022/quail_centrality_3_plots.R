@@ -1,6 +1,10 @@
 #Plots for ABS 2022
+library(readr)
+library(dplyr)
 library(ggplot2)
 library(RColorBrewer)
+
+rescale = function(x){(x-min(x))/(max(x) - min(x))*1} #function to rescale a vector (values then fall between 0 and 1)
 
 group.sizes = c(3, 6, 10, 15, 20)
 
@@ -264,8 +268,13 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     group_by(combo.num) %>% 
     mutate(n=n(), med.ticks=median(n.timesteps), mean.ticks = mean(n.timesteps))
   
-  mid.break.mean = min(ticks.per.combo$mean.ticks) + ((max(ticks.per.combo$mean.ticks) - min(ticks.per.combo$mean.ticks))/2)
-  mid.break.median = min(ticks.per.combo$med.ticks) + ((max(ticks.per.combo$med.ticks) - min(ticks.per.combo$med.ticks))/2)
+  #RESCALE MEDIAN AND MEAN TICKS TO GET VALUES BETWEEN 0-1 (THIS DOES NOT CHANGE THE PLOTS AT ALL)
+  #ticks.per.combo$med.ticks = rescale(ticks.per.combo$med.ticks)
+  #ticks.per.combo$mean.ticks = rescale(ticks.per.combo$mean.ticks)
+    
+  #calculating where middle of legend should be
+  mid.break.mean = min(ticks.per.combo$mean.ticks) + ((max(ticks.per.combo$mean.ticks) - min(ticks.per.combo$mean.ticks))/2) #this should just be 0.5 if rescaling mean.ticks
+  mid.break.median = min(ticks.per.combo$med.ticks) + ((max(ticks.per.combo$med.ticks) - min(ticks.per.combo$med.ticks))/2) #this should just be 0.5 if rescaling med.ticks
   
   
 #  pdf("./plots/meanticksforaged.pdf", width=7, height=13)
