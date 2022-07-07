@@ -30,11 +30,11 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, M
  
   
   prox.forXpre = read_csv("prox_forxpre.csv", col_types = cols()) # including the 'col_types = cols()' argument suppresses the unnecessary column specification messages from read_csv
-  prox.forXpre = as.data.frame(prox.forXpre[,-1])
+  prox.forXpre = as.data.frame(prox.forXpre[prox.forXpre$approach.food == FALSE,-1])
   prox.postXfor = read_csv("prox_postxfor.csv", col_types = cols())
-  prox.postXfor = as.data.frame(prox.postXfor[,-1])
+  prox.postXfor = as.data.frame(prox.postXfor[prox.postXfor$approach.food == FALSE,-1])
   prox.postXpre = read_csv("prox_postxpre.csv", col_types = cols())
-  prox.postXpre = as.data.frame(prox.postXpre[,-1])
+  prox.postXpre = as.data.frame(prox.postXpre[prox.postXpre$approach.food == FALSE,-1])
   
   #summarize data (median) for each variable combination before making heat maps
   #check distribution of network metric differences for each variable combination to see how to proceed with summarizing the data
@@ -70,7 +70,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, M
   
   ###################################################################
   for.success = read_csv("for_success.csv", col_types = cols())
-  for.success = as.data.frame(for.success[,-1])
+  for.success = as.data.frame(for.success[for.success$approach.food == FALSE,-1])
   
   mean.energy.range = append(mean.energy.range, range(for.success$mean.combo.energy), after = length(mean.energy.range))
   median.energy.range = append(median.energy.range, range(for.success$med.combo.energy), after = length(median.energy.range))
@@ -128,11 +128,11 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   dir.create("plots") #create in a new folder in the current working directory that will hold all the plots from this loop
   
   prox.forXpre = read_csv("prox_forxpre.csv", col_types = cols())
-  prox.forXpre = as.data.frame(prox.forXpre[,-1])
+  prox.forXpre = as.data.frame(prox.forXpre[prox.forXpre$approach.food == FALSE,-1])
   prox.postXfor = read_csv("prox_postxfor.csv", col_types = cols())
-  prox.postXfor = as.data.frame(prox.postXfor[,-1])
+  prox.postXfor = as.data.frame(prox.postXfor[prox.postXfor$approach.food == FALSE,-1])
   prox.postXpre = read_csv("prox_postxpre.csv", col_types = cols())
-  prox.postXpre = as.data.frame(prox.postXpre[,-1])
+  prox.postXpre = as.data.frame(prox.postXpre[prox.postXpre$approach.food == FALSE,-1])
   
   
   ############################################################
@@ -162,7 +162,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between foraging and pre-foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
     theme_minimal() +
@@ -190,7 +190,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between post- and foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range2), 0, max(str.range2)), limits=c(min(str.range2), max(str.range2))) +
     theme_minimal() +
@@ -217,7 +217,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range3), 0, max(str.range3)), limits=c(min(str.range3), max(str.range3))) +
     theme_minimal() +
@@ -233,7 +233,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ############################################################
   #PLOTS FOR FORAGING SUCCESS OF NON-PRODUCERS
   for.success = read_csv("for_success.csv", col_types = cols())
-  for.success = as.data.frame(for.success[,-1])
+  for.success = as.data.frame(for.success[for.success$approach.food == FALSE,-1])
   
   
   #plot mean energy level per combo like you did for differences in producer strength
@@ -243,9 +243,9 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = mean.combo.energy)) +
     ggtitle("Mean energy of foragers") +
     labs(y = "Attention", x = "Preference", fill = "Mean energy level") +
-    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.combo.energy), 0, max(mean.combo.energy)), limits=c(min(mean.combo.energy), max(mean.combo.energy))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$mean.combo.energy), 0, max(for.success$mean.combo.energy)), limits=c(min(for.success$mean.combo.energy), max(for.success$mean.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -260,9 +260,9 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
     ggtitle("Median energy of foragers") +
     labs(y = "Attention", x = "Preference", fill = "Median energy level") +
-    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(med.combo.energy), 0, max(med.combo.energy)), limits=c(min(med.combo.energy), max(med.combo.energy))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$med.combo.energy), 0, max(for.success$med.combo.energy)), limits=c(min(for.success$med.combo.energy), max(for.success$med.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -277,9 +277,9 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = var.combo.energy)) +
     ggtitle("Variance in energy of foragers") +
     labs(y = "Attention", x = "Preference", fill = "Variance in energy level") +
-    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(var.combo.energy), 0, max(var.combo.energy)), limits=c(min(var.combo.energy), max(var.combo.energy))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$var.combo.energy), 0, max(for.success$var.combo.energy)), limits=c(min(for.success$var.combo.energy), max(for.success$var.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -308,7 +308,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(ticks.per.combo, aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
     ggtitle("Mean # time steps foragers ate with approach.food ON") +
     labs(y = "Attention", x = "Preference", fill = "Mean # time steps") +
-    facet_grid(rows=vars(memory), cols=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
     theme_minimal() +
