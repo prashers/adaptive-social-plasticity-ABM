@@ -89,14 +89,39 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   
   if(i==3){
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_3")
+    
+    str.range1 = str.range[1:2]
+    str.range2 = str.range[3:4]
+    str.range3 = str.range[5:6]
+    
   } else if(i==6) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_6")
+    
+    str.range1 = str.range[7:8]
+    str.range2 = str.range[9:10]
+    str.range3 = str.range[11:12]
+    
   } else if(i==10) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_10")
+    
+    str.range1 = str.range[13:14]
+    str.range2 = str.range[15:16]
+    str.range3 = str.range[17:18]
+    
   } else if(i==15) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_15")
+    
+    str.range1 = str.range[19:20]
+    str.range2 = str.range[21:22]
+    str.range3 = str.range[23:24]
+    
   } else if(i==20) {
     setwd("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/group_size_20")
+    
+    str.range1 = str.range[25:26]
+    str.range2 = str.range[27:28]
+    str.range3 = str.range[29:30]
+    
   }
   
   
@@ -139,7 +164,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
     facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -167,7 +192,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
     facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range2), 0, max(str.range2)), limits=c(min(str.range2), max(str.range2))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -194,7 +219,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
     facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range), 0, max(str.range)), limits=c(min(str.range), max(str.range))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range3), 0, max(str.range3)), limits=c(min(str.range3), max(str.range3))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -220,7 +245,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     labs(y = "Attention", x = "Preference", fill = "Mean energy level") +
     facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.energy.range), 0, max(mean.energy.range)), limits=c(min(mean.energy.range), max(mean.energy.range))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.combo.energy), 0, max(mean.combo.energy)), limits=c(min(mean.combo.energy), max(mean.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -237,7 +262,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     labs(y = "Attention", x = "Preference", fill = "Median energy level") +
     facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(median.energy.range), 0, max(median.energy.range)), limits=c(min(median.energy.range), max(median.energy.range))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(med.combo.energy), 0, max(med.combo.energy)), limits=c(min(med.combo.energy), max(med.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -254,7 +279,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
     labs(y = "Attention", x = "Preference", fill = "Variance in energy level") +
     facet_grid(rows=vars(memory), cols=vars(approach.food)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(var.energy.range), 0, max(var.energy.range)), limits=c(min(var.energy.range), max(var.energy.range))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(var.combo.energy), 0, max(var.combo.energy)), limits=c(min(var.combo.energy), max(var.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
