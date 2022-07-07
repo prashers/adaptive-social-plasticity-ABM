@@ -113,7 +113,7 @@ library(stringr)
 
 group.sizes = c(3,6,10,15,20)
 
-n.loops = max(unique(q.data.ord$group.size))
+n.loops = 20 # max(unique(q.data.ord$group.size))
 pb = txtProgressBar(min=0, max = n.loops, style=3)
 start.time = Sys.time()
 
@@ -198,16 +198,15 @@ for (i in group.sizes) {
 } #end of big loop
 end.time = Sys.time()
 run.time = end.time - start.time
-run.time # ran in 3.5 minutes for 5 runs per combo
+run.time # ran in 15 minutes for 50 runs per combo, but only got through group sizes 3, 6, and 10, then got error during 15 (cannot allocate vector of size 14.4 Mb)
+# NOT ENOUGH MEMORY TO GET q_data_split.csv for group sizes 15 and 20 (I tried running this loop for just those two starting with empty memory and it did not work)
 
 
-
-
-group.sizes = unique(q.data.ord$group.size)
 rm(q.data.ord, split.prox, split.proximIDs, x, loop.data)
 
 #START HERE IF RE-RUNNING WITH EMPTY R ENVIRONMENT AFTER SAVING q_data_split files
-group.sizes = c(3, 6, 10, 15, 20)
+#group.sizes = c(3, 6, 10, 15, 20)
+group.sizes = c(3, 6, 10)
 
 prox.labels = vector() #I use this in the next big loop to fill in the 'prox.key' column
 for(i in 1:20) {
@@ -217,6 +216,7 @@ for(i in 1:20) {
 }
 
 
+library(readr)
 library(tidyr)
 library(dplyr)
 
@@ -461,11 +461,12 @@ for(i in group.sizes){
   setTxtProgressBar(pb,i)#update progress bar
   
 }#end of second big loop
+
   
 end.time = Sys.time()
 run.time = end.time - start.time
 run.time # ran in 11.5 minutes for 5 runs per combo
-
+#ONLY ENOUGH MEMORY TO GET THROUGH GROUP SIZES 3 AND 6 - TOOK AN HOUR
 
 
 
