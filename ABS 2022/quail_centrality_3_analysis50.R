@@ -1,5 +1,6 @@
 # make loops in which you subset the big edge lists by run number, 
 # then use igraph to calculate degree and strength and save in an external data frame
+library(readr)
 library(tidyr)
 library(dplyr)
 
@@ -71,7 +72,7 @@ metrics.func = function(func.df) {
 
 
 
-group.sizes = c(3, 6, 10, 15, 20)
+group.sizes = c(3, 6)#, 10, 15, 20)
 
 n.loops = max(group.sizes)
 pb = txtProgressBar(min=0, max = n.loops, style=3)
@@ -214,4 +215,5 @@ for(i in group.sizes){ #calculating differences in proximity network metrics bet
 end.time = Sys.time()
 run.time = end.time - start.time
 run.time #36 seconds for 5 runs per combo
+#34 seconds for 50 runs per combo group sizes 3 and 6
 

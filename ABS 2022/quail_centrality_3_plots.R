@@ -6,7 +6,7 @@ library(RColorBrewer)
 
 #rescale = function(x){(x-min(x))/(max(x) - min(x))*1} #function to rescale a vector (values then fall between 0 and 1)
 
-group.sizes = c(3, 6, 10, 15, 20)
+group.sizes = c(3, 6)#, 10, 15, 20)
 
 str.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEDIAN STRENGTH ACROSS GROUP SIZES
 mean.energy.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEAN ENERGY LEVEL OF FORAGERS ACROSS GROUP SIZES
@@ -315,12 +315,12 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
 #  pdf("./plots/meanticksforagedXstrength.pdf", width=7, height=13)
   
   #plot of mean number of time steps foragers ate WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(ticks.mrg, aes(med.str, mean.ticks)) + #include 'color = approach.food' after mean.ticks in this line if plotting a different color for each level of approach.food
+  ggplot(ticks.mrg, aes(med.str, mean.ticks, color = as.factor(preference), shape = as.factor(attention))) + #include 'color = approach.food' after mean.ticks in this line if plotting a different color for each level of approach.food
     ggtitle("Mean # time steps foragers ate by change in producer's strength") +
     labs(y = "Mean # time steps foraged", x = "Median change in producer's strength") +
     scale_x_continuous( breaks = seq(0, ceiling(max(str.range1)), by = 2)) +
     scale_y_continuous( breaks = seq(0, ceiling(max(ticks.mrg$mean.ticks)), by = 2)) +
-   # facet_grid(rows=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) + #add 'cols = vars(approach.food)' if you want a different column for each level of approach.food
     geom_point() +
     theme_minimal() +
     theme(axis.line.x.bottom=element_line(size=1), axis.line.y.left=element_line(size=1), aspect.ratio=1, text=element_text(size=15))
@@ -332,12 +332,12 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
 #  pdf("./plots/meanenergyXstrength.pdf", width=7, height=13)
   
   #plot of mean number of time steps foragers ate WHEN APPROACH.FOOD SWITCH WAS OFF
-  ggplot(ticks.mrg, aes(med.str, mean.combo.energy)) + #include 'color = approach.food' after mean.combo.energy in this line if plotting a different color for each level of approach.food
+  ggplot(ticks.mrg, aes(med.str, mean.combo.energy, color = as.factor(preference), shape = as.factor(attention))) + #include 'color = approach.food' after mean.combo.energy in this line if plotting a different color for each level of approach.food
     ggtitle("Mean energy level of foragers by change in producer's strength") +
     labs(y = "Mean energy level of foragers", x = "Median change in producer's strength") +
     scale_x_continuous( breaks = seq(0, ceiling(max(str.range1)), by = 2)) +
     scale_y_continuous( breaks = seq(floor(min(ticks.mrg$mean.combo.energy)), ceiling(max(ticks.mrg$mean.combo.energy)), by = 5)) +
-    # facet_grid(rows=vars(approach.food)) +
+    facet_grid(rows=vars(memory)) +
     geom_point() +
     theme_minimal() +
     theme(axis.line.x.bottom=element_line(size=1), axis.line.y.left=element_line(size=1), aspect.ratio=1, text=element_text(size=15))
