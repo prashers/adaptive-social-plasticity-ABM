@@ -152,14 +152,14 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between foraging and pre-foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(cols=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave("./plots/StrengthForxPre_scaled.pdf", width=7, height=13)
+   ggsave("./plots/StrengthForxPre_scaled.pdf", width=13, height=7)
   
   #rm(pfxp.med) #not removing this, because I will use it for foraging success plots as well
   
@@ -180,14 +180,14 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between post- and foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(cols=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave("./plots/StrengthPostxFor_scaled.pdf", width=7, height=13)
+   ggsave("./plots/StrengthPostxFor_scaled.pdf", width=13, height=7)
   
   rm(ppxf.med)
   
@@ -207,14 +207,14 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
     ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
     labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(cols=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave("./plots/StrengthPostxPre_scaled.pdf", width=7, height=13)
+   ggsave("./plots/StrengthPostxPre_scaled.pdf", width=13, height=7)
   
   rm(ppxp.med)
   
@@ -233,14 +233,14 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = mean.combo.energy)) +
     ggtitle("Mean energy of foragers") +
     labs(y = "Attention", x = "Preference", fill = "Mean energy level") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(cols=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$mean.combo.energy), 0, max(for.success$mean.combo.energy)), limits=c(min(for.success$mean.combo.energy), max(for.success$mean.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave("./plots/meanenergy.pdf", width=7, height=13)
+   ggsave("./plots/meanenergy.pdf", width=13, height=7)
   
   
   #plot median energy level per combo
@@ -250,14 +250,14 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
     ggtitle("Median energy of foragers") +
     labs(y = "Attention", x = "Preference", fill = "Median energy level") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(cols=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$med.combo.energy), 0, max(for.success$med.combo.energy)), limits=c(min(for.success$med.combo.energy), max(for.success$med.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-  ggsave("./plots/medianenergy.pdf", width=7, height=13)
+  ggsave("./plots/medianenergy.pdf", width=13, height=7)
   
   
   #plot variance in energy level per combo the same way
@@ -267,14 +267,14 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = var.combo.energy)) +
     ggtitle("Variance in energy of foragers") +
     labs(y = "Attention", x = "Preference", fill = "Variance in energy level") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(cols=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$var.combo.energy), 0, max(for.success$var.combo.energy)), limits=c(min(for.success$var.combo.energy), max(for.success$var.combo.energy))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave("./plots/varenergy.pdf", width=7, height=13)
+   ggsave("./plots/varenergy.pdf", width=13, height=7)
   
   
   #calculate mean or median number of time steps that foragers ate for each combo number and plot in the same way
@@ -298,14 +298,14 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   ggplot(ticks.per.combo, aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
     ggtitle("Mean # time steps foragers ate") +
     labs(y = "Attention", x = "Preference", fill = "Mean # time steps foraged") +
-    facet_grid(rows=vars(memory)) +
+    facet_grid(cols=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-  ggsave("./plots/meanticksforaged.pdf", width=7, height=13)
+  ggsave("./plots/meanticksforaged.pdf", width=13, height=7)
   
   
   #plot foraging success metrics by median change in producer's strength between foraging and pre-foraging phases
