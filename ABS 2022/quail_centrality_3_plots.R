@@ -297,7 +297,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   #plot of mean number of time steps foragers ate 
   ggplot(ticks.per.combo, aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
     ggtitle("Mean # time steps foragers ate") +
-    labs(y = "Attention", x = "Preference", fill = "Mean # time steps foraged") +
+    labs(y = "Attention", x = "Preference", fill = "Mean # time steps") +
     facet_grid(cols=vars(memory)) +
     geom_tile() +
     scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
