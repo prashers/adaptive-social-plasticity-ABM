@@ -200,13 +200,13 @@ end.time = Sys.time()
 run.time = end.time - start.time
 run.time # ran in 15 minutes for 50 runs per combo, but only got through group sizes 3, 6, and 10, then got error during 15 (cannot allocate vector of size 14.4 Mb)
 # NOT ENOUGH MEMORY TO GET q_data_split.csv for group sizes 15 and 20 (I tried running this loop for just those two starting with empty memory and it did not work)
-
+# AFTER UPGRADING RAM TO 48GB THIS LOOP RUNS FOR ALL 5 GROUP SIZES IN 38.6 MINUTES
 
 rm(q.data.ord, split.prox, split.proximIDs, x, loop.data)
 
 #START HERE IF RE-RUNNING WITH EMPTY R ENVIRONMENT AFTER SAVING q_data_split files
-#group.sizes = c(3, 6, 10, 15, 20)
-group.sizes = c(3, 6, 10)
+group.sizes = c(3, 6, 10, 15, 20)
+#group.sizes = c(3, 6, 10)
 
 prox.labels = vector() #I use this in the next big loop to fill in the 'prox.key' column
 for(i in 1:20) {
@@ -225,7 +225,7 @@ n.loops = max(group.sizes)
 pb = txtProgressBar(min=0, max = n.loops, style=3)
 start.time = Sys.time()
 
-for(i in group.sizes){
+for(i in 20){
   
   gc()
   
@@ -467,7 +467,8 @@ end.time = Sys.time()
 run.time = end.time - start.time
 run.time # ran in 11.5 minutes for 5 runs per combo
 #ONLY ENOUGH MEMORY TO GET THROUGH GROUP SIZES 3 AND 6 - TOOK AN HOUR
-
-
+# AFTER UPGRADING RAM TO 48GB THIS LOOP WORKED FOR GROUP SIZES 3, 6, 10 and 15 AND TOOK 5.5 HOURS
+# RAN THIS LOOP FOR JUST GROUP SIZE OF 20 AFTER RESTARTING R STUDIO TO SEE IF THERE IS JUST ENOUGH RAM TO GET THROUGH IT - BUT IT DID NOT WORK (only q_data_forage50.csv, q_data_pre50.csv, and q_data_post50.csv were written
+# NEXT I TRIED IMPORTING q.data.pre50.csv ALONE SO THE THREE CSVs ARE NOT ALL USING MEMORY AT ONCE, BUT STILL NOT ENOUGH MEMORY TO MAKE prox.count.pre
 
 ##### NOW ALL EDGE LISTS CAN BE USED IN THE "quail_centrality_3_analysis50" R SCRIPT
