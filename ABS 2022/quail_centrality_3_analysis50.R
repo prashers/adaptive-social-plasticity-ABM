@@ -72,7 +72,7 @@ metrics.func = function(func.df) {
 
 
 
-group.sizes = c(3, 6)#, 10, 15, 20)
+group.sizes = c(3, 6, 10, 15)#, 20)
 
 n.loops = max(group.sizes)
 pb = txtProgressBar(min=0, max = n.loops, style=3)
@@ -137,6 +137,7 @@ for(i in group.sizes){ #Proximity network
 end.time = Sys.time()
 run.time = end.time - start.time
 run.time # ran in 4 minutes for 5 runs per combo
+#ran in 3.5 hours for 50 runs per combo of group sizes 3, 6, 10,15
 
 
 rm(pb, prox.count.pre, prox.count.for, prox.count.post, prox.metrics.out)
@@ -216,4 +217,5 @@ end.time = Sys.time()
 run.time = end.time - start.time
 run.time #36 seconds for 5 runs per combo
 #34 seconds for 50 runs per combo group sizes 3 and 6
+#1.6 minutes for 50 runs per combo group sizes 3, 6, 10, 15
 

@@ -225,7 +225,7 @@ n.loops = max(group.sizes)
 pb = txtProgressBar(min=0, max = n.loops, style=3)
 start.time = Sys.time()
 
-for(i in 20){
+for(i in group.sizes){
   
   gc()
   

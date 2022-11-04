@@ -5,7 +5,7 @@ library(tidyr)
 library(dplyr)
 library(stringr)
 
-group.sizes = c(3, 6)#, 10, 15, 20)
+group.sizes = c(3, 6, 10, 15)#, 20)
 
 n.loops = max(group.sizes)
 pb = txtProgressBar(min=0, max = n.loops, style=3)
@@ -99,5 +99,6 @@ end.time = Sys.time()
 run.time = end.time - start.time
 run.time #ran in 13 seconds for 5 runs per combo
 #ran in 18 seconds for 50 runs per combo group sizes 3 and 6
+#ran in 1 minute for 50 runs per combo group sizes 3, 6, 10, 15
 
 #for_success.csv can now be used for plotting, etc.
