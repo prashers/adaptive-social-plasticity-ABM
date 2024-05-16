@@ -5,8 +5,10 @@ library(stringr)
 #can remove prior.affils, unfam.prod, eat.delay, alt-food, and affil.IDs columns before reading in the csv file to reduce file size (FILE TOO LARGE TO OPEN IN EXCEL...)
 #probably don't need memory.succ.foragers
 
+#see all column names:
+read.csv("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/quail_centrality_3_50percombo.csv", nrows = 1, skip = 6)
 
-
+#import after removing unnecessary columns
 f = function(x, pos) subset(x, select = -c(`prior-affils?`, `unfam-prod?`, `eat-delay?`, `alt-food?`, `affil-IDs`, `reset-food?`, `[step]`, `memory-succ-foragers`, `foll-centrality-list`, `foll-IDs`, `current-xycor`, `prox-centrality-list`, `fss-list`))#getting rid of all these columns allowed me to read in the file with all group sizes without errors
 q.data.full = read_csv_chunked("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_3/ABS 2022/quail_centrality_3_50percombo.csv", callback = DataFrameCallback$new(f), skip = 6)
 
