@@ -43,24 +43,23 @@ to setup
   ca
   reset-ticks
 
-;  this code was to resize the arena depending on group size
-;  let new-min-pxcor group-size * -1.7
-;  let new-max-pxcor group-size * 1.7
-;  let new-min-pycor group-size * -1.7
-;  let new-max-pycor group-size * 1.7
-;  resize-world new-min-pxcor new-max-pxcor new-min-pycor new-max-pycor
+
+  if resize-arena? [;run this if you want to resize the arena depending on group size
+    resize-arena
+  ]
+
 
   ;; CREATE AGENTS AND MOVE THEM TO EMPTY PATCHES
   create-producers 1 [ ;create 1 producer in a random patch, set its color to red, set its energy to __
     set color red
-    set energy round random-normal 150 10
+    set energy round random-normal 50 10 ;initial energy will influence how soon agents start wanting food
     set first-sf-seen nobody
     set first-sf-seen-timer 0
   ]
 
   create-foragers group-size - 1 [;create group-size minus 1 foragers in random patches, set their color to blue, set their energy to __
     set color blue
-    set energy round random-normal 150 10
+    set energy round random-normal 50 10 ;initial energy will influence how soon agents start wanting food
 ;    set stop-timer 0
     set first-sf-seen nobody
     set first-sf-seen-timer 0
@@ -119,23 +118,67 @@ to setup
   set current-succ-foragers [] ; need this so that I don't get 0 in the output for this column
 
 
-  ;; SETTING FOOD PATCH RESOURCE-LEVELS
+  present-food ; run present-food procedure
+
+
+end
+
+
+to resize-arena
+  let desired-density 0.015
+  let target-area group-size / desired-density
+  let new-world-size sqrt target-area
+
+
+  let new-min-pxcor 0 - (new-world-size / 2)
+  let new-max-pxcor 0 + (new-world-size / 2)
+  let new-min-pycor 0 - (new-world-size / 2)
+  let new-max-pycor 0 + (new-world-size / 2)
+
+  resize-world new-min-pxcor new-max-pxcor new-min-pycor new-max-pycor
+
+end
+
+to present-food ;introducing food patch(es)
   ifelse alt-food? [
     let food-p (patch-set patch 4 4 patch 4 5 patch 5 4 patch 5 5) ;define food patches that will become the initially inaccessible food
-    ask food-p [set resource-level 50]
 
     let alt-food-p (patch-set patch -4 -4 patch -4 -5 patch -5 -4 patch -5 -5) ;define alternative food patches that will be accessible for all
-    ask alt-food-p [set resource-level 50]
 
-  ] ;end of if alt-food?
-  [ ;start of else alt-food?
-    let central-patches (patch-set patch 0 0 patch 0 1 patch 1 0 patch 1 1) ;define central-patches
-
-    ask central-patches [ ; ask central patches to set their resource-level to 100
-      set resource-level 100
+    ask food-p [
+      set resource-level 50
+      set pcolor green ;food patch starts green and will only become inaccessible to non-producers at the start of the the middle phase
+      set reset-id 1
+      set reset-counter 0
+      if any? turtles-on food-p [ ;if there are turtles on any of the food patches, ask them to move to one of neighboring black patches so that no one is on the food patch when it is introduced
+        ask turtles-on food-p [move-to one-of neighbors with [pcolor != green]]
+      ]
     ]
 
-  ] ;end of ifelse alt-food?
+    ask alt-food-p [ ;same thing for alternative food patch
+      set resource-level 50
+      set pcolor green
+      set reset-id 2
+      set reset-counter 0
+      if any? turtles-on alt-food-p [ ;if there are turtles on any of the alternative food patches, ask them to move to one of neighboring black patches so that no one is on the alternative food patch when it is introduced
+        ask turtles-on alt-food-p [move-to one-of neighbors with [pcolor != green]]
+      ]
+    ]
+  ] ;end first half of ifelse alt-food?
+
+  [ ;if alt-food? switch is off, do this:
+    let central-patches (patch-set patch 0 0 patch 0 1 patch 1 0 patch 1 1) ;define central-patches
+
+    ask central-patches [
+      set resource-level 100
+      set pcolor green ;food patch starts green and will only become inaccessible to non-producers at the start of the the middle phase
+      set reset-id 1
+      set reset-counter 0
+      if any? turtles-on central-patches [ ;if there are turtles on any of the central patches, ask them to move to one of neighboring black patches so that no one is on the food patch when it is introduced
+        ask turtles-on central-patches [move-to one-of neighbors with [pcolor != green ]]
+      ]
+    ]
+  ]
 end
 
 
@@ -144,14 +187,15 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to go
-  if ticks = 100 [present-food]
-  if ticks = 200 [
-    ask patches [set pcolor black set resource-level 0]
-   ; ask one-of patches with [reset-id = 1] [set reset-num reset-counter]
-  ]
-  if not any? patches with [resource-level > 0] [set end-timer end-timer + 1] ;start counting number of ticks since food ran out
-  if end-timer >= 101 [stop] ;stop model 100 ticks after the food has been removed (end-timer must be 101 because it starts at 1 in the first time step that food is removed)
+  ;if ticks = 100 [present-food]
+  ;if ticks = 200 [
+  ;  ask patches [set pcolor black set resource-level 0]
+  ; ; ask one-of patches with [reset-id = 1] [set reset-num reset-counter]
+  ;]
+  ;if not any? patches with [resource-level > 0] [set end-timer end-timer + 1] ;start counting number of ticks since food ran out
+  ;if end-timer >= 101 [stop] ;stop model 100 ticks after the food has been removed (end-timer must be 101 because it starts at 1 in the first time step that food is removed)
 
+  if ticks = 300 [stop] ;stop the model at 300 ticks
 
   set current-succ-foragers [] ;an empty list that will be used to keep track of successful foragers in each time step
 
@@ -165,10 +209,15 @@ to go
     if resource-level <= 0 [set pcolor black]
   ]
 
-;  having reset-food here means that it can only happen once per tick - foragers could eat much more than what I wanted them to before the food is reset - I should check if the reset threshold has been reached after each agent forages and then reset food before the next agent eats if the threshold has been reached
-;  I moved this line to the 'access' and 'eat' procedures, so it should be run after the producer eats, and after any other agent eats
-;  if ticks > 100 and end-timer = 0 and reset-food? [reset-food] ;run reset-food procedure only after lead in period, before the post-foraging phase and if reset-food? switch is on
+  ;have food patch turn yellow/inaccessible to nonproducers at the start of the second phase
+  if ticks = 100 [
+    ask patches with [reset-id = 1] [set pcolor yellow]
+  ]
 
+  ;have food patch turn green/accessible to nonproducers at the start of the third phase
+  if ticks = 200 [
+    ask patches with [reset-id = 1] [set pcolor green]
+  ]
 
   tick
 
@@ -184,47 +233,6 @@ to go
   iterate-xycor-list
 
 end
-
-
-to present-food ;introducing food patch(es) after 100 timesteps
-  ifelse alt-food? [
-    let food-p (patch-set patch 4 4 patch 4 5 patch 5 4 patch 5 5) ;define food patches that will become the initially inaccessible food
-
-    let alt-food-p (patch-set patch -4 -4 patch -4 -5 patch -5 -4 patch -5 -5) ;define alternative food patches that will be accessible for all
-
-    ask food-p [
-      set pcolor yellow
-      set reset-id 1
-      set reset-counter 0
-      if any? turtles-on food-p [ ;if there are turtles on any of the food patches, ask them to move to one of neighboring black patches so that no one is on the food patch when it is introduced
-        ask turtles-on food-p [move-to one-of neighbors with [pcolor != yellow]]
-      ]
-    ]
-
-    ask alt-food-p [ ;same thing for alternative food patch
-      set pcolor green
-      set reset-id 2
-      set reset-counter 0
-      if any? turtles-on alt-food-p [ ;if there are turtles on any of the alternative food patches, ask them to move to one of neighboring black patches so that no one is on the alternative food patch when it is introduced
-        ask turtles-on alt-food-p [move-to one-of neighbors with [pcolor != green]]
-      ]
-    ]
-  ] ;end first half of ifelse alt-food?
-
-  [ ;if alt-food? switch is off, do this:
-    let central-patches (patch-set patch 0 0 patch 0 1 patch 1 0 patch 1 1) ;define central-patches
-
-    ask central-patches [
-      set pcolor yellow
-      set reset-id 1
-      set reset-counter 0
-      if any? turtles-on central-patches [ ;if there are turtles on any of the central patches, ask them to move to one of neighboring black patches so that no one is on the food patch when it is introduced
-        ask turtles-on central-patches [move-to one-of neighbors with [pcolor != yellow ]]
-      ]
-    ]
-  ]
-end
-
 
 
 to prod-actions
@@ -246,9 +254,10 @@ to prod-actions
       energy < 50 and [pcolor] of patch-here != black [access];if your energy level is less than 50 and resource-level of patch you are on is greater than zero, then access the food
       energy <= 30 and any? patches with [pcolor != black] [move-to-patch] ;if your energy level is 15 or below, move-to-patch
       [;if neither one of the energy conditions are met:
-        (ifelse not eat-delay? [movement];If eat-delay? is off producer should movement (follow same movement rules as other foragers)
-        alt-food? [movement] ;If alt-food? is on, producer should movement (follow same movement rules as other foragers)
-        [move-random]) ;(CHANGED FOR quail_centrality_3) If eat-delay? and alt-food? are off, producer should move randomly (it doesn't follow others based on their foraging activity - bc why would a bird follow other successful foragers if it knows it can access food itself)
+        move-random ;in quail_centrality_4 the producer does not follow the same movement rules as other foragers bc it always knows the location of food and how to access it
+;        (ifelse not eat-delay? [movement];If eat-delay? is off producer should movement (follow same movement rules as other foragers)
+;        alt-food? [movement] ;If alt-food? is on, producer should movement (follow same movement rules as other foragers)
+;        [move-random]) ;If eat-delay? and alt-food? are off, producer should move randomly (it doesn't follow others based on their foraging activity - bc why would a bird follow other successful foragers if it knows it can access food itself)
       ]
     )
 
@@ -279,7 +288,7 @@ to for-actions
     let previous-energy energy ;save energy level before moving/accessing to keep track of who has foraged at each time step
 
     ifelse approach-food? [ ;if approach-food? switch is on, foragers approach food when energy is low enough
-      (ifelse ; CHANGED - removed pausing on yellow patches
+      (ifelse
         [pcolor] of patch-here = green and energy < 50 [eat] ;if the patch you are on is green and you have less than 50 energy then eat
         energy <= 30 and any? patches with [pcolor != black] [move-to-patch] ;if your energy level is 15 or below, move-to-patch
         [movement] ;if patch-here is not green and the condition in the line directly above is also not met, then run movement procedure
@@ -345,7 +354,7 @@ to access ;procedure only run by the producer
     ]
   ]
 
-  if ticks > 100 and end-timer = 0 and reset-food? [reset-food] ;run reset-food procedure only after lead in period, before the post-foraging phase and if reset-food? switch is on
+  if reset-food? [reset-food] ;run reset-food procedure
 end
 
 
@@ -356,7 +365,7 @@ to eat
     set resource-level resource-level - 10 ;decrease patch's resource-level by 10
   ]
 
-  if ticks > 100 and end-timer = 0 and reset-food? [reset-food] ;run reset-food procedure only after lead in period, before the post-foraging phase and if reset-food? switch is on
+  if reset-food? [reset-food] ;run reset-food procedure
 end
 
 
@@ -372,7 +381,7 @@ to move-to-patch ;This makes the agent turn to face the closest yellow or green 
 end
 
 
-to movement ;Follow first successful forager that you remember
+to movement ;Follow first successful forager that you remember (following either unfam-prod-movement or regular-movement) or move randomly
 
   ifelse first-sf-seen != nobody [ ;if there is a successful forager in memory
 
@@ -385,7 +394,7 @@ to movement ;Follow first successful forager that you remember
 
   [ ;if there are no successful-foragers-in-memory
     ask my-out-folls [die] ;remove all outgoing following links
-    move-random ;(CHANGED FOR quail_centrality_3) run move-random procedure
+    move-random
   ]
 
 
@@ -397,11 +406,11 @@ to unfam-prod-movement
 
   ifelse random-float 1 < unfam-prod-pref [ ; if a random decimal number is less than preference minus 0.5 (higher likelihood when preference is greater), then:
 
-    ifelse [distance myself] of turtle first-sf-seen > 2.5 [ ;only change heading and move toward the sf if it is more than 2.5 units away (so the follower never ends up on the same patch as the sf)
+    ifelse [distance myself] of turtle first-sf-seen > 1 [ ;only change heading and move toward the sf if it is more than 1 unit away (so the follower never ends up on the same patch as the sf)
       set heading towards turtle first-sf-seen ; face the first successful forager you remember seeing and move 1 unit forward
       forward 1
     ]
-    [move-random] ;(CHANGED FOR quail_centrality_3) move-random (otherwise agents just stop moving when they are already closer than 2.5 units - like when feeding on patch - and att, pref are both 1)
+    [move-random] ;move-random (otherwise agents just stop moving when they are already closer than 1 unit - like when feeding on patch - and att, pref are both 1)
 
     ask my-out-folls [die] ;remove any previous following links - I DON'T NEED THIS HERE IF first-sf-seen FOR EACH TURTLE DOESN'T CHANGE
     create-foll-to turtle first-sf-seen [set color red set thickness 0.3] ; create following link to first-sf-seen
@@ -409,7 +418,7 @@ to unfam-prod-movement
 
   [ ;if random-float 1 is greater than or equal to unfam-prod-pref value
     ask my-out-folls [die] ;remove all outgoing following links
-    move-random ; (CHANGED FOR quail_centrality_3) run move-random procedure
+    move-random ;run the move-random procedure
   ]
 end
 
@@ -417,11 +426,11 @@ end
 to regular-movement
   ifelse random-float 1 < preference [ ; if a random decimal number is less than the preference value (higher likelihood when preference is greater), then:
 
-    ifelse [distance myself] of turtle first-sf-seen > 1 [ ;only change heading and move toward the sf if it is more than 2.5 units away (so the follower never ends up on the same patch as the sf)
+    ifelse [distance myself] of turtle first-sf-seen > 1 [ ;only change heading and move toward the sf if it is more than 1 unit1 away (so the follower never ends up on the same patch as the sf)
       set heading towards turtle first-sf-seen ; face the first successful forager you remember seeing and move 1 unit forward
       forward 1
     ]
-    [move-random] ;(CHANGED FOR quail_centrality_3) if first-sf-seen is <= 2.5 units away, move-random (otherwise agents just stop moving when they are already closer than 2.5 units - like when feeding on patch - and att, pref are both 1)
+    [move-random] ;if first-sf-seen is <= 1 units away, move-random (otherwise agents just stop moving when they are already closer than 1 unit - like when feeding on patch - and att, pref are both 1)
 
     ask my-out-folls [die] ;remove any previous following links - I DON'T NEED THIS HERE IF first-sf-seen FOR EACH TURTLE DOESN'T CHANGE
     create-foll-to turtle first-sf-seen [set color red set thickness 0.3] ; create following link to first-sf-seen
@@ -429,12 +438,12 @@ to regular-movement
 
   [ ;if random decimal number is NOT less than preference value, do this:
     ask my-out-folls [die] ;remove all outgoing following links
-    move-random ; (CHANGED FOR quail_centrality_3) run move-random procedure
+    move-random ;run move-random procedure
   ]
 end
 
 
-to move-random
+to move-random ;move one unit in a random direction
   right random 360 ;rotate a random number of degrees right
   left random 360 ;rotate a random number of degrees left
 
@@ -453,11 +462,11 @@ to reset-food
 
   ifelse alt-food? [
 
-    if sum [resource-level] of patches with [reset-id = 1] <= 150 [ ;if total resource level of food patches gets below 300, reset them to yellow and 100 resource-level each
+    if sum [resource-level] of patches with [reset-id = 1] <= 150 [ ;if total resource level of food patches gets below 150, reset them to yellow and 50 resource-level each
       ask patches with [reset-id = 1] [
 ;        if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
 
-        set pcolor yellow
+        ifelse ticks >= 100 and ticks < 200 [set pcolor yellow] [set pcolor green] ;reset to yellow only for middle part of model
         set resource-level 50
         set reset-counter reset-counter + 1
       ]
@@ -465,7 +474,7 @@ to reset-food
 
     if sum [resource-level] of patches with [reset-id = 2] <= 150 [
       ask patches with [reset-id = 2] [
-;        if reset-counter >= 3 [stop]
+;        if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
 
         set pcolor green ;they are already green, but I have this here to help detect issues
         set resource-level 50
@@ -474,24 +483,42 @@ to reset-food
     ]
   ] ;end first half of ifelse alt-food?
 
-  [; THINK ABOUT WHETHER TO CHANGE HOW FAST FOOD RESETS DEPENDING ON GROUP SIZE
+  [;start second half of ifelse alt-food?
 
-    let reset-threshold 400 - (group-size * 10) ; adjusting threshold for different group sizes to reduce the effect of competition
-    ;let reset-threshold 350 ; leaving threshold the same across all group sizes
+    ifelse reset-food-consistent? [;if reset-food-consistent switch is ON, do this
 
-    if sum [resource-level] of patches with [reset-id = 1] <= reset-threshold [ ;if total resource level of food patches gets below 300, reset them to yellow and 100 resource-level each
-      ask patches with [reset-id = 1] [
-;        if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
+      let reset-threshold 350 ; leaving threshold the same across all group sizes
 
-        set pcolor yellow
-        set resource-level 100
-        set reset-counter reset-counter + 1
+      if sum [resource-level] of patches with [reset-id = 1] <= reset-threshold [ ;if total resource level of food patches gets below the reset-threshold value, reset them to yellow and 100 resource-level each
+        ask patches with [reset-id = 1] [
+;          if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
+
+          ifelse ticks >= 100 and ticks < 200 [set pcolor yellow] [set pcolor green] ;reset to yellow only for middle part of model
+          set resource-level 100
+          set reset-counter reset-counter + 1
+        ]
       ]
 
       ask one-of patches with [reset-id = 1] [set reset-num reset-counter]
-
     ]
-  ]
+    [ ;if reset-food-consistent switch is OFF, do this
+
+      let reset-threshold 400 - (group-size * 10) ; adjusting threshold for different group sizes to reduce the effect of competition
+
+      if sum [resource-level] of patches with [reset-id = 1] <= reset-threshold [ ;if total resource level of food patches gets below the reset-threshold value, reset them to yellow and 100 resource-level each
+        ask patches with [reset-id = 1] [
+;          if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
+
+          ifelse ticks >= 100 and ticks < 200 [set pcolor yellow] [set pcolor green] ;reset to yellow only for middle part of model
+          set resource-level 100
+          set reset-counter reset-counter + 1
+        ]
+      ]
+
+      ask one-of patches with [reset-id = 1] [set reset-num reset-counter]
+    ]
+
+    ];end of second half of ifelse alt-food?
 
 end
 
@@ -572,7 +599,9 @@ to iterate-xycor-list
   set current-xycor n-values group-size ["[NA NA]"] ;make temporary list of current coordinates
 
   ask turtles [
-    let coors sentence xcor ycor
+    let rndxcor precision xcor 5 ;round xcor to 5 decimal places
+    let rndycor precision ycor 5 ;round ycor to 5 decimal places
+    let coors sentence rndxcor rndycor
     set current-xycor replace-item who current-xycor coors ;ask each turtle to add its current coordinates to the temporary list in the place matching its who number
   ]
   ;print current-xycor
@@ -585,8 +614,8 @@ end
 GRAPHICS-WINDOW
 357
 21
-661
-326
+802
+467
 -1
 -1
 14.1
@@ -599,10 +628,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--10
-10
--10
-10
+-15
+15
+-15
+15
 0
 0
 1
@@ -652,7 +681,7 @@ attention
 attention
 0
 1
-1.0
+0.75
 0.01
 1
 NIL
@@ -667,7 +696,7 @@ preference
 preference
 0
 1
-1.0
+0.75
 0.01
 1
 NIL
@@ -681,9 +710,9 @@ SLIDER
 memory
 memory
 0
-200
-200.0
-5
+300
+100.0
+25
 1
 NIL
 HORIZONTAL
@@ -729,13 +758,13 @@ PENS
 "F5" 1.0 0 -1184463 true "" "plot item 5 prox-centrality-list"
 
 SWITCH
-206
-293
-326
-326
+205
+236
+325
+269
 eat-delay?
 eat-delay?
-0
+1
 1
 -1000
 
@@ -796,10 +825,10 @@ unfam-prod?
 -1000
 
 SWITCH
-206
-346
-335
-379
+205
+293
+334
+326
 reset-food?
 reset-food?
 0
@@ -815,7 +844,7 @@ group-size
 group-size
 3
 20
-20.0
+15.0
 1
 1
 NIL
@@ -823,11 +852,33 @@ HORIZONTAL
 
 SWITCH
 205
-236
+187
 343
-269
+220
 approach-food?
 approach-food?
+1
+1
+-1000
+
+SWITCH
+207
+346
+408
+379
+reset-food-consistent?
+reset-food-consistent?
+0
+1
+-1000
+
+SWITCH
+163
+130
+304
+163
+resize-arena?
+resize-arena?
 0
 1
 -1000
@@ -1174,7 +1225,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.2
+NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
