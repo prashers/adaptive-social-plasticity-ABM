@@ -1486,6 +1486,10 @@ NetLogo 6.4.0
       <value value="false"/>
       <value value="true"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="resize-arena?">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
   </experiment>
 </experiments>
 @#$#@#$#@
