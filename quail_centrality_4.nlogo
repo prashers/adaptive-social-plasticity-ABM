@@ -1427,6 +1427,66 @@ NetLogo 6.4.0
       <value value="true"/>
     </enumeratedValueSet>
   </experiment>
+  <experiment name="quail_centrality_4_test" repetitions="5" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>ticks</metric>
+    <metric>affil-IDs</metric>
+    <metric>prox-centrality-list</metric>
+    <metric>proxim-IDs</metric>
+    <metric>current-succ-foragers</metric>
+    <metric>memory-succ-foragers</metric>
+    <metric>fss-list</metric>
+    <metric>foll-centrality-list</metric>
+    <metric>foll-IDs</metric>
+    <metric>current-xycor</metric>
+    <metric>energy-list</metric>
+    <metric>reset-num-for</metric>
+    <metric>deplete-num</metric>
+    <enumeratedValueSet variable="group-size">
+      <value value="3"/>
+      <value value="6"/>
+      <value value="10"/>
+      <value value="15"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="memory">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+      <value value="150"/>
+      <value value="200"/>
+      <value value="250"/>
+      <value value="300"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="attention" first="0" step="0.25" last="1"/>
+    <steppedValueSet variable="preference" first="0" step="0.25" last="1"/>
+    <enumeratedValueSet variable="approach-food?">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="prior-affils?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="unfam-prod?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="eat-delay?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alt-food?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reset-food?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reset-food-consistent?">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
 </experiments>
 @#$#@#$#@
 @#$#@#$#@
