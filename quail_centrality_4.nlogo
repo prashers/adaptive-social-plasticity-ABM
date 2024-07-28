@@ -7,8 +7,8 @@ directed-link-breed [folls foll] ;directed following links (directed from follow
 
 
 globals [
-  history ;history will be a list showing the "public record" of the individuals (who numbers) that have foraged within the past x ticks
-  sub-history ;a subet of the history list containing IDs of individuals that have foraged within a number of  time steps equal to memory
+  history ; history will be a list showing the "public record" of the individuals (who numbers) that have foraged within the past x ticks
+  sub-history ; a subet of the history list containing IDs of individuals that have foraged within a number of  time steps equal to memory
   current-succ-foragers ; current-succ-foragers will keep track of successful foragers in each time step, which will be used to iterate history
   memory-succ-foragers ; memory-succ-foragers will hold the who numbers of foragers who have eaten within the past memory time steps ;this is not used to control agent movements in the current iteration of the model
   prox-centrality-list ; list showing number of other agents in proximity (within a certain radius) to each agent - updated at each time step
@@ -20,8 +20,10 @@ globals [
   current-xycor ; object holding the current x and y coordinates of each agent - used to update the xycor-list
   end-timer ; a numeric variable to count the number of time steps since food is depleted
   fss-list ; list containing first-sf-seen value of each turtle
-  energy-list ;list containing energy levels of each turtle
-  reset-num ;number of times the food patch was reset during the foraging phase
+  energy-list ; list containing energy levels of each turtle
+  deplete-num ; number of times the food patch was depleted during the pre- and post-foraging phases
+  reset-num-for ; number of times the food patch was reset during the foraging phase
+  deplete-count ; used to keep track of how many time steps have passed since food patch was depleted in pre- and post-foraging phases
 ]
 
 turtles-own [ ;Values of each of these variables are unique to each agent
@@ -108,7 +110,9 @@ to setup
   set energy-list n-values group-size ["NA"]
   ask turtles [set energy-list replace-item who energy-list energy]
 
-  set reset-num 0
+  set deplete-num 0
+  set reset-num-for 0
+  set deplete-count 0
 
   set xycor-list n-values 301 [n-values group-size [0]]
   iterate-xycor-list
@@ -195,7 +199,21 @@ to go
   ;if not any? patches with [resource-level > 0] [set end-timer end-timer + 1] ;start counting number of ticks since food ran out
   ;if end-timer >= 101 [stop] ;stop model 100 ticks after the food has been removed (end-timer must be 101 because it starts at 1 in the first time step that food is removed)
 
-  if ticks = 300 [stop] ;stop the model at 300 ticks
+
+    ;have food patch turn yellow/inaccessible to nonproducers at the start of the second phase
+  if ticks = 100 [
+    ask patches with [reset-id = 1] [set pcolor yellow]
+  ]
+
+  ;have food patch turn green/accessible to nonproducers at the start of the third phase
+  if ticks = 200 [
+    ask patches with [reset-id = 1] [set pcolor green]
+  ]
+
+  ;stop the model at 300 ticks
+  if ticks = 300 [stop]
+
+
 
   set current-succ-foragers [] ;an empty list that will be used to keep track of successful foragers in each time step
 
@@ -209,15 +227,16 @@ to go
     if resource-level <= 0 [set pcolor black]
   ]
 
-  ;have food patch turn yellow/inaccessible to nonproducers at the start of the second phase
-  if ticks = 100 [
-    ask patches with [reset-id = 1] [set pcolor yellow]
-  ]
+;  if deplete-count > 5 and not(ticks >= 100 and ticks < 200) [ ; reset deplete-count to zero and turn food patches green if they were first depleted at least 5 time steps ago and any agent
+;    if any? turtles-on patches with [reset-id = 1] [
+;      ask patches with [reset-id = 1] [
+;          set pcolor green ; only turning them green, since their resource-level was already reset in the deplete-food procedure
+;          set deplete-count 0 ;reset deplete-count to zero
+;      ]
+;    ]
+;  ]
+  if deplete-count >= 1 [set deplete-count deplete-count + 1] ;increase deplete-count for every time step that has passed since food was depleted
 
-  ;have food patch turn green/accessible to nonproducers at the start of the third phase
-  if ticks = 200 [
-    ask patches with [reset-id = 1] [set pcolor green]
-  ]
 
   tick
 
@@ -252,8 +271,9 @@ to prod-actions
 
     (ifelse
       energy < 50 and [pcolor] of patch-here != black [access];if your energy level is less than 50 and resource-level of patch you are on is greater than zero, then access the food
-      energy <= 30 and any? patches with [pcolor != black] [move-to-patch] ;if your energy level is 15 or below, move-to-patch
-      [;if neither one of the energy conditions are met:
+      energy <= 30 and any? patches with [pcolor != black] [move-to-patch] ;if your energy level is 30 or below, move-to-patch
+      energy < 50 and deplete-count > 5 and not(ticks >= 100 and ticks < 200) and [reset-id] of patch-here = 1 [reset-eat] ; if you have less than 50 energy, deplete-count is greater than 5 (at least 5 time steps have passed since food patch was depleted), it is the pre- or post-foraging phase, and you are standing on one of the food patches, run the reset-eat procedure
+      [;if none of the above conditions are met:
         move-random ;in quail_centrality_4 the producer does not follow the same movement rules as other foragers bc it always knows the location of food and how to access it
 ;        (ifelse not eat-delay? [movement];If eat-delay? is off producer should movement (follow same movement rules as other foragers)
 ;        alt-food? [movement] ;If alt-food? is on, producer should movement (follow same movement rules as other foragers)
@@ -290,14 +310,17 @@ to for-actions
     ifelse approach-food? [ ;if approach-food? switch is on, foragers approach food when energy is low enough
       (ifelse
         [pcolor] of patch-here = green and energy < 50 [eat] ;if the patch you are on is green and you have less than 50 energy then eat
-        energy <= 30 and any? patches with [pcolor != black] [move-to-patch] ;if your energy level is 15 or below, move-to-patch
-        [movement] ;if patch-here is not green and the condition in the line directly above is also not met, then run movement procedure
+        energy <= 30 and any? patches with [pcolor = green] [move-to-patch] ;if your energy level is 30 or below and there is food available, move-to-patch
+        energy < 50 and deplete-count > 5 and not(ticks >= 100 and ticks < 200) and [reset-id] of patch-here = 1 [reset-eat] ; if you have less than 50 energy, deplete-count is greater than 5 (at least 5 time steps have passed since food patch was depleted), it is the pre- or post-foraging phase, and you are standing on one of the food patches, run the reset-eat procedure
+        [movement] ;if conditions above are not met, then run movement procedure
         )
     ]
     [ ;if approach-food switch is off, foragers follow regular movement rules no matter what their energy level is (except to eat on green patches)
-      ifelse [pcolor] of patch-here = green and energy < 50 [eat] ;if the patch you are on is green and you have less than 50 energy then eat
-        [movement] ;if patch-here is not green then run movement procedure
-
+      (ifelse
+        [pcolor] of patch-here = green and energy < 50 [eat] ;if the patch you are on is green and you have less than 50 energy then eat
+        energy < 50 and deplete-count > 5 and not(ticks >= 100 and ticks < 200) and [reset-id] of patch-here = 1 [reset-eat] ; if you have less than 50 energy, deplete-count is greater than 5 (at least 5 time steps have passed since food patch was depleted), it is the pre- or post-foraging phase, and you are standing on one of the food patches, run the reset-eat procedure
+        [movement] ;if conditions above are not met, then run movement procedure
+        )
     ]
 
     if energy > previous-energy [ ;if energy after taking your turn is higher than your previous-energy (i.e. you have foraged this turn), then add your who number to the list of current successful foragers
@@ -343,7 +366,7 @@ to turtle-actions ;setting first-sf-seen of each turtle
 end
 
 
-to access ;procedure only run by the producer
+to access ;increase producer energy level while decreasing patch resource-level and make patch accessible to all foragers
   set energy energy + 10 ;increase producer's energy by 10
 
   ask patch-here [
@@ -354,20 +377,34 @@ to access ;procedure only run by the producer
     ]
   ]
 
-  if reset-food? [reset-food] ;run reset-food procedure
+  if reset-food? [;run reset-food procedure if in foraging phase, otherwise run deplete-food procedure
+    ifelse ticks >= 100 and ticks < 200 [reset-food] [deplete-food]
+  ]
 end
 
 
-to eat
+to eat ;increase agent energy while decreasing patch resource-level
   set energy energy + 10 ;increase forager's energy by 10
 
   ask patch-here [
     set resource-level resource-level - 10 ;decrease patch's resource-level by 10
   ]
 
-  if reset-food? [reset-food] ;run reset-food procedure
+  if reset-food? [;run reset-food procedure if in foraging phase, otherwise run deplete-food procedure
+    ifelse ticks >= 100 and ticks < 200 [reset-food] [deplete-food]
+  ]
 end
 
+to reset-eat ;reset the food patch so it is accessible to anyone again and eat
+
+  ask patches with [reset-id = 1] [ ;reset the food patch
+    set pcolor green ; only turning them green, since their resource-level was already reset in the deplete-food procedure
+    set deplete-count 0 ;reset deplete-count to zero
+  ]
+
+  eat ;run the eat procedure
+
+end
 
 to move-to-patch ;This makes the agent turn to face the closest yellow or green patch and take a step forward (toward the closest food patch)
 
@@ -466,7 +503,7 @@ to reset-food
       ask patches with [reset-id = 1] [
 ;        if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
 
-        ifelse ticks >= 100 and ticks < 200 [set pcolor yellow] [set pcolor green] ;reset to yellow only for middle part of model
+        set pcolor yellow ;reset to yellow only for middle part of model
         set resource-level 50
         set reset-counter reset-counter + 1
       ]
@@ -493,13 +530,16 @@ to reset-food
         ask patches with [reset-id = 1] [
 ;          if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
 
-          ifelse ticks >= 100 and ticks < 200 [set pcolor yellow] [set pcolor green] ;reset to yellow only for middle part of model
+          set pcolor yellow ;reset to yellow only for middle part of model
           set resource-level 100
-          set reset-counter reset-counter + 1
+          ;set reset-counter reset-counter + 1
         ]
+
+        set reset-num-for reset-num-for + 1
+
       ]
 
-      ask one-of patches with [reset-id = 1] [set reset-num reset-counter]
+      ;ask one-of patches with [reset-id = 1] [set reset-num-for reset-counter]
     ]
     [ ;if reset-food-consistent switch is OFF, do this
 
@@ -509,13 +549,88 @@ to reset-food
         ask patches with [reset-id = 1] [
 ;          if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
 
-          ifelse ticks >= 100 and ticks < 200 [set pcolor yellow] [set pcolor green] ;reset to yellow only for middle part of model
+          set pcolor yellow ;reset to yellow only for middle part of model
           set resource-level 100
-          set reset-counter reset-counter + 1
+          ;set reset-counter reset-counter + 1
         ]
+
+        set reset-num-for reset-num-for + 1
+
       ]
 
-      ask one-of patches with [reset-id = 1] [set reset-num reset-counter]
+      ;ask one-of patches with [reset-id = 1] [set reset-num-for reset-counter]
+    ]
+
+    ];end of second half of ifelse alt-food?
+
+end
+
+to deplete-food
+
+  ifelse alt-food? [
+
+    if sum [resource-level] of patches with [reset-id = 1] <= 150 [ ;if total resource level of food patches gets below 150, reset them to yellow and 50 resource-level each
+      ask patches with [reset-id = 1] [
+
+        set pcolor black ;set to black - food not accessible to anyone
+        set resource-level 50
+        set reset-counter reset-counter + 1
+      ]
+    ]
+
+    if sum [resource-level] of patches with [reset-id = 2] <= 150 [
+      ask patches with [reset-id = 2] [
+
+        set pcolor black ;set to black - food not accessible to anyone
+        set resource-level 50
+        set reset-counter reset-counter + 1
+      ]
+    ]
+  ] ;end first half of ifelse alt-food?
+
+  [;start second half of ifelse alt-food?
+
+    ifelse reset-food-consistent? [;if reset-food-consistent switch is ON, do this
+
+      let reset-threshold 350 ; leaving threshold the same across all group sizes
+
+      if sum [resource-level] of patches with [reset-id = 1] <= reset-threshold [ ;if total resource level of food patches gets below the reset-threshold value, reset them to yellow and 100 resource-level each
+        ask patches with [reset-id = 1] [
+
+          set pcolor black ;set to black - food not accessible to anyone
+          set resource-level 100
+          ;set reset-counter reset-counter + 1
+        ]
+
+        set deplete-num deplete-num + 1
+        set deplete-count 1
+
+      ]
+
+
+      ;ask one-of patches with [reset-id = 1] [set deplete-num reset-counter]
+
+    ]
+    [ ;if reset-food-consistent switch is OFF, do this
+
+      let reset-threshold 400 - (group-size * 10) ; adjusting threshold for different group sizes to reduce the effect of competition
+
+      if sum [resource-level] of patches with [reset-id = 1] <= reset-threshold [ ;if total resource level of food patches gets below the reset-threshold value, reset them to yellow and 100 resource-level each
+        ask patches with [reset-id = 1] [
+;          if reset-counter >= 3 [stop] ;if patches have been reset twice already, then do not reset again
+
+          set pcolor black ;set to black - food not accessible to anyone
+          set resource-level 100
+          ;set reset-counter reset-counter + 1
+        ]
+
+        set deplete-num deplete-num + 1
+        set deplete-count 1
+
+      ]
+
+      ;ask one-of patches with [reset-id = 1] [set deplete-num reset-counter]
+
     ]
 
     ];end of second half of ifelse alt-food?
@@ -612,10 +727,10 @@ to iterate-xycor-list
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-357
-21
-802
-467
+445
+23
+749
+328
 -1
 -1
 14.1
@@ -628,10 +743,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--15
-15
--15
-15
+-10
+10
+-10
+10
 0
 0
 1
@@ -674,9 +789,9 @@ NIL
 
 SLIDER
 23
-236
+129
 195
-269
+162
 attention
 attention
 0
@@ -689,9 +804,9 @@ HORIZONTAL
 
 SLIDER
 23
-293
+182
 195
-326
+215
 preference
 preference
 0
@@ -704,9 +819,9 @@ HORIZONTAL
 
 SLIDER
 22
-347
+236
 194
-380
+269
 memory
 memory
 0
@@ -758,10 +873,10 @@ PENS
 "F5" 1.0 0 -1184463 true "" "plot item 5 prox-centrality-list"
 
 SWITCH
-205
-236
-325
-269
+206
+182
+326
+215
 eat-delay?
 eat-delay?
 1
@@ -769,10 +884,10 @@ eat-delay?
 -1000
 
 SWITCH
-24
-75
-155
-108
+18
+331
+149
+364
 prior-affils?
 prior-affils?
 1
@@ -803,10 +918,10 @@ PENS
 "F5" 1.0 0 -1184463 true "" "plot item 5 foll-centrality-list"
 
 SWITCH
-24
-131
-137
-164
+306
+330
+419
+363
 alt-food?
 alt-food?
 1
@@ -814,10 +929,10 @@ alt-food?
 -1000
 
 SWITCH
-163
-75
-302
-108
+157
+331
+296
+364
 unfam-prod?
 unfam-prod?
 1
@@ -825,10 +940,10 @@ unfam-prod?
 -1000
 
 SWITCH
-205
-293
-334
-326
+206
+235
+335
+268
 reset-food?
 reset-food?
 0
@@ -837,24 +952,24 @@ reset-food?
 
 SLIDER
 23
-187
+80
 195
-220
+113
 group-size
 group-size
 3
 20
-15.0
+6.0
 1
 1
 NIL
 HORIZONTAL
 
 SWITCH
-205
-187
-343
-220
+206
+129
+344
+162
 approach-food?
 approach-food?
 1
@@ -862,10 +977,10 @@ approach-food?
 -1000
 
 SWITCH
-207
-346
-408
-379
+206
+282
+407
+315
 reset-food-consistent?
 reset-food-consistent?
 0
@@ -873,10 +988,10 @@ reset-food-consistent?
 -1000
 
 SWITCH
-163
-130
-304
-163
+206
+80
+347
+113
 resize-arena?
 resize-arena?
 0

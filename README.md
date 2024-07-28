@@ -10,10 +10,15 @@ In quail_centrality_4, I am planning to make the following changes (as of July 2
         - This is important bc we already know that complex grouping patterns can result from individual responses to resource distribution (e.g., Ramos-Fernandez et al. 2006) - so in the previous version I could just be seeing effects of a concentrated resource on changing centrality in proximity network
         - NOTE: NOW ACTIVITY IN THE FORAGING PHASE WOULD NOT IMPACT AGENT MOVEMENT WHEN MEMORY IS LONGEST BC WHO THEY REMEMBER (a successful forager from the first phase) IS FIXED
         
-3. the food patch is depleted and disappears for x time steps in the first and third phases - otherwise it would be resetting and different group sizes would no longer have different levels of competition
+3. the food patch is depleted and disappears for 5 time steps in the first and third phases. It reappears when any of the agents steps on one of the food patches by chance after those 5 time steps (if I don't have a few time steps in between, I think it would reset immediately because there would probably be an agent on the food patch already)
+        - if I did not add this, food would be resetting and different group sizes would no longer have different levels of competition in the pre- and post-foraging phases
+        - this also incorporates higher chance of larger groups resetting the food patch in the pre- or post-foraging phase since there are more agents that can potentially step on a food patch
+        - this change, in addition to #2, is meant to make the comparison of producer strength between the foraging phase and other phases more valid since the only difference between phases in the current model is that the producer is the only one who can reset the food patch in the foraging phase
 		
-4. Added separate scrounging movement (scroungers move straight to food if 1. they are hungry, 2. they perceived a successful forager, and 3. food is accessible)
-        - This separates scrounging from following more (this is not meant to be a producer-scrounger model, but a model looking at how non-foraging interactions may change in response to an individual's foraging activity), but if they can always go straight to food when available, there may be no influence of following on foraging success
+4. Adjusted movement options for foragers when the approach-food? switch is on -- they now move toward food patch if their energy is very low and the food is accessible (food patch is green)
+        - I think this better reflects scrounging behavior - agent moves straight to an available food source without regard for how the food became accessible
+        - This means agents always know where accessible food is
+        - attention/preference/memory still only control whether agents follow the successful forager they saw when they are not hungry or there is no accessible food
 
 5. Added a switch to control whether reset threshold is consistent or changes across group sizes
 
