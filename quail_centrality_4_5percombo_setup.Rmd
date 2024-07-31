@@ -1,0 +1,502 @@
+---
+title: "quail_centrality_4_5percombo_setup"
+author: "Sanjay Prasher"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#import packages
+```{r}
+
+library(RMySQL)
+library(readr) #needed for importing the data file in chunks
+library(stringr)
+library(dplyr)
+library(tidyr)
+
+```
+
+
+#connect to MySQL database
+```{r}
+#Enter the values for you database connection
+dsn_database = "quail_centrality_4" # for example  "BLUDB"
+dsn_hostname = "localhost" # for example  "mydbinstance.cz6pjylrdjko.us-east-1.rds.amazonaws.com"
+dsn_port = 3306 # for example  3306 without quotation marks
+dsn_uid = "root" # for example  "user1"
+dsn_pwd = "hobsonSQL" # for example  "7dBZ3jWt9xN6$o0JiX!m"
+
+
+
+conn = dbConnect(MySQL(), user=dsn_uid, password=dsn_pwd, host=dsn_hostname, port=dsn_port)
+conn
+
+
+#test query
+# use_command <- paste("USE", dsn_database, sep=" ");
+# dbSendQuery(conn, use_command);
+# query = "SELECT * FROM subset_quail_centrality_4_5percombo 
+# order by run 
+# limit 2";
+# rs = dbSendQuery(conn, query)
+# df = dbFetch(rs, -1);
+# df
+# dbClearResult(rs)
+
+```
+
+
+
+
+
+#select a subset of the full table that contains only the necessary columns for proximity analyses
+```{r}
+rm(df)
+
+
+use_command <- paste("USE", dsn_database, sep=" ");
+dbSendQuery(conn, use_command);
+query = "SELECT * FROM subset_quail_centrality_4_5percombo";
+rs = dbSendQuery(conn, query)
+data.ord = dbFetch(rs, -1);
+dbClearResult(rs)
+
+head(data.ord)
+nrow(data.ord)
+str(data.ord)
+min(data.ord$ticks)
+max(data.ord$ticks)
+
+
+#there should be 9000 unique combinations of the 7 variables I allowed to vary (5*9*5*5*2*2*2)
+num.combos = 9000
+
+nrow(data.ord[data.ord$groupsize==3 & 
+                  data.ord$mem == 0 & 
+                  data.ord$attention == 0 & 
+                  data.ord$preference == 0 & 
+                  data.ord$approachfood=="false" &
+                  data.ord$resetfoodconsistent=="false" &
+                  data.ord$resizearena=="false",]) # every combo has 15050 rows
+
+data.ord[rownames(data.ord) == 1505, colnames(data.ord) %in% c("groupsize", "mem", "attention", "preference", "approachfood", "resetfoodconsistent", "resizearena")] #checking whether combo changes every 15050 rows
+
+combo = vector()
+for (i in 1:num.combos) {
+  x = rep(i, 1505)
+  combo = append(combo, x, after=length(combo))
+}
+length(combo) # should be same length as the number of rows in q.data.ord
+range(combo)
+
+data.ord$combo.num = combo
+head(data.ord)
+rm(combo)
+
+
+# I will need to know which phases each row belongs to 
+# (tick 0 is the state of the model when reset button is pressed, 
+# ticks 1:100 are the pre-foraging phase, ticks 101:200 are the foraging phase, 
+# and ticks 201:300 are the post-foraging phase)
+data.ord = data.ord %>% 
+              mutate(phase = case_when(
+                              ticks == 0 ~ "start",
+                              ticks %in% 1:100 ~ "pre-forage",
+                              ticks %in% 101:200 ~ "forage",
+                              ticks %in% 201:300 ~ "post-forage"
+              ))
+
+
+
+#summarize number of resets/food depletions per group size
+resets.summary = data.ord %>% 
+                  group_by(groupsize, 
+                          approachfood, 
+                          resetfoodconsistent, 
+                          resizearena) %>%
+                  summarize(mean.resets = mean(resetnum),
+                            median.resets = median(resetnum),
+                            mean.depletes = mean(depletenum),
+                            median.depletes = median(depletenum))
+write_csv(resets.summary, "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/resets_summary.csv")
+
+
+#create table in MySQL database #THIS WAS NOT WORKING "Error in dbSendQuery(conn, statement, ...) :  could not run statement: Loading local data is disabled; this must be enabled on both the client and server sides"
+
+data.ord = data.ord[ , !(names(data.ord) %in% c("resetnum", "depletenum"))]
+
+write_csv(data.ord, "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/data_ord_5percombo.csv") #saving csv here so I can run the big loop after restarting R with clean memory
+
+
+```
+
+# split the proximID data into separate columns
+```{r}
+
+### need to be able to count the number of times an agent was in proximity to, or being followed by, each other agent
+### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns
+### need to separate data into different dataframes for each group size, because that will influence how many columns that data is split into
+
+group.sizes = c(3,6,10,15,20)
+
+n.loops = 20 # max(unique(q.data.ord$group.size))
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
+
+
+for (i in group.sizes) {
+  
+  #loop.data = data.ord[data.ord$group.size==i,] #subset of data for current group size
+  
+  gc()
+  # I AM GOING TO TRY READING IN DATA FOR EACH GROUP SIZE INSIDE THE LOOP SO I DON'T HAVE THE LARGER DATA FRAME TAKING UP MEMORY
+  f = function(x, pos) subset(x, groupsize == i)
+  loop.data = read_csv_chunked("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/data_ord_5percombo.csv", callback = DataFrameCallback$new(f))
+  loop.data = as.data.frame(loop.data)
+  
+  
+  ###separate proxim.IDs into different columns###
+  
+  # first, a separate column for each agent's list, 
+  # then further split into separate columns per agent in proximity proxA1:proxA19 (up to i-1 agents in proximity)
+  split.proximIDs = str_split_fixed(loop.data$proximIDs, "] ", i) # split the data in the proxim.IDs column at each "] " into i separate columns
+  #head(split.proximIDs)
+  split.proximIDs[,1:i] = gsub("[[]", "", split.proximIDs[,1:i]) # remove the square brackets from the split data
+  split.proximIDs[,1:i] = gsub("[]]", "", split.proximIDs[,1:i])
+  #head(split.proximIDs)
+  
+  split.prox = data.frame(1:nrow(split.proximIDs)) # need same number of rows as nrow(split.proximIDs)
+  for(j in 1:ncol(split.proximIDs)){ # loop to separate each foragers proximity IDs into i-1 columns
+    x = str_split_fixed(split.proximIDs[,j], " ", i-1)
+    x = as.data.frame(x)
+    
+    for(k in 1:ncol(x)) {
+        colnames(x)[k] = paste0("prox", letters[j], k)
+    }
+     
+    
+    split.prox = cbind(split.prox, x)
+  }
+  #colnames(split.prox)[1] = "X"
+  #head(split.prox)
+  #tail(split.prox)
+  
+
+  #unique(split.prox$proxb2) # split.prox has some blanks if there were not 5 values for proximIDs in an agent's split.proximIDs column 
+  split.prox[split.prox==""] = NA #replace all blank cells with NA
+  split.prox[split.prox=="NA"] = NA #replace all characters "NA" with missing values
+  
+  split.prox = split.prox[,-1] #remove first column
+  #View(data.frame(loop.data[11000:11020,]$proxim.IDs, split.prox[11000:11020,]))# compare split.prox to proxim.IDs column in q.data.ord
+  
+  ### split.prox is ready to be added to the big data frame
+  
+  
+  ##### add all separated columns to the big dataframe 
+  data.split = cbind(loop.data[, !(names(loop.data) %in% c("proximIDs"))], split.prox) #, split.foll) #, split.cor) #add the new columns into the dataframe with proxim.IDs column removed
+  #View(q.data.split)
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+  }
+  
+  file.name = paste(file.path, "data_split.csv", sep = "/")
+  write_csv(data.split, file.name)
+  
+  setTxtProgressBar(pb,i)#update progress bar
+  
+} #end of big loop
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time
+
+rm(data.ord, split.prox, split.proximIDs, x, loop.data)
+
+```
+
+```{r}
+#START HERE IF RE-RUNNING WITH EMPTY R ENVIRONMENT AFTER SAVING q_data_split files
+group.sizes = c(3, 6, 10, 15, 20)
+#group.sizes = c(3, 6, 10)
+
+prox.labels = vector() #I use this in the next big loop to fill in the 'prox.key' column
+for(i in 1:20) {
+  temp.labels = paste0("prox", letters[i])
+  
+  prox.labels = append(prox.labels, temp.labels, after=length(prox.labels))
+}
+
+
+
+n.loops = max(group.sizes)
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
+
+for(i in group.sizes){
+  
+  gc()
+  
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+  }
+  file.name = paste(file.path, "data_split.csv", sep = "/")
+  data.split = read_csv(file.name, col_types = cols())
+  #data.split = as.data.frame(data.split[,-1])
+  
+  # MATRIX WILL CONTAIN COUNTS OF HOW MANY TIME STEPS EACH DYAD WAS IN PROXIMITY (FOR PROXIMITY NETWORK) 
+  # WILL HAVE A MATRIX FOR EACH PHASE WITHIN EACH MODEL RUN
+  
+  
+  # divide proximity dataframe into three -- one for each phase
+  #dp.start.pre = d.prox[d.prox$phase %in% c("start", "pre-forage"),] 
+  data.pre = data.split[data.split$phase == "pre-forage",]
+  file.name = paste(file.path, "data_pre50.csv", sep = "/")
+  write_csv(data.pre, file.name)
+  
+  data.forage = data.split[data.split$phase == "forage",]
+  file.name = paste(file.path, "data_forage50.csv", sep = "/")
+  write_csv(data.forage, file.name)
+  
+  data.post = data.split[data.split$phase == "post-forage",]
+  file.name = paste(file.path, "data_post50.csv", sep = "/")
+  write_csv(data.post, file.name)
+  
+  rm(data.split)# remove data.split from environment to save memory
+  
+  
+  
+  
+  ###PROXIMITY network: PRE-foraging phase###
+  prox.count.pre = data.pre %>% 
+    pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+                 names_to = "prox", values_to = "prox.ID") 
+  
+  
+  #nrow(data.pre)*(i*(i-1)) == nrow(prox.count.pre)#check that prox.count has the correct number of rows
+  
+  prox.count.pre = tibble::add_column(prox.count.pre, prox.key = "NA", .after = "prox")
+  
+  rm(data.pre) # remove q.data.pre from environment to save memory
+  
+  for(j in 1:20){#LOOP TO FILL IN THE 'prox' COLUMN
+    if(j > i){break} #end the loop if j > i
+    
+    prox.letter = unique(prox.count.pre[startsWith(prox.count.pre$prox, prox.labels[j]), ]$prox)
+    
+    prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox %in% prox.letter, LETTERS[j]))
+    
+  }
+#  View(prox.count.pre)
+#  unique(prox.count.pre$prox.key)# check that all NAs were replaced
+  
+  
+  # use dplyr functions to get counts after grouping by prox.key and proxIDs
+  prox.count.pre = prox.count.pre %>% 
+    group_by(run, mem, attention, preference, approachfood, prox.key, prox.ID) %>% 
+    summarize(n = n()) 
+  
+  #prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),] #using complete.cases like this removes a lot of runs in which agents were never near each other
+  #unique(prox.count.pre$prox.ID)
+  #range(prox.count.pre$n) #WHY IS THE MAX 200? Max is 200 for a group of 3 because it is counting 100 rows for each proxa/proxb... column
+  prox.count.pre$prox.ID = as.numeric(prox.count.pre$prox.ID)
+  prox.count.pre[prox.count.pre$n == max(prox.count.pre$n) & is.na(prox.count.pre$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
+  prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),]#then remove unnecessary rows
+  #length(unique(prox.count.pre$run.num)) #now prox.count.pre contains all run.num values
+  
+  #View(prox.count.pre)
+  ### prox.count.pre contains the counts of how many time steps each agent was in proximity to each other agent during the PRE-FORAGING phase
+  ### SINCE I USED q.data.pre, THIS DOES NOT INCLUDE THE STATE OF THE MODEL AT TICK ZERO
+  
+  #save it as a csv to save space in the R workspace
+  file.name = paste(file.path, "prox_count_pre50.csv", sep = "/")
+  write_csv(prox.count.pre, file.name)
+  
+  
+  
+  
+  
+  ###PROXIMITY network: FORAGING phase###
+  
+  rm(prox.count.pre)# remove prox.count.pre from environment to save memory
+  gc()
+  
+  
+#  #For each run, remove rows before the producer first accesses food so we can see effects during period that agents can actually be foraging/following 
+#  #this reduces the total number of time steps that can be counted toward the number of time steps that an agent foraged in the foraging phase, but I deal with that by standardizing edge weights by the number of total time steps in each phase (see analysis R script)
+   #data.forage[data.forage$current.succ.foragers==0,] #No instances of just a 0 without brackets, so no need to change anything in the column
+  
+#  #min(grep("0", data.forage$current.succ.foragers, fixed=T)) # shows numerical index of all the rows where current.succ.foragers contains a zero - the minimum value within each model run should be the first time the producer accessed the food patch
+  
+  
+  df.fed = data.frame()
+#  n.loops = max(unique(data.forage$run.num))
+#  pb = txtProgressBar(min = min(data.forage$run.num), max = n.loops, style=3)
+#  start.time = Sys.time()
+  
+  for (j in unique(data.forage$run.num)) {
+#    setTxtProgressBar(pb,j)#update progress bar
+    
+    mod.run = data.forage[data.forage$run.num==j,] # subset with data from one model run
+    first.access = min(grep("0", mod.run$current.succ.foragers, fixed=T)) # index (row number) of the first time step in which the producer ate in the current model run
+    
+    mod.run.fed = mod.run[first.access:nrow(mod.run),] # subset of mod.run taking only rows from first.access to the end of mod.run (all the time steps after the producer first ate)
+    df.fed = rbind(df.fed, mod.run.fed) # save subset in external dataframe  
+  
+    }#end of loop
+  
+#  end.time = Sys.time()
+#  run.time = end.time - start.time
+#  run.time #ran in 4 minutes for group of 20
+  
+  file.name = paste(file.path, "df_fed.csv", sep = "/")
+  write_csv(df.fed, file.name)
+  
+  
+  prox.count.for = df.fed %>% 
+    pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+                 names_to = "prox", values_to = "prox.ID") 
+
+
+  #nrow(df.fed)*(i*(i-1)) == nrow(prox.count.for)#check that prox.count has the correct number of rows
+
+  prox.count.for = tibble::add_column(prox.count.for, prox.key = "NA", .after = "prox")
+
+  rm(data.forage,df.fed) # remove data.forage from environment to save memory
+
+  for(j in 1:20){ #LOOP TO FILL IN THE 'prox' COLUMN
+    if(j > i){break} #end the loop if j > i
+  
+    prox.letter = unique(prox.count.for[startsWith(prox.count.for$prox, prox.labels[j]), ]$prox)
+  
+    prox.count.for = prox.count.for %>% mutate(prox.key=replace(prox.key, prox %in% prox.letter, LETTERS[j]))
+  
+  }
+#  View(prox.count.for)
+#  unique(prox.count.for$prox.key)# check that all NAs were replaced
+
+
+  # use dplyr functions to get counts after grouping by prox.key and proxIDs
+  prox.count.for = prox.count.for %>% 
+    group_by(run.num, memory, attention, preference, approach.food, prox.key, prox.ID) %>% 
+    summarize(n = n()) 
+  #prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]
+  #unique(prox.count.for$prox.ID)
+  #range(prox.count.for$n) #max n will not reach (i-1)*100 if rows before producer first forages were removed AND max will be different for each run.num 
+  prox.count.for$prox.ID = as.numeric(prox.count.for$prox.ID)
+  prox.count.for[prox.count.for$n == max(prox.count.for$n) & is.na(prox.count.for$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
+  
+  for(j in min(prox.count.for$run.num):max(prox.count.for$run.num)){ #NEED THIS LOOP TO REPLACE NAs IF NO AGENTS WERE IN PROXIMITY TO EACH OTHER DURING THE FORAGING PHASE (AFTER PRODUCER FIRST FORAGED) IN A MODEL RUN
+    pcf.loop = prox.count.for[prox.count.for$run.num==j,]
+    
+    if(nrow(pcf.loop) == i && sum(is.na(pcf.loop$prox.ID)) == i) {
+      prox.count.for[prox.count.for$run.num == j,]$prox.ID = 111 #Replace NAs if no agents were in proximity to each other during the foraging phase in this model
+    }
+    
+    prox.count.for[prox.count.for$run.num == j & prox.count.for$n == max(pcf.loop$n) & is.na(prox.count.for$prox.ID),]$prox.ID = 111 #each run number has a different maximum value for 'n' because the producer first foraged at a different time step in each run, so this is to make sure I keep all individual IDs for each run for the next R script
+    
+  }
+  prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]#then remove unnecessary rows
+  #length(unique(prox.count.for$run.num)) #now prox.count.for contains all run.num values
+
+  #View(prox.count.for)
+  ### prox.count.for contains the counts of how many time steps each agent was in proximity to each other agent during the FORAGING phase
+
+  #save it as a csv to save space in the R workspace
+  file.name = paste(file.path, "prox_count_for50.csv", sep = "/")
+  write_csv(prox.count.for, file.name)
+  
+  
+  
+
+
+###PROXIMITY network: POST-foraging phase###  
+  rm(prox.count.for, pcf.loop)
+  gc()
+  
+  
+  prox.count.post = data.post %>% 
+    pivot_longer(starts_with("prox"), #pivot_longer is the same as melt in the reshape2 package
+                 names_to = "prox", values_to = "prox.ID") 
+  
+  
+  #nrow(data.post)*(i*(i-1)) == nrow(prox.count.post)#check that prox.count has the correct number of rows
+  
+  prox.count.post = tibble::add_column(prox.count.post, prox.key = "NA", .after = "prox")
+  
+  rm(data.post) # remove q.data.forage from environment to save memory
+  
+  for(j in 1:20){ #LOOP TO FILL IN THE 'prox' COLUMN
+    if(j > i){break} #end the loop if j > i
+    
+    prox.letter = unique(prox.count.post[startsWith(prox.count.post$prox, prox.labels[j]), ]$prox)
+    
+    prox.count.post = prox.count.post %>% mutate(prox.key=replace(prox.key, prox %in% prox.letter, LETTERS[j]))
+    
+  }
+  # View(prox.count.post)
+  # unique(prox.count.post$prox.key)# check that all NAs were replaced
+  
+  
+  # use dplyr functions to get counts after grouping by prox.key and proxIDs
+  prox.count.post = prox.count.post %>% 
+    group_by(run.num, memory, attention, preference, approach.food, prox.key, prox.ID) %>% 
+    summarize(n = n()) 
+  #prox.count.post = prox.count.post[complete.cases(prox.count.post$prox.ID),]
+  #unique(prox.count.post$prox.ID)
+  #range(prox.count.post$n)
+  prox.count.post$prox.ID = as.numeric(prox.count.post$prox.ID)
+  prox.count.post[prox.count.post$n == max(prox.count.post$n) & is.na(prox.count.post$prox.ID),]$prox.ID = 111 #replace NAs in the rows you want to keep with 111 - I want to keep these to make sure I have data from all run.numbers (I think especially for small group sizes, the agents were never in proximity and I was removing those runs by accident before)
+  prox.count.post = prox.count.post[complete.cases(prox.count.post$prox.ID),]#then remove unnecessary rows
+  #length(unique(prox.count.post$run.num)) #now prox.count.post contains all run.num values
+  
+  #View(prox.count.post)
+  ### prox.count.post contains the counts of how many time steps each agent was in proximity to each other agent during the POST-FORAGING phase
+  
+  #save it as a csv to save space in the R workspace
+  file.name = paste(file.path, "prox_count_post50.csv", sep = "/")
+  write_csv(prox.count.post, file.name)
+
+  rm(prox.count.post)
+  
+  
+  setTxtProgressBar(pb,i)#update progress bar
+  
+}#end of second big loop
+
+  
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time 
+
+##### NOW ALL EDGE LISTS CAN BE USED IN THE "quail_centrality_4_analysis5" R SCRIPT
+```
+
