@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#import packages
+#load packages
 ```{r}
 
 library(RMySQL)
@@ -55,12 +55,24 @@ conn
 
 #select a subset of the full table that contains only the necessary columns for proximity analyses
 ```{r}
-rm(df)
+#rm(df)
 
 
 use_command <- paste("USE", dsn_database, sep=" ");
 dbSendQuery(conn, use_command);
-query = "SELECT * FROM subset_quail_centrality_4_5percombo";
+query = "SELECT run,  
+								groupsize, 
+                mem, 
+                attention, 
+                preference, 
+                approachfood, 
+                resetfoodconsistent, 
+                resizearena, 
+                ticks, 
+                proximIDs, 
+                currentsuccforagers, 
+                energylist 
+        FROM subset_quail_centrality_4_5percombo";
 rs = dbSendQuery(conn, query)
 data.ord = dbFetch(rs, -1);
 dbClearResult(rs)
@@ -112,23 +124,12 @@ data.ord = data.ord %>%
 
 
 
-#summarize number of resets/food depletions per group size
-resets.summary = data.ord %>% 
-                  group_by(groupsize, 
-                          approachfood, 
-                          resetfoodconsistent, 
-                          resizearena) %>%
-                  summarize(mean.resets = mean(resetnum),
-                            median.resets = median(resetnum),
-                            mean.depletes = mean(depletenum),
-                            median.depletes = median(depletenum))
-write_csv(resets.summary, "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/resets_summary.csv")
+
 
 
 #create table in MySQL database #THIS WAS NOT WORKING "Error in dbSendQuery(conn, statement, ...) :  could not run statement: Loading local data is disabled; this must be enabled on both the client and server sides"
 
-data.ord = data.ord[ , !(names(data.ord) %in% c("resetnum", "depletenum"))]
-
+#writing csv file instead of adding table to MySQL
 write_csv(data.ord, "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/data_ord_5percombo.csv") #saving csv here so I can run the big loop after restarting R with clean memory
 
 
@@ -137,8 +138,8 @@ write_csv(data.ord, "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/
 # split the proximID data into separate columns
 ```{r}
 
-### need to be able to count the number of times an agent was in proximity to, or being followed by, each other agent
-### so I need to separate proxim.IDs, foll.IDs and coor.list into different columns
+### need to be able to count the number of times an agent was in proximity to each other agent
+### so I need to separate proxim.IDs into different columns
 ### need to separate data into different dataframes for each group size, because that will influence how many columns that data is split into
 
 group.sizes = c(3,6,10,15,20)
@@ -186,7 +187,7 @@ for (i in group.sizes) {
   #tail(split.prox)
   
 
-  #unique(split.prox$proxb2) # split.prox has some blanks if there were not 5 values for proximIDs in an agent's split.proximIDs column 
+  #unique(split.prox$proxb2) # split.prox has some blanks if there were not group size - 1 values for proximIDs in an agent's split.proximIDs column 
   split.prox[split.prox==""] = NA #replace all blank cells with NA
   split.prox[split.prox=="NA"] = NA #replace all characters "NA" with missing values
   
@@ -305,14 +306,15 @@ for(i in group.sizes){
   
   prox.count.pre = tibble::add_column(prox.count.pre, prox.key = "NA", .after = "prox")
   
-  rm(data.pre) # remove q.data.pre from environment to save memory
+  rm(data.pre) # remove data.pre from environment to save memory
   
   for(j in 1:20){#LOOP TO FILL IN THE 'prox' COLUMN
     if(j > i){break} #end the loop if j > i
     
     prox.letter = unique(prox.count.pre[startsWith(prox.count.pre$prox, prox.labels[j]), ]$prox)
     
-    prox.count.pre = prox.count.pre %>% mutate(prox.key=replace(prox.key, prox %in% prox.letter, LETTERS[j]))
+    prox.count.pre = prox.count.pre %>% 
+                      mutate(prox.key = replace(prox.key, prox %in% prox.letter, LETTERS[j]))
     
   }
 #  View(prox.count.pre)
@@ -321,7 +323,15 @@ for(i in group.sizes){
   
   # use dplyr functions to get counts after grouping by prox.key and proxIDs
   prox.count.pre = prox.count.pre %>% 
-    group_by(run, mem, attention, preference, approachfood, prox.key, prox.ID) %>% 
+    group_by(run, 
+             mem, 
+             attention, 
+             preference, 
+             approachfood, 
+             resetfoodconsistent, 
+             resizearena,
+             prox.key, 
+             prox.ID) %>% 
     summarize(n = n()) 
   
   #prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),] #using complete.cases like this removes a lot of runs in which agents were never near each other
@@ -406,7 +416,15 @@ for(i in group.sizes){
 
   # use dplyr functions to get counts after grouping by prox.key and proxIDs
   prox.count.for = prox.count.for %>% 
-    group_by(run.num, memory, attention, preference, approach.food, prox.key, prox.ID) %>% 
+    group_by(run, 
+             mem, 
+             attention, 
+             preference, 
+             approachfood, 
+             resetfoodconsistent, 
+             resizearena,
+             prox.key, 
+             prox.ID) %>% 
     summarize(n = n()) 
   #prox.count.for = prox.count.for[complete.cases(prox.count.for$prox.ID),]
   #unique(prox.count.for$prox.ID)
@@ -468,7 +486,15 @@ for(i in group.sizes){
   
   # use dplyr functions to get counts after grouping by prox.key and proxIDs
   prox.count.post = prox.count.post %>% 
-    group_by(run.num, memory, attention, preference, approach.food, prox.key, prox.ID) %>% 
+    group_by(run, 
+             mem, 
+             attention, 
+             preference, 
+             approachfood, 
+             resetfoodconsistent, 
+             resizearena,
+             prox.key, 
+             prox.ID) %>% 
     summarize(n = n()) 
   #prox.count.post = prox.count.post[complete.cases(prox.count.post$prox.ID),]
   #unique(prox.count.post$prox.ID)
