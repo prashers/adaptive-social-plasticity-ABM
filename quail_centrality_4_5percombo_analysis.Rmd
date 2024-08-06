@@ -1,0 +1,1093 @@
+---
+title: "quail_centrality_4_5percombo_analysis"
+author: "Sanjay Prasher"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load packages
+```{r}
+
+library(RMySQL)
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+#needed for foraging success chunk:
+library(readr)
+library(tidyr)
+#library(dplyr)
+library(stringr)
+
+```
+
+
+
+#query for checking number of resets/food depletions across group sizes
+```{r}
+#Enter the values for you database connection
+dsn_database = "quail_centrality_4" # for example  "BLUDB"
+dsn_hostname = "localhost" # for example  "mydbinstance.cz6pjylrdjko.us-east-1.rds.amazonaws.com"
+dsn_port = 3306 # for example  3306 without quotation marks
+dsn_uid = "root" # for example  "user1"
+dsn_pwd = "hobsonSQL" # for example  "7dBZ3jWt9xN6$o0JiX!m"
+
+
+
+conn = dbConnect(MySQL(), user=dsn_uid, password=dsn_pwd, host=dsn_hostname, port=dsn_port)
+conn
+
+
+
+use_command <- paste("USE", dsn_database, sep=" ");
+dbSendQuery(conn, use_command);
+query = "SELECT groupsize, 
+                approachfood, 
+                resetfoodconsistent, 
+                resizearena,
+                resetnum,
+                depletenum,
+                ticks
+          FROM subset_quail_centrality_4_5percombo
+          WHERE ticks=300"; #take only rows where ticks = 300 because those contain the final counts for each model run
+rs = dbSendQuery(conn, query)
+reset.data = dbFetch(rs, -1);
+dbClearResult(rs)
+
+head(reset.data)
+nrow(reset.data)
+str(reset.data)
+
+```
+
+```{r}
+#summarize number of resets/food depletions per group size
+resets.summary = reset.data %>% 
+                  group_by(groupsize) %>%
+                  summarize(mean.resets = mean(resetnum),
+                            median.resets = median(resetnum),
+                            mean.depletes = mean(depletenum),
+                            median.depletes = median(depletenum))
+
+#plot resets per parameter combo
+ggplot(reset.data, aes(as.factor(groupsize), resetnum, color = resizearena)) +
+    ggtitle("resets per group size") +
+    labs(y = "resetnum", x = "groupsize") +
+    facet_grid(rows=vars(resetfoodconsistent), cols=vars(approachfood)) +
+    geom_boxplot() +
+    #theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+#resize arena does not seem to make a big difference in the number of times the food is reset within/across group sizes
+#there are a higher number of resets for all group sizes when approachfood is true vs false
+#the number of resets DECREASES with increasing group size when resetfoodconsistent is false (not a strong pattern)
+#the number of resets INCREASES with increasing group size when resetfoodconsistent is true (especially when approachfood is true)
+
+#plot depletions per parameter combo
+ggplot(reset.data, aes(as.factor(groupsize), depletenum, color = resizearena)) +
+    ggtitle("depletions per group size") +
+    labs(y = "depletenum", x = "groupsize") +
+    facet_grid(rows=vars(resetfoodconsistent), cols=vars(approachfood)) +
+    geom_boxplot() +
+    #theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+#resize arena does not seem to make a big difference in the number of times the food is reset within/across group sizes
+#there are a higher number of depletions for all group sizes when approachfood is true vs false
+#when approachfood and resetfoodconsistent are both false, depletions a slightly lower with increasing group size, but there is a lot of variation
+#variation in number of depletions increases with increasing group size when approachfood is false (I guess in some runs, the larger groups don't find the food during the middle phase)
+#when the reset threshold is consistent across group sizes, there is a greater number of depletions with increasing group size (there seems to be a bigger impact of approachfood on this though)
+
+
+# ALL OF THE ABOVE CONFIRMS THAT KEEPING THE RESET THRESHOLD CONSISTENT ACROSS GROUP SIZES BEST REFLECTS INCREASING COMPETITION FOR HIGHER GROUP SIZES, WHICH IS WHAT I WANT
+
+```
+
+
+
+#Chunk for getting metrics of foraging success for agents other than the producer
+```{r}
+
+#library(readr)
+#library(tidyr)
+#library(dplyr)
+#library(stringr)
+
+group.sizes = c(3, 6, 10, 15, 20)
+
+n.loops = max(group.sizes)
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
+for(i in group.sizes) {
+  
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+  }
+  
+  gc()
+  
+  file.name = paste(file.path, "data_split.csv", sep = "/")
+  
+  f = function(x, pos) subset(x, select = -c(14:ncol(x)))#this will ignore all proximity columns before importing the data
+  
+  data = read_csv_chunked(file.name, callback = DataFrameCallback$new(f), col_types = cols()) #exclude proximity columns
+  data = as.data.frame(data)
+  
+  #FOR EACH PARAMETER COMBO, I NEED:
+  # a count of how many time steps each agent or any agent other than the producer successfully foraged 
+    #although the number of time steps might not change as much across parameter combos if more individuals are foraging in the same time step
+  # average energy level of foragers other than the producer at the end of the model (ticks = 300)
+  
+  
+  #for count of time steps - group by run number, get count, then get average count for each parameter combo, which you can plot
+  chr.to.find = as.character(1:(i-1)) #want to find all foragers except the producer (agent 0)
+  chr.to.find = paste(chr.to.find, collapse = "|")
+  
+  
+  for.success = data %>% 
+    filter(rownames(data) %in% grep(chr.to.find, data$currentsuccforagers)) %>% #this gives all rows with time steps in which any forager other than the producer successfully foraged - the producer also foraged in many of these time steps
+    group_by(run, 
+             mem, 
+             attention,
+             preference, 
+             approachfood,
+             resetfoodconsistent, 
+             resizearena) %>% 
+    summarize(n.timesteps = n()) 
+    
+  # length(unique(for.success$run))
+  # for.success is missing some run numbers because the ones where foragers other than the producer never foraged were removed when subsetting 
+  # NEED TO FILL IN THE DATA FRAME TO INCLUDE ALL RUN NUMBERS
+    
+  data.to.add = data[!(data$run %in% for.success$run) & data$ticks == 0, 
+                     names(data) %in% c("run", 
+                                        "mem", 
+                                         "attention",
+                                         "preference", 
+                                         "approachfood",
+                                         "resetfoodconsistent", 
+                                         "resizearena")] #subset of data containing one row from each run number that does not appear in for.success and columns for parameters that varied
+  #nrow(data.to.add)
+  data.to.add$n.timesteps = rep(0, nrow(data.to.add))
+  
+  for.success = rbind(for.success, data.to.add)
+  #length(unique(for.success$run))
+  rm(data.to.add)
+  for.success = for.success[order(for.success$run),]
+  
+  # for average energy level of foragers, remove all rows where ticks is not 300; separate forager energy levels into separate columns; pivot longer so the energy levels are stacked in the same column; calculate average per run number or combo number
+  data = data[data$ticks==300,]
+  #nrow(data) #should be equal to number of combos
+  data$energylist = gsub("[[]", "", data$energylist)
+  data$energylist = gsub("[]]", "", data$energylist)
+  energy.split = str_split_fixed(data$energylist, " ", i) #split data in energy.list column into i columns
+  
+  colnames(energy.split) = LETTERS[1:i] #set column names - unique letter for each agent (A = producer)
+  
+  data = cbind(data, energy.split)
+  
+  data = data %>% 
+    pivot_longer(LETTERS[1:i], #pivot_longer is the same as melt in the reshape2 package
+                 names_to = "agent", values_to = "energy")
+  
+  #now calculate average energy level for each run number
+  data$energy = as.numeric(data$energy)
+  data = data[data$agent != "A",] %>% #IGNORING ROWS FOR PRODUCER BECAUSE I AM INTERESTED IN THE AVERAGE ENERGY LEVEL OF THE OTHER FORAGERS
+    group_by(run) %>%
+    mutate(mean.run.energy = mean(energy), 
+           med.run.energy = median(energy), 
+           var.run.energy = var(energy)) #I checked that the mean values were accurate by using mutate() here instead of summarize
+  
+  data = data %>%
+    group_by(combo.num) %>%
+    mutate(mean.combo.energy = mean(energy), 
+           med.combo.energy = median(energy), 
+           var.combo.energy = var(energy))
+  
+  data = unique(data[,c("run", "combo.num", "mean.run.energy", "med.run.energy", "var.run.energy", "mean.combo.energy", "med.combo.energy", "var.combo.energy")])
+  
+  # add average energy level of foragers per run number to for.success data frame and write it to a csv file
+  for.success = merge(for.success, data, by = "run")# I am merging to be safe, but the data should be in the correct order in both data frames, so I could just do for.success$mean.energy = q.data$mean.energy
+  
+  file.name = paste(file.path, "for_success.csv", sep = "/")
+  write_csv(for.success, file.name)
+  
+  setTxtProgressBar(pb,i)#update progress bar
+  
+}#END OF LOOP
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time #all groups ran in two minutes for 5 runs per combo
+```
+
+
+
+
+#Check how approachfood, resetfoodconsistent, and resizearena impact average energy levels achieved by foragers at the end of each model run
+```{r}
+#rbind all the for_success files from different group sizes together
+all.for.success = data.frame()
+group.sizes = c(3, 6, 10, 15, 20)
+
+for(i in group.sizes) {
+
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+  }
+  
+  
+  file.name = paste(file.path, "for_success.csv", sep = "/")
+  
+  for.success = read_csv(file.name, col_types = cols())
+  for.success = as.data.frame(for.success)
+  
+  for.success$groupsize = rep(i, nrow(for.success))
+  
+  all.for.success = rbind(all.for.success, for.success)
+    
+}
+
+
+#plot mean energy levels by parameters
+ggplot(all.for.success, aes(as.factor(groupsize), mean.run.energy, color = resizearena)) +
+    ggtitle("mean energy per group size") +
+    labs(y = "mean.run.energy", x = "groupsize") +
+    facet_grid(rows=vars(resetfoodconsistent), cols=vars(approachfood)) +
+    geom_boxplot() +
+    #theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+
+ggplot(all.for.success, aes(as.factor(groupsize), med.run.energy, color = resizearena)) +
+    ggtitle("median energy per group size") +
+    labs(y = "med.run.energy", x = "groupsize") +
+    facet_grid(rows=vars(resetfoodconsistent), cols=vars(approachfood)) +
+    geom_boxplot() +
+    #theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+```
+
+
+
+
+#PLOTS FOR FORAGING SUCCESS OF NON-PRODUCERS
+```{r}
+pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
+group.sizes = c(3, 6, 10, 15, 20)
+for(i in group.sizes) {
+  
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+  }
+  
+  
+  file.name = paste(file.path, "for_success.csv", sep = "/")
+  
+  for.success = read_csv(file.name, col_types = cols())
+  for.success = as.data.frame(for.success)
+#  for.success = as.data.frame(for.success[for.success$approachfood == FALSE,]) # use this line if you only want plots for when approach food switch was off
+  
+  
+  #plot mean energy level per combo
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = mean.combo.energy)) +
+    ggtitle("Mean energy of foragers") +
+    labs(y = "Attention", x = "Preference", fill = "Mean energy level") +
+    facet_grid(rows=vars(resetfoodconsistent), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$mean.combo.energy), 0, max(for.success$mean.combo.energy)), limits=c(min(for.success$mean.combo.energy), max(for.success$mean.combo.energy))) +
+#    scale_fill_gradientn(colours = brewer.pal(11, "Spectral"), 
+#                         breaks=c(min(mean.energy.range), 0, max(mean.energy.range)), 
+#                         limits=c(min(mean.energy.range), max(mean.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+   ggsave("./plots/meanenergy.pdf", width=13, height=7)
+  
+  
+  #plot median energy level per combo
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
+    ggtitle("Median energy of foragers") +
+    labs(y = "Attention", x = "Preference", fill = "Median energy level") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+#    scale_fill_gradientn(colours = brewer.pal(11, "Spectral"), breaks=c(min(for.success$med.combo.energy), 0, max(for.success$med.combo.energy)), limits=c(min(for.success$med.combo.energy), max(for.success$med.combo.energy))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(median.energy.range), 0, max(median.energy.range)), limits=c(min(median.energy.range), max(median.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+  ggsave("./plots/medianenergy.pdf", width=13, height=7)
+  
+  
+  #plot variance in energy level per combo the same way
+#  pdf("./plots/varenergy.pdf", width=7, height=13)
+  
+  #plot of variance in energy levels
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = var.combo.energy)) +
+    ggtitle("Variance in energy of foragers") +
+    labs(y = "Attention", x = "Preference", fill = "Variance in energy level") +
+    facet_grid(rows=vars(resetfoodconsistent), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$var.combo.energy), 0, max(for.success$var.combo.energy)), limits=c(min(for.success$var.combo.energy), max(for.success$var.combo.energy))) +
+#    scale_fill_gradientn(colours = brewer.pal(11, "Spectral"), breaks=c(min(var.energy.range), 0, max(var.energy.range)), limits=c(min(var.energy.range), max(var.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+   ggsave("./plots/varenergy.pdf", width=13, height=7)
+  
+  
+  #calculate mean or median number of time steps that foragers ate for each combo number and plot in the same way
+  #hist(for.success$n.timesteps)
+  ticks.per.combo = for.success %>% 
+    group_by(combo.num) %>% 
+    mutate(n=n(), med.ticks=median(n.timesteps), mean.ticks = mean(n.timesteps))
+  
+  #RESCALE MEDIAN AND MEAN TICKS TO GET VALUES BETWEEN 0-1 (THIS DOES NOT CHANGE THE PLOTS AT ALL)
+  #ticks.per.combo$med.ticks = rescale(ticks.per.combo$med.ticks)
+  #ticks.per.combo$mean.ticks = rescale(ticks.per.combo$mean.ticks)
+    
+  #calculating where middle of legend should be if the scale is different across group sizes
+  mid.break.mean = min(ticks.per.combo$mean.ticks) + ((max(ticks.per.combo$mean.ticks) - min(ticks.per.combo$mean.ticks))/2) #this should just be 0.5 if rescaling mean.ticks
+  mid.break.median = min(ticks.per.combo$med.ticks) + ((max(ticks.per.combo$med.ticks) - min(ticks.per.combo$med.ticks))/2) #this should just be 0.5 if rescaling med.ticks
+  
+  
+  #calculating where middle of legend should be if the scale is the same across group sizes
+#  mid.break.mean = min(mean.ticks.range) + ((max(mean.ticks.range) - min(mean.ticks.range))/2)
+#  mid.break.median = min(med.ticks.range) + ((max(med.ticks.range) - min(med.ticks.range))/2)
+  
+  
+#  pdf("./plots/meanticksforaged.pdf", width=7, height=13)
+  
+  #plot of mean number of time steps foragers ate 
+  ggplot(ticks.per.combo, aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
+    ggtitle("Mean # time steps foragers ate") +
+    labs(y = "Attention", x = "Preference", fill = "Mean # time steps") +
+    facet_grid(rows=vars(resetfoodconsistent), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
+#    scale_fill_gradientn(colours = brewer.pal(11, "Spectral"), breaks=c(min(mean.ticks.range), mid.break.mean, max(mean.ticks.range)), limits=c(min(mean.ticks.range), max(mean.ticks.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+}#END OF LOOP
+
+
+#groupsize 3:
+  #resize arena seems to have little influence on mean energy level and number of timesteps foragers ate across levels of mem/att/pref
+  #generally higher mean energy level and number of timesteps foragers ate when resetfoodconsistent is TRUE (mean number of timesteps seems highest for intermediate levels of att/pref)
+  #resizearena and resetfoodconsistent seem to have little influence on variance in energy levels
+
+#groupsize 6:
+  #resize arena seems to have little influence on mean energy level and number of timesteps foragers ate across levels of mem/att/pref
+  #generally higher mean energy level and number of timesteps foragers ate when resetfoodconsistent is FALSE (mean number of timesteps seems highest for intermediate levels of att/pref)
+  #resizearena and resetfoodconsistent seem to have little influence on variance in energy levels
+
+#groupsize 10:
+  #resize arena seems to have little influence on mean energy level and number of timesteps foragers ate across levels of mem/att/pref
+  #generally higher mean energy level and number of timesteps foragers ate when resetfoodconsistent is FALSE (mean number of timesteps seems highest for intermediate levels of att/pref)
+  #resizearena seems to have little influence on variance in energy levels
+  #variance is generally lower when resetfoodconsistent is FALSE
+
+#groupsize 15:
+  #resize arena seems to have little influence on mean energy level and number of timesteps foragers ate across levels of mem/att/pref
+  #generally higher mean energy level and number of timesteps foragers ate when resetfoodconsistent is FALSE (mean number of timesteps seems highest for intermediate levels of att/pref)
+  #resizearena seems to have little influence on variance in energy levels
+  #variance is generally lower when resetfoodconsistent is FALSE
+
+```
+
+
+# CALCULATE PROXIMITY NETWORK METRICS AND DIFFERENCE IN PRODUCER STRENGTH BETWEEN PHASES
+```{r}
+# Function to convert to matrix format using matrix.please function
+matrix.please <- function(x) {
+  m<-as.matrix(x[,-1])
+  rownames(m)<-x[,1]
+  m
+}
+
+
+#FUNCTION TO BE USED INSIDE FIRST BIG LOOP TO GET PRODUCER'S NETWORK METRICS FOR EACH PHASE
+metrics.func = function(func.df) {
+  prox.count = as.data.frame(func.df)
+  for (j in 0:(i-1)) { #Loop to replace numbers in prox.ID column with letters 
+    prox.count[prox.count$prox.ID == j,]$prox.ID = LETTERS[j+1]
+  }
+  #unique(prox.count$prox.ID) #check if the loop worked
+  
+  
+  prox.metrics = data.frame(run = unique(prox.count$run), 
+                            A.deg = 0, 
+                            A.str = 0)
+  
+  
+  for (j in unique(prox.count$run)) {
+    #print(paste(i, j, sep = "-"))
+    current.edge.list = prox.count[prox.count$run==j, names(prox.count) %in% c("prox.key", "prox.ID", "n")] #subset of prox.summ.pre giving the edge list for the current run
+    #eg = igraph::graph_from_data_frame(current.edge.list, directed = FALSE) # this way was doubling the degrees
+    
+    current.matrix = current.edge.list %>% reshape2::dcast(prox.key ~ prox.ID, value.var = "n") 
+    current.matrix = matrix.please(current.matrix)
+    current.matrix = current.matrix[,!(colnames(current.matrix) %in% c("111", ""))]
+    
+    
+    if (sum(!(LETTERS[1:i] %in% colnames(current.matrix))) > 0) { #if there is at least one individual missing from current.matrix
+      
+      missing.indiv = LETTERS[which(!(LETTERS[1:i] %in% colnames(current.matrix)))] # determine which individual(s) is/are missing
+      
+      for(k in missing.indiv) { #add a column to the matrix for each missing individual
+        ind.vec = rep(0, nrow(current.matrix))
+        current.matrix = cbind(current.matrix, ind.vec)
+        colnames(current.matrix)[colnames(current.matrix) == "ind.vec"] = k
+        
+        #if (!(nrow(current.matrix) == i)){ # add a row for the missing individual if - I think some runs lost an individual when I removed rows with NAs in the prox.ID column (see setup script - the part where I make the prox_count_pre/for/post files)
+        #  ind.vec = rep(0, ncol(current.matrix))
+        #  current.matrix = rbind(current.matrix, ind.vec)
+        #  rownames(current.matrix)[colnames(current.matrix) == "ind.vec"] = k
+        #}
+      }
+    }
+    
+    current.matrix.half = sna::lower.tri.remove(current.matrix, remove.val=0)
+    current.matrix.half[is.na(current.matrix.half)] = 0
+    
+    eg = igraph::graph_from_adjacency_matrix(current.matrix.half, mode="upper", weighted = TRUE, diag = FALSE)
+#    igraph::E(eg)$norm.weight = igraph::E(eg)$weight/nrow(q.data[q.data$run == j,]) #make another igraph attribute that stores normalized weights (number of time steps in proximity divided by number of time steps within the phase - THIS IS ONLY NECESSARY IF YOU REMOVE TIME STEPS IN FORAGING PHASE BEFORE THE PRODUCER FIRST FORAGED)
+    
+    current.degree = igraph::degree(eg)
+    current.strength = igraph::strength(eg) #don't need 'weights' argument if igraph object has edge weights attribute already
+    
+    current.metrics = cbind(current.degree,current.strength)
+    
+    prox.metrics[prox.metrics$run==j, 2:3] = current.metrics[row.names(current.metrics)=="A",] #save producer metrics in external data.frame
+    
+  }
+  prox.metrics.out <<- prox.metrics #need this to save object inside function to external object
+}
+
+
+
+
+
+group.sizes = c(3, 6, 10, 15)#, 20)
+
+n.loops = max(group.sizes)
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
+
+for(i in group.sizes){ #Proximity network
+  
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+  }
+ 
+  file.name = paste(file.path, "prox_count_pre50.csv", sep = "/")
+  prox.count.pre = read_csv(file.name, col_types = cols()) #edge list for PRE-foraging period - contains data from all runs
+  prox.count.pre = as.data.frame(prox.count.pre)
+  
+  file.name = paste(file.path, "prox_count_for50.csv", sep = "/")
+  prox.count.for = read_csv(file.name, col_types = cols()) #edge list for foraging period - contains data from all runs
+  prox.count.for = as.data.frame(prox.count.for)
+  
+  file.name = paste(file.path, "prox_count_post50.csv", sep = "/")
+  prox.count.post = read_csv(file.name, col_types = cols()) #edge list for POST-foraging period - contains data from all runs
+  prox.count.post = as.data.frame(prox.count.post)
+  
+  
+  
+  file.name2 = paste(file.path, "data_pre50.csv", sep = "/")
+  data = read_csv(file.name2, col_types = cols())
+  data = as.data.frame(data)
+  prox.metrics.out = data.frame()
+  metrics.func(prox.count.pre) # see function defined at beginning of script
+  file.out = paste(file.path, "prox_metrics_pre.csv", sep = "/")
+  write_csv(prox.metrics.out, file.out)
+  rm(data)
+  gc()
+  
+  
+  file.name2 = paste(file.path, "data_forage50.csv", sep = "/")
+  data = read.csv(file.name2, header=T)
+  data = as.data.frame(data)
+  prox.metrics.out = data.frame()
+  metrics.func(prox.count.for) # see function defined at beginning of script
+  file.out = paste(file.path, "prox_metrics_for.csv", sep = "/")
+  write_csv(prox.metrics.out, file.out)
+  rm(data)
+  gc()
+  
+  
+  file.name2 = paste(file.path, "data_post50.csv", sep = "/")
+  data = read_csv(file.name2, col_types = cols())
+  data = as.data.frame(data)
+  prox.metrics.out = data.frame()
+  metrics.func(prox.count.post) # see function defined at beginning of script
+  file.out = paste(file.path, "prox_metrics_post.csv", sep = "/")
+  write_csv(prox.metrics.out, file.out)
+  rm(data)
+  gc()
+  
+  
+  setTxtProgressBar(pb,i)#update progress bar
+  
+} # END OF BIG LOOP
+
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time 
+
+
+rm(pb, prox.count.pre, prox.count.for, prox.count.post, prox.metrics.out)
+
+
+n.loops = max(group.sizes)
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
+
+for(i in group.sizes){ #calculating differences in proximity network metrics between phases
+  
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+  }
+ 
+  gc()
+  
+  #to.read = list.files()[10] # 10th file in the working directory should be q_data_split for that group size (make sure files written in this loop are not already in the working directory)
+  file.name = paste(file.path, "data_split.csv", sep = "/")
+  data.split = read_csv(file.name, col_types = cols())
+  data.split = as.data.frame(data.split[, -c(14:ncol(data.split))]) #exclude proximity columns (goes up to 393 for group size of 20)
+  
+  file.name = paste(file.path, "prox_metrics_pre.csv", sep = "/")
+  prox.metrics.pre = read_csv(file.name, col_types = cols())
+  prox.metrics.pre = as.data.frame(prox.metrics.pre)
+  
+  file.name = paste(file.path, "prox_metrics_for.csv", sep = "/")
+  prox.metrics.for = read_csv(file.name, col_types = cols())
+  prox.metrics.for = as.data.frame(prox.metrics.for)
+  
+  file.name = paste(file.path, "prox_metrics_post.csv", sep = "/")
+  prox.metrics.post = read_csv(file.name, col_types = cols())
+  prox.metrics.post = as.data.frame(prox.metrics.post)
+
+  
+  # want to see if mem, att, pref have an effect on producer's centrality using network metrics from pre-forage phase as a baseline
+  #####calculate differences between producer's network metrics between phases for each combo of mem/att/pref#####
+  uniq.ds = unique(data.split[,c("run", "groupsize", "mem", "attention", "preference", "approachfood", "resizearena", "resetfoodconsistent", "combo.num")]) #data frame containing unique combinations of model parameters 
+  
+  
+  prox.forXpre = data.frame(run = uniq.ds$run) # data frame for differences between foraging and pre-foraging phases
+  prox.forXpre$forXpre.deg = prox.metrics.for$A.deg - prox.metrics.pre$A.deg # differences in degree
+  prox.forXpre$forXpre.str = prox.metrics.for$A.str - prox.metrics.pre$A.str # differences in strength
+  
+  prox.forXpre = merge(prox.forXpre, uniq.ds, by = "run") #adds parameter values to data frame containing differences in producer network metrics
+  #nrow(prox.forXpre)
+  #View(prox.forXpre)
+  file.out = paste(file.path, "prox_forxpre.csv", sep = "/")
+  write_csv(prox.forXpre, file.out)
+  
+  
+  prox.postXfor = data.frame(run = uniq.ds$run) # data frame for differences between post-foraging and foraging phases
+  prox.postXfor$postXfor.deg = prox.metrics.post$A.deg - prox.metrics.for$A.deg # differences in degree
+  prox.postXfor$postXfor.str = prox.metrics.post$A.str - prox.metrics.for$A.str # differences in strength
+  
+  prox.postXfor = merge(prox.postXfor, uniq.ds, by = "run") #adds parameter values to data frame with differences in producer network metrics
+  file.out = paste(file.path, "prox_postxfor.csv", sep = "/")
+  write_csv(prox.postXfor, file.out)
+  
+  
+  prox.postXpre = data.frame(run = uniq.ds$run) # data frame for differences between post-foraging and pre-foraging phases
+  prox.postXpre$postXpre.deg = prox.metrics.post$A.deg - prox.metrics.pre$A.deg # differences in degree
+  prox.postXpre$postXpre.str = prox.metrics.post$A.str - prox.metrics.pre$A.str # differences in strength
+  
+  prox.postXpre = merge(prox.postXpre, uniq.ds, by = "run") #adds parameter values to data frame with differences in producer network metrics
+  file.out = paste(file.path, "prox_postxpre.csv", sep = "/")
+  write_csv(prox.postXpre, file.out)
+  
+  setTxtProgressBar(pb,i)#update progress bar
+}
+
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time
+
+
+```
+
+```{r}
+
+group.sizes = c(3, 6, 10, 15)#, 20)
+
+str.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEDIAN STRENGTH ACROSS GROUP SIZES
+mean.energy.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEAN ENERGY LEVEL OF FORAGERS ACROSS GROUP SIZES
+median.energy.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEDIAN ENERGY LEVEL OF FORAGERS ACROSS GROUP SIZES
+var.energy.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR VARIANCE IN ENERGY LEVEL OF FORAGERS ACROSS GROUP SIZES
+
+med.ticks.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEDIAN NUMBER OF TICKS DURING WHICH FORAGERS ATE
+mean.ticks.range = vector() #VECTOR TO HOLD MIN AND MAX VALUES FOR MEAN NUMBER OF TICKS DURING WHICH FORAGERS ATE
+
+for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, MEAN ENERGY, AND VARIANCE ENERGY TO USE FOR THE COLOR SCALE OF PLOTS (USE THIS IF YOU WANT THE SAME SCALE ACROSS GROUP SIZES)
+  
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+  }
+ 
+  file.name = paste(file.path, "prox_forxpre.csv", sep = "/")
+  prox.forXpre = read_csv(file.name, col_types = cols()) # including the 'col_types = cols()' argument suppresses the unnecessary column specification messages from read_csv
+  prox.forXpre = as.data.frame(prox.forXpre)
+
+  file.name = paste(file.path, "prox_postxfor.csv", sep = "/")
+  prox.postXfor = read_csv(file.name, col_types = cols())
+  prox.postXfor = as.data.frame(prox.postXfor)
+
+  file.name = paste(file.path, "prox_postxpre.csv", sep = "/")
+  prox.postXpre = read_csv(file.name, col_types = cols())
+  prox.postXpre = as.data.frame(prox.postXpre)
+
+  
+  #summarize data (median) for each variable combination before making heat maps
+  #check distribution of network metric differences for each variable combination to see how to proceed with summarizing the data
+  #If the data are skewed it is better to summarize it using the median
+#  par(mfrow=c(2,2))
+  
+#  hist(prox.forXpre[prox.forXpre$combo.num == 1001,]$forXpre.deg)
+#  hist(prox.forXpre[prox.forXpre$combo.num == 1001,]$forXpre.str)#, breaks = seq(0, 500, 20))
+#  
+#  hist(prox.postXpre[prox.postXpre$combo.num == 1001,]$postXpre.deg)
+#  hist(prox.postXpre[prox.postXpre$combo.num == 1001,]$postXpre.str)#, breaks = seq(0, 500, 20))
+  
+  
+  #finding medians of network metric differences between foraging and pre-foraging phases for each combo:
+  pfxp.med = prox.forXpre %>% 
+    group_by(combo.num) %>% 
+    summarize(n=n(), 
+              med.deg=median(forXpre.deg), 
+              med.str = median(forXpre.str))
+  
+  #finding medians of network metric differences between post- and foraging phases for each combo:
+  ppxf.med = prox.postXfor %>% 
+    group_by(combo.num) %>% 
+    summarize(n=n(), 
+              med.deg = median(postXfor.deg), 
+              med.str = median(postXfor.str))
+  
+  #finding medians of network metric differences between post- and pre-foraging phases for each combo:
+  ppxp.med = prox.postXpre %>% 
+    group_by(combo.num) %>% 
+    summarize(n=n(), 
+              med.deg=median(postXpre.deg), 
+              med.str = median(postXpre.str))
+  
+  #add ranges of median strengths to the empty vector
+  str.range = append(str.range, c(range(pfxp.med$med.str), range(ppxf.med$med.str), range(ppxp.med$med.str)), after = length(str.range))
+  
+  
+  
+  ###################################################################
+  file.name = paste(file.path, "for_success.csv", sep = "/")
+  for.success = read_csv(file.name, col_types = cols())
+  for.success = as.data.frame(for.success)
+
+  
+  mean.energy.range = append(mean.energy.range, range(for.success$mean.combo.energy), after = length(mean.energy.range))
+  median.energy.range = append(median.energy.range, range(for.success$med.combo.energy), after = length(median.energy.range))
+  var.energy.range = append(var.energy.range, range(for.success$var.combo.energy), after = length(var.energy.range))
+  
+  
+  ticks.per.combo = for.success %>% 
+    group_by(combo.num) %>% 
+    mutate(n=n(), 
+           med.ticks = median(n.timesteps), 
+           mean.ticks = mean(n.timesteps))
+  
+  med.ticks.range = append(med.ticks.range, range(ticks.per.combo$med.ticks), after = length(med.ticks.range))
+  mean.ticks.range = append(mean.ticks.range, range(ticks.per.combo$mean.ticks), after = length(mean.ticks.range))
+  
+  gc()
+} #END OF LOOP
+
+rm(pfxp.med, ppxf.med, ppxp.med, prox.forXpre, prox.postXfor, prox.postXpre)
+
+
+
+pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
+
+#PDFs become corrupted when I use this loop, but not when I run all the code after changing the value of i manually
+for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO USE FOR THE COLOR SCALE OF PLOTS
+  
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    
+#    str.range1 = str.range[1:6] #take subset of str.range only if you want to have a different scale for each group size 
+    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    
+#    str.range1 = str.range[7:12]
+    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    
+#    str.range1 = str.range[13:18]
+    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    
+#    str.range1 = str.range[19:24]
+    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    
+#    str.range1 = str.range[25:30]
+    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    
+  }
+  
+  
+  dir.create(paste(file.path, "plots", sep = "/")) #create in a new folder in the current working directory that will hold all the plots from this loop
+  
+  file.name = paste(file.path, "prox_forxpre.csv", sep = "/")
+  prox.forXpre = read_csv(file.name, col_types = cols())
+  prox.forXpre = as.data.frame(prox.forXpre)
+  
+  file.name = paste(file.path, "prox_postxfor.csv", sep = "/")
+  prox.postXfor = read_csv(file.name, col_types = cols())
+  prox.postXfor = as.data.frame(prox.postXfor)
+
+  file.name = paste(file.path, "prox_postxpre.csv", sep = "/")
+  prox.postXpre = read_csv(file.name, col_types = cols())
+  prox.postXpre = as.data.frame(prox.postXpre)
+
+  
+  
+  ############################################################
+  ############################################################
+  #finding medians of network metric differences between foraging and pre-foraging phases for each combo:
+  pfxp.med = prox.forXpre %>% 
+    group_by(combo.num) %>% 
+    summarize(n=n(), 
+              med.deg = median(forXpre.deg), 
+              med.str = median(forXpre.str))
+  
+  pfxp.med = merge(pfxp.med, unique(prox.forXpre[,c("groupsize", "mem", "attention", "preference", "approachfood", "resizearena", "resetfoodconsistent", "combo.num")]), by = "combo.num")
+  rm(prox.forXpre)
+  
+  #plot of median difference in producer degree between foraging and pre-foraging phases
+  #ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.deg)) +
+  #  ggtitle("Difference in producer's proximity degree between foraging and pre-foraging phases") +
+  #  labs(y = "Attention", x = "Preference", fill = "Median Difference in Degree") +
+  #  facet_grid(rows=vars(memory)) +
+  #  geom_tile() +
+  #  scale_fill_gradient(low="white", high="red") +
+  #  theme_minimal()
+  
+  
+#  pdf("./plots/StrengthForxPre_scaled.pdf", width=7, height=13)
+  
+  #plot of median difference in producer strength between foraging and pre-foraging phases 
+  ggplot(pfxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+    ggtitle("Difference in producer's proximity strength between foraging and pre-foraging phases") +
+    labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+#   ggsave("./plots/StrengthForxPre_scaled.pdf", width=13, height=7)
+  
+  #rm(pfxp.med) #not removing this, because I will use it for foraging success plots as well
+  
+  ############################################################
+  ############################################################
+  #finding medians of network metric differences between post- and foraging phases for each combo:
+  ppxf.med = prox.postXfor %>% 
+    group_by(combo.num) %>% 
+    summarize(n=n(), 
+              med.deg = median(postXfor.deg), 
+              med.str = median(postXfor.str))
+  
+  ppxf.med = merge(ppxf.med, unique(prox.postXfor[,c("groupsize", "mem", "attention", "preference", "approachfood", "resizearena", "resetfoodconsistent", "combo.num")]), by = "combo.num")
+  rm(prox.postXfor)
+  
+  
+#  pdf("./plots/StrengthPostxFor_scaled.pdf", width=7, height=13)
+  
+  #plot of median difference in producer strength between post- and foraging phases 
+  ggplot(ppxf.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+    ggtitle("Difference in producer's proximity strength between post- and foraging phases") +
+    labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+#   ggsave("./plots/StrengthPostxFor_scaled.pdf", width=13, height=7)
+  
+  rm(ppxf.med)
+  
+  ############################################################
+  ############################################################
+  #finding medians of network metric differences between post- and pre-foraging phases for each combo:
+  ppxp.med = prox.postXpre %>% 
+    group_by(combo.num) %>% 
+    summarize(n=n(), 
+              med.deg=median(postXpre.deg), 
+              med.str = median(postXpre.str))
+  
+  ppxp.med = merge(ppxp.med, unique(prox.postXpre[,c("groupsize", "mem", "attention", "preference", "approachfood", "resizearena", "resetfoodconsistent", "combo.num")]), by = "combo.num")
+  rm(prox.postXpre)
+  
+#  pdf("./plots/StrengthPostxPre_scaled.pdf", width=7, height=13)
+  
+  #plot of median difference in producer strength between post and pre-foraging phases WHEN APPROACH.FOOD SWITCH WAS OFF
+  ggplot(ppxp.med, aes(as.factor(preference), as.factor(attention), fill = med.str)) +
+    ggtitle("Difference in producer's proximity strength between post- and pre-foraging phases") +
+    labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(str.range1), 0, max(str.range1)), limits=c(min(str.range1), max(str.range1))) +
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+#   ggsave("./plots/StrengthPostxPre_scaled.pdf", width=13, height=7)
+  
+  rm(ppxp.med)
+  
+  
+  ############################################################
+  ############################################################
+  #PLOTS FOR FORAGING SUCCESS OF NON-PRODUCERS
+  file.name = paste(file.path, "for_success.csv", sep = "/")
+  for.success = read_csv(file.name, col_types = cols())
+  for.success = as.data.frame(for.success)
+#  for.success = as.data.frame(for.success[for.success$approach.food == FALSE,-1]) # use this line if you only want plots for when approach food switch was off
+  
+  
+  #plot mean energy level per combo like you did for differences in producer strength
+#  pdf("./plots/meanenergy.pdf", width=7, height=13)
+  
+  #plot of mean energy level 
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = mean.combo.energy)) +
+    ggtitle("Mean energy of foragers") +
+    labs(y = "Attention", x = "Preference", fill = "Mean energy level") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+#    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$mean.combo.energy), 0, max(for.success$mean.combo.energy)), limits=c(min(for.success$mean.combo.energy), max(for.success$mean.combo.energy))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.energy.range), 0, max(mean.energy.range)), limits=c(min(mean.energy.range), max(mean.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+#   ggsave("./plots/meanenergy.pdf", width=13, height=7)
+  
+  
+  #plot median energy level per combo
+#  pdf("./plots/medianenergy.pdf", width=7, height=13)
+  
+  #plot of median energy level
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
+    ggtitle("Median energy of foragers") +
+    labs(y = "Attention", x = "Preference", fill = "Median energy level") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+#    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$med.combo.energy), 0, max(for.success$med.combo.energy)), limits=c(min(for.success$med.combo.energy), max(for.success$med.combo.energy))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(median.energy.range), 0, max(median.energy.range)), limits=c(min(median.energy.range), max(median.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+#  ggsave("./plots/medianenergy.pdf", width=13, height=7)
+  
+  
+  #plot variance in energy level per combo the same way
+#  pdf("./plots/varenergy.pdf", width=7, height=13)
+  
+  #plot of variance in energy levels
+  ggplot(for.success, aes(as.factor(preference), as.factor(attention), fill = var.combo.energy)) +
+    ggtitle("Variance in energy of foragers") +
+    labs(y = "Attention", x = "Preference", fill = "Variance in energy level") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+#    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$var.combo.energy), 0, max(for.success$var.combo.energy)), limits=c(min(for.success$var.combo.energy), max(for.success$var.combo.energy))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(var.energy.range), 0, max(var.energy.range)), limits=c(min(var.energy.range), max(var.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+#   ggsave("./plots/varenergy.pdf", width=13, height=7)
+  
+  
+  #calculate mean or median number of time steps that foragers ate for each combo number and plot in the same way
+  #hist(for.success$n.timesteps)
+  ticks.per.combo = for.success %>% 
+    group_by(combo.num) %>% 
+    mutate(n=n(), med.ticks=median(n.timesteps), mean.ticks = mean(n.timesteps))
+  
+  #RESCALE MEDIAN AND MEAN TICKS TO GET VALUES BETWEEN 0-1 (THIS DOES NOT CHANGE THE PLOTS AT ALL)
+  #ticks.per.combo$med.ticks = rescale(ticks.per.combo$med.ticks)
+  #ticks.per.combo$mean.ticks = rescale(ticks.per.combo$mean.ticks)
+    
+  #calculating where middle of legend should be if the scale is different across group sizes
+#  mid.break.mean = min(ticks.per.combo$mean.ticks) + ((max(ticks.per.combo$mean.ticks) - min(ticks.per.combo$mean.ticks))/2) #this should just be 0.5 if rescaling mean.ticks
+#  mid.break.median = min(ticks.per.combo$med.ticks) + ((max(ticks.per.combo$med.ticks) - min(ticks.per.combo$med.ticks))/2) #this should just be 0.5 if rescaling med.ticks
+  
+  
+  #calculating where middle of legend should be if the scale is the same across group sizes
+  mid.break.mean = min(mean.ticks.range) + ((max(mean.ticks.range) - min(mean.ticks.range))/2)
+  mid.break.median = min(med.ticks.range) + ((max(med.ticks.range) - min(med.ticks.range))/2)
+  
+  
+#  pdf("./plots/meanticksforaged.pdf", width=7, height=13)
+  
+  #plot of mean number of time steps foragers ate 
+  ggplot(ticks.per.combo, aes(as.factor(preference), as.factor(attention), fill = mean.ticks)) +
+    ggtitle("Mean # time steps foragers ate") +
+    labs(y = "Attention", x = "Preference", fill = "Mean # time steps") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+#    scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.ticks.range), mid.break.mean, max(mean.ticks.range)), limits=c(min(mean.ticks.range), max(mean.ticks.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+  #ggsave("./plots/meanticksforaged.pdf", width=13, height=7)
+  
+  
+  #plot foraging success metrics by median change in producer's strength between foraging and pre-foraging phases
+  
+  ticks.mrg = merge(unique(ticks.per.combo[,!names(ticks.per.combo) %in% c("run", "n.timesteps", "mean.run.energy", "med.run.energy", "var.run.energy")]), pfxp.med[,names(pfxp.med) %in% c("combo.num", "med.str")], by = "combo.num")
+  
+#  pdf("./plots/meanticksforagedXstrength.pdf", width=7, height=13)
+  
+  #plot of mean number of time steps foragers ate by change in producer's strength
+  ggplot(ticks.mrg, aes(med.str, mean.ticks, color = as.factor(preference), shape = as.factor(attention))) + #include 'color = approach.food' after mean.ticks in this line if plotting a different color for each level of approach.food
+    ggtitle("Mean # time steps foragers ate by change in producer's strength") +
+    labs(y = "Mean # time steps foraged", x = "Median change in producer's strength") +
+    scale_x_continuous( limits = c(-1, max(str.range1))) + 
+#    scale_y_continuous( breaks = seq(0, ceiling(max(ticks.mrg$mean.ticks)), by = 2)) + # USE THIS LINE FOR DIFFERENT SCALES ACROSS GROUP SIZES
+    scale_y_continuous( limits = c(floor(min(mean.ticks.range)), ceiling(max(mean.ticks.range))) ) +  # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) + #add 'cols = vars(approach.food)' if you want a different column for each level of approach.food
+    geom_point() +
+    theme_minimal() +
+    theme(axis.line.x.bottom=element_line(linewidth = 1), axis.line.y.left=element_line(linewidth = 1), aspect.ratio=1, text=element_text(size=15))
+    
+#  dev.off()
+  #ggsave("./plots/meanticksforagedXstrength.pdf", width=14, height=10)
+  
+  
+#  pdf("./plots/meanenergyXstrength.pdf", width=7, height=13)
+  
+  #plot of mean energy level of foragers by change in producer's strength
+  ggplot(ticks.mrg, aes(med.str, mean.combo.energy, color = as.factor(preference), shape = as.factor(attention))) + #include 'color = approach.food' after mean.combo.energy in this line if plotting a different color for each level of approachfood
+    ggtitle("Mean energy level of foragers by change in producer's strength") +
+    labs(y = "Mean energy level of foragers", x = "Median change in producer's strength") +
+    scale_x_continuous( limits = c(-1, max(str.range1))) + 
+#    scale_y_continuous( breaks = seq(floor(min(ticks.mrg$mean.combo.energy)), ceiling(max(ticks.mrg$mean.combo.energy)), by = 5)) + # USE THIS LINE FOR DIFFERENT SCALES ACROSS GROUP SIZES
+    scale_y_continuous( limits = c(floor(min(mean.energy.range)), ceiling(max(mean.energy.range))) ) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_point() +
+    theme_minimal() +
+    theme(axis.line.x.bottom=element_line(linewidth = 1), axis.line.y.left=element_line(linewidth = 1), aspect.ratio=1, text=element_text(size=15))
+  
+#  dev.off()
+#  ggsave("./plots/meanenergyXstrength.pdf", width=14, height=10)
+  
+  gc()
+  
+} # END OF PLOTTING LOOP
+
+
+```
+
