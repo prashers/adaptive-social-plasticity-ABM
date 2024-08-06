@@ -729,8 +729,8 @@ end
 GRAPHICS-WINDOW
 445
 23
-749
-328
+974
+553
 -1
 -1
 14.1
@@ -743,10 +743,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--10
-10
--10
-10
+-18
+18
+-18
+18
 0
 0
 1
@@ -1488,6 +1488,66 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="resize-arena?">
       <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="quail_centrality_4_full" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>ticks</metric>
+    <metric>affil-IDs</metric>
+    <metric>prox-centrality-list</metric>
+    <metric>proxim-IDs</metric>
+    <metric>current-succ-foragers</metric>
+    <metric>memory-succ-foragers</metric>
+    <metric>fss-list</metric>
+    <metric>foll-centrality-list</metric>
+    <metric>foll-IDs</metric>
+    <metric>current-xycor</metric>
+    <metric>energy-list</metric>
+    <metric>reset-num-for</metric>
+    <metric>deplete-num</metric>
+    <enumeratedValueSet variable="group-size">
+      <value value="3"/>
+      <value value="6"/>
+      <value value="10"/>
+      <value value="15"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="memory">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+      <value value="150"/>
+      <value value="200"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="attention" first="0" step="0.25" last="1"/>
+    <steppedValueSet variable="preference" first="0" step="0.25" last="1"/>
+    <enumeratedValueSet variable="approach-food?">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="prior-affils?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="unfam-prod?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="eat-delay?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alt-food?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reset-food?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reset-food-consistent?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resize-arena?">
       <value value="true"/>
     </enumeratedValueSet>
   </experiment>
