@@ -70,7 +70,7 @@ query = "SELECT run,
                 proximIDs, 
                 currentsuccforagers, 
                 energylist 
-        FROM quail_centrality_4_50 order by run, ticks"; #UPDATE IF YOU WANT TO SELECT ONLY CERTAIN MEMORY VALUES
+        FROM quail_centrality_4_50 WHERE mem IN (0, 50, 100, 150, 200) order by run, ticks"; #UPDATE IF YOU WANT TO SELECT ONLY CERTAIN MEMORY VALUES
 rs = dbSendQuery(conn, query)
 data.ord = dbFetch(rs, -1);
 dbClearResult(rs)
@@ -82,8 +82,8 @@ dbClearResult(rs)
 # max(data.ord$ticks)
 
 
-#there should be 9000 unique combinations of the 7 variables I allowed to vary (5*9*5*5*2*2*2)
-num.combos = 9000 #UPDATE AFTER YOU KNOW HOW WHICH COMBOS YOU ARE INTERESTED IN
+#there should be 1250 unique combinations of the 5 variables I allowed to vary (5*5*5*5*2)
+num.combos = 1250 
 
 #nrow(data.ord[data.ord$groupsize==3 & 
                   # data.ord$mem == 0 & 
@@ -91,7 +91,7 @@ num.combos = 9000 #UPDATE AFTER YOU KNOW HOW WHICH COMBOS YOU ARE INTERESTED IN
                   # data.ord$preference == 0 & 
                   # data.ord$approachfood=="false",]) # every combo has 15050 rows
 
-#data.ord[rownames(data.ord) == 15050, colnames(data.ord) %in% c("groupsize", "mem", "attention", "preference", "approachfood", "resetfoodconsistent", "resizearena")] #checking whether combo changes every 15050 rows
+#data.ord[rownames(data.ord) == 15050, colnames(data.ord) %in% c("groupsize", "mem", "attention", "preference", "approachfood")] #checking whether combo changes every 15050 rows
 
 combo = vector()
 for (i in 1:num.combos) {
@@ -126,7 +126,7 @@ data.ord = data.ord %>%
 #create table in MySQL database #THIS WAS NOT WORKING "Error in dbSendQuery(conn, statement, ...) :  could not run statement: Loading local data is disabled; this must be enabled on both the client and server sides"
 
 #writing csv file instead of adding table to MySQL
-write_csv(data.ord, "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/data_ord_50.csv") #saving csv here so I can run the big loop after restarting R with clean memory
+write_csv(data.ord, "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/data_ord_50.csv") #saving csv here so I can run the big loop after restarting R with clean memory
 
 
 ```
@@ -152,7 +152,7 @@ for (i in group.sizes) {
   gc()
   # I AM GOING TO TRY READING IN DATA FOR EACH GROUP SIZE INSIDE THE LOOP SO I DON'T HAVE THE LARGER DATA FRAME TAKING UP MEMORY
   f = function(x, pos) subset(x, groupsize == i)
-  loop.data = read_csv_chunked("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/data_ord_5percombo.csv", callback = DataFrameCallback$new(f))
+  loop.data = read_csv_chunked("C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/data_ord_50.csv", callback = DataFrameCallback$new(f))
   loop.data = as.data.frame(loop.data)
   
   
@@ -194,22 +194,23 @@ for (i in group.sizes) {
   
   
   ##### add all separated columns to the big dataframe 
-  data.split = cbind(loop.data[, !(names(loop.data) %in% c("proximIDs"))], split.prox) #, split.foll) #, split.cor) #add the new columns into the dataframe with proxim.IDs column removed
+  data.split = cbind(loop.data[, !(names(loop.data) %in% c("proximIDs"))], split.prox) #add the new columns into the dataframe with proxim.IDs column removed
   #View(data.split)
+  
   if(i==3){
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_3"
     
   } else if(i==6) {
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_6"
     
   } else if(i==10) {
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_10"
     
   } else if(i==15) {
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_15"
     
   } else if(i==20) {
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_20"
     
   }
   
@@ -223,7 +224,7 @@ end.time = Sys.time()
 run.time = end.time - start.time
 run.time
 
-rm(data.ord, split.prox, split.proximIDs, x, loop.data)
+rm(split.prox, split.proximIDs, x, loop.data)
 
 ```
 
@@ -250,19 +251,19 @@ for(i in group.sizes){
   gc()
   
   if(i==3){
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_3"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_3"
     
   } else if(i==6) {
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_6"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_6"
     
   } else if(i==10) {
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_10"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_10"
     
   } else if(i==15) {
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_15"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_15"
     
   } else if(i==20) {
-    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/5percombo/group_size_20"
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_20"
     
   }
   file.name = paste(file.path, "data_split.csv", sep = "/")
@@ -324,9 +325,7 @@ for(i in group.sizes){
              mem, 
              attention, 
              preference, 
-             approachfood, 
-             resetfoodconsistent, 
-             resizearena,
+             approachfood,
              prox.key, 
              prox.ID) %>% 
     summarize(n = n()) 
@@ -391,9 +390,7 @@ for(i in group.sizes){
              mem, 
              attention, 
              preference, 
-             approachfood, 
-             resetfoodconsistent, 
-             resizearena,
+             approachfood,
              prox.key, 
              prox.ID) %>% 
     summarize(n = n()) 
@@ -451,9 +448,7 @@ for(i in group.sizes){
              mem, 
              attention, 
              preference, 
-             approachfood, 
-             resetfoodconsistent, 
-             resizearena,
+             approachfood,
              prox.key, 
              prox.ID) %>% 
     summarize(n = n()) 
@@ -478,12 +473,12 @@ for(i in group.sizes){
   setTxtProgressBar(pb,i)#update progress bar
   
 }#end of second big loop
-#THIS DID NOT RUN FOR GROUP SIZE 20 (5 runs per combo)
+#THIS DID NOT RUN FOR GROUP SIZE 20 (50 runs per combo)
   
 end.time = Sys.time()
 run.time = end.time - start.time
 run.time 
 
-##### NOW ALL EDGE LISTS CAN BE USED IN THE "quail_centrality_4_analysis5" R SCRIPT
+##### NOW ALL EDGE LISTS CAN BE USED IN THE "quail_centrality_4_50_analysis" R SCRIPT
 ```
 
