@@ -1,7 +1,7 @@
 # quail-centrality-ABM
 This repo contains the Netlogo file for (hopefully) the final version of my 'quail_centrality' model and R code for analysis of the output
 
-In quail_centrality_4, I am planning to make the following changes (as of July 23, 2024):
+In quail_centrality_4, I made the following changes (as of Aug 7, 2024):
 
 1. the producer no longer follows the same rules as scroungers because I am modeling a scenario in which the producer knows where the one food source is and how to access it
 
