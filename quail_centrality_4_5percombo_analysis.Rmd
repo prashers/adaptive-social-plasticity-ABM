@@ -23,11 +23,20 @@ library(tidyr)
 #library(dplyr)
 library(stringr)
 
+
+# Function to convert to matrix format using matrix.please function
+matrix.please <- function(x) {
+  m<-as.matrix(x[,-1])
+  rownames(m)<-x[,1]
+  m
+}
+
 ```
 
 
 
-#query for checking number of resets/food depletions across group sizes
+#checking number of resets/food depletions across group sizes
+##sql query
 ```{r}
 #Enter the values for you database connection
 dsn_database = "quail_centrality_4" # for example  "BLUDB"
@@ -64,6 +73,7 @@ str(reset.data)
 
 ```
 
+##summarizing and plotting resets/depletions
 ```{r}
 #summarize number of resets/food depletions per group size
 resets.summary = reset.data %>% 
@@ -108,7 +118,7 @@ ggplot(reset.data, aes(as.factor(groupsize), depletenum, color = resizearena)) +
 
 
 
-#Chunk for getting metrics of foraging success for agents other than the producer
+#calculating metrics of foraging success for agents other than the producer
 ```{r}
 
 #library(readr)
@@ -238,8 +248,7 @@ run.time #all groups ran in two minutes for 5 runs per combo
 
 
 
-
-#Check how approachfood, resetfoodconsistent, and resizearena impact average energy levels achieved by foragers at the end of each model run
+#Checking how approachfood, resetfoodconsistent, and resizearena impact average energy levels achieved by foragers at the end of each model run
 ```{r}
 #rbind all the for_success files from different group sizes together
 all.for.success = data.frame()
@@ -443,13 +452,6 @@ for(i in group.sizes) {
 
 # CALCULATE PROXIMITY NETWORK METRICS AND DIFFERENCE IN PRODUCER STRENGTH BETWEEN PHASES
 ```{r}
-# Function to convert to matrix format using matrix.please function
-matrix.please <- function(x) {
-  m<-as.matrix(x[,-1])
-  rownames(m)<-x[,1]
-  m
-}
-
 
 #FUNCTION TO BE USED INSIDE FIRST BIG LOOP TO GET PRODUCER'S NETWORK METRICS FOR EACH PHASE
 metrics.func = function(func.df) {
@@ -683,6 +685,7 @@ run.time
 
 ```
 
+# PLOTTING DIFFERENCE IN PRODUCER'S STRENGTH BETWEEN PHASES AND AVG ENERGY LEVELS ACROSS PARAMETER COMBOS
 ```{r}
 
 group.sizes = c(3, 6, 10, 15)#, 20)
@@ -740,28 +743,30 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, M
   
   
   #finding medians of network metric differences between foraging and pre-foraging phases for each combo:
-  pfxp.med = prox.forXpre %>% 
+  pfxp.med = prox.forXpre[prox.forXpre$resizearena == TRUE & prox.forXpre$resetfoodconsistent == TRUE,] %>% 
     group_by(combo.num) %>% 
-    summarize(n=n(), 
-              med.deg=median(forXpre.deg), 
+    summarize(n = n(), 
+              med.deg = median(forXpre.deg), 
               med.str = median(forXpre.str))
   
   #finding medians of network metric differences between post- and foraging phases for each combo:
-  ppxf.med = prox.postXfor %>% 
+  ppxf.med = prox.postXfor[prox.postXfor$resizearena == TRUE & prox.postXfor$resetfoodconsistent == TRUE,] %>% 
     group_by(combo.num) %>% 
-    summarize(n=n(), 
+    summarize(n = n(), 
               med.deg = median(postXfor.deg), 
               med.str = median(postXfor.str))
   
   #finding medians of network metric differences between post- and pre-foraging phases for each combo:
-  ppxp.med = prox.postXpre %>% 
+  ppxp.med = prox.postXpre[prox.postXpre$resizearena == TRUE & prox.postXpre$resetfoodconsistent == TRUE,] %>% 
     group_by(combo.num) %>% 
-    summarize(n=n(), 
-              med.deg=median(postXpre.deg), 
+    summarize(n = n(), 
+              med.deg = median(postXpre.deg), 
               med.str = median(postXpre.str))
   
   #add ranges of median strengths to the empty vector
-  str.range = append(str.range, c(range(pfxp.med$med.str), range(ppxf.med$med.str), range(ppxp.med$med.str)), after = length(str.range))
+  str.range = append(str.range, 
+                     c(range(pfxp.med$med.str), range(ppxf.med$med.str), range(ppxp.med$med.str)), 
+                     after = length(str.range))
   
   
   
@@ -770,10 +775,18 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, M
   for.success = read_csv(file.name, col_types = cols())
   for.success = as.data.frame(for.success)
 
+  for.success = for.success[for.success$resizearena == TRUE & for.success$resetfoodconsistent == TRUE,]
   
-  mean.energy.range = append(mean.energy.range, range(for.success$mean.combo.energy), after = length(mean.energy.range))
-  median.energy.range = append(median.energy.range, range(for.success$med.combo.energy), after = length(median.energy.range))
-  var.energy.range = append(var.energy.range, range(for.success$var.combo.energy), after = length(var.energy.range))
+  
+  mean.energy.range = append(mean.energy.range, 
+                             range(for.success$mean.combo.energy), 
+                             after = length(mean.energy.range))
+  median.energy.range = append(median.energy.range, 
+                               range(for.success$med.combo.energy), 
+                               after = length(median.energy.range))
+  var.energy.range = append(var.energy.range, 
+                            range(for.success$var.combo.energy), 
+                            after = length(var.energy.range))
   
   
   ticks.per.combo = for.success %>% 
@@ -782,8 +795,12 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK, M
            med.ticks = median(n.timesteps), 
            mean.ticks = mean(n.timesteps))
   
-  med.ticks.range = append(med.ticks.range, range(ticks.per.combo$med.ticks), after = length(med.ticks.range))
-  mean.ticks.range = append(mean.ticks.range, range(ticks.per.combo$mean.ticks), after = length(mean.ticks.range))
+  med.ticks.range = append(med.ticks.range, 
+                           range(ticks.per.combo$med.ticks), 
+                           after = length(med.ticks.range))
+  mean.ticks.range = append(mean.ticks.range, 
+                            range(ticks.per.combo$mean.ticks), 
+                            after = length(mean.ticks.range))
   
   gc()
 } #END OF LOOP
@@ -830,7 +847,7 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   }
   
   
-  dir.create(paste(file.path, "plots", sep = "/")) #create in a new folder in the current working directory that will hold all the plots from this loop
+  dir.create(paste(file.path, "plots", sep = "/")) #create a new folder in the current working directory that will hold all the plots from this loop
   
   file.name = paste(file.path, "prox_forxpre.csv", sep = "/")
   prox.forXpre = read_csv(file.name, col_types = cols())
@@ -844,6 +861,11 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   prox.postXpre = read_csv(file.name, col_types = cols())
   prox.postXpre = as.data.frame(prox.postXpre)
 
+  
+  prox.forXpre = prox.forXpre[prox.forXpre$resizearena == TRUE & prox.forXpre$resetfoodconsistent == TRUE,]
+  prox.postXfor = prox.postXfor[prox.postXfor$resizearena == TRUE & prox.postXfor$resetfoodconsistent == TRUE,]
+  prox.postXpre = prox.postXpre[prox.postXpre$resizearena == TRUE & prox.postXpre$resetfoodconsistent == TRUE,]
+  
   
   
   ############################################################
@@ -1088,6 +1110,305 @@ for(i in group.sizes){ #GETTING RANGE OF MEDIAN STRENGTH IN PROXIMITY NETWORK TO
   
 } # END OF PLOTTING LOOP
 
+
+```
+
+
+# MEMORY QUESTIONS
+##query to get parameters of interest and fsslist
+```{r}
+
+#Enter the values for you database connection
+dsn_database = "quail_centrality_4" # for example  "BLUDB"
+dsn_hostname = "localhost" # for example  "mydbinstance.cz6pjylrdjko.us-east-1.rds.amazonaws.com"
+dsn_port = 3306 # for example  3306 without quotation marks
+dsn_uid = "root" # for example  "user1"
+dsn_pwd = "hobsonSQL" # for example  "7dBZ3jWt9xN6$o0JiX!m"
+
+
+conn = dbConnect(MySQL(), user=dsn_uid, password=dsn_pwd, host=dsn_hostname, port=dsn_port)
+conn
+
+
+use_command <- paste("USE", dsn_database, sep=" ");
+dbSendQuery(conn, use_command);
+query = "SELECT run,
+                groupsize,
+                mem, 
+                attention, 
+                preference, 
+                approachfood, 
+                resetfoodconsistent, 
+                resizearena,
+                fsslist, ##fsslist object from netlogo stores each individual's first successful forager seen
+                ticks
+          FROM quail_centrality_4_5percombo WHERE resetfoodconsistent = 'true' AND resizearena = 'true'";
+rs = dbSendQuery(conn, query)
+fss.data = dbFetch(rs, -1);
+dbClearResult(rs)
+
+```
+
+##At which parameter combos are agents remembering a non-producer more often than they remember the producer?
+
+```{r}
+###split fsslist contents and compile them into a single vector for each run----
+
+#order fss.data by parameter combination
+fss.data = fss.data[order(fss.data$run, fss.data$ticks),]
+
+#remove square brackets from the column
+fss.data$fsslist = gsub("[[]", "", fss.data$fsslist) 
+fss.data$fsslist = gsub("[]]", "", fss.data$fsslist)
+
+#split the values at the space to get a list of vectors 
+#(each item in the list corresponds to each row in fss.data)
+fsslist.split = str_split(fss.data$fsslist, " ")
+
+#remove the producer's firstsfseen (i.e., the first value in each vector)
+fsslist.split2 = lapply(fsslist.split, function(x) x[-1])
+
+
+#compile the vectors within each run into one big vector
+#each combo has 301ticks*5runs=1505 rows
+combine.vectors = function(my_list, group.size){ # define a function that will do the concatenation
+  
+  num.groups = length(my_list) %/% group.size #group.size is the number of ticks/rows per run (301)
+  
+  combined.list = lapply(seq(1, length(my_list), by = group.size), 
+                         function(i) {do.call(c, my_list[i:(i + group.size - 1)])}) # for fsslist.split2 item 1, 302, 603, etc., lapply will run the do.call function, which concatenates the vectors from items 1:301, 302:602, and so on
+  
+  return(combined.list)
+}
+
+#run the function on fsslist.split2
+fsslist.split.concat = combine.vectors(my_list = fsslist.split2, 
+                                       group.size = 301) #this new list should have the same number of items as there are runs in fss.data
+
+length(fsslist.split.concat) == length(unique(fss.data$run)) #check - this should be TRUE
+
+fsslist.split.concat = suppressWarnings(lapply(fsslist.split.concat, as.integer))
+
+
+###calculate proportion of each run's vector contents that are the producer's ID----
+runs.props = data.frame(run = unique(fss.data$run),
+                        props = rep(NA, length(unique(fss.data$run)))
+                        )#data frame that will hold runs with their corresponding proportions
+
+props.vector = vector()#vector to store proportions for each run
+
+for(i in 1:length(fsslist.split.concat)) {#for each run's vector calculate proportion of IDs in memory that were the producer
+  
+  item.i = fsslist.split.concat[[i]]#item i in the concatenated list
+  
+   
+  total.length = sum(!is.na(item.i)) # total number of non-NAs (all IDs that were remembered during this run)
+  producer.count = sum(item.i %in% 0)# count total number of zeros (producer saved as fss)
+    
+  prop.producer = producer.count/total.length #calculate proportion
+    
+  props.vector = append(props.vector, prop.producer) #append proportion to the external vector
+  
+}
+
+runs.props$props = props.vector#add vector to dataframe that contains run IDs
+#tail(runs.props)
+
+
+
+#put all data in one data frame so you can summarize
+uniq.fss.data = unique(fss.data[,names(fss.data) %in% c("run", 
+                                                        "groupsize", 
+                                                        "mem", 
+                                                        "attention", 
+                                                        "preference", 
+                                                        "approachfood")])
+
+uniq.fss.data = merge(uniq.fss.data, runs.props, by.all = "run")
+#head(uniq.fss.data)
+
+# calculate mean/median/variance of proportions for each parameter combo
+prop.data = uniq.fss.data %>%
+    group_by(groupsize,
+             mem, 
+             attention, 
+             preference, 
+             approachfood) %>%
+    summarize(mean.prop = mean(props), 
+           med.prop = median(props), 
+           var.prop = var(props))
+
+
+### plot mean/median/variance of proportion for each parameter combo using a heat map----
+pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
+group.sizes = c(3, 6, 10, 15, 20)
+
+for (i in group.sizes) {
+  prop.data.plot = prop.data[prop.data$groupsize == i,]
+  
+  
+  #plot of MEAN proportion of foragers remembered that were the producer
+  ggplot(prop.data.plot, aes(as.factor(preference), as.factor(attention), fill = mean.prop)) +
+    ggtitle("Mean proportion of foragers remembered that were the producer") +
+    labs(y = "Attention", x = "Preference", fill = "Mean proportion") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(0, 1)) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+  
+  #plot of MEDIAN proportion of foragers remembered that were the producer
+  ggplot(prop.data.plot, aes(as.factor(preference), as.factor(attention), fill = med.prop)) +
+    ggtitle("Median proportion of foragers remembered that were the producer") +
+    labs(y = "Attention", x = "Preference", fill = "Median proportion") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(0, 1)) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+  
+  #generally higher mean/median when approachfood is FALSE -- since non-producers will not go directly to food, producer is the most likely to go to food and therefore be the fss most often
+  #lower mean/median at memory >= 200 and approachfood TRUE (although it is noisy) -- probably because non-producers feed in the pre-foraging phase and are remembered for most of the model run from then on
+  
+  
+#plot of VARIANCE in proportion of foragers remembered that were the producer
+  ggplot(prop.data.plot, aes(as.factor(preference), as.factor(attention), fill = var.prop)) +
+    ggtitle("Variance in proportion of foragers remembered that were the producer") +
+    labs(y = "Attention", x = "Preference", fill = "Variance in proportion") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(0, 1)) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+}
+
+
+
+
+```
+
+
+##For each parameter combo, what is the distribution of ticks in which agents formed or changed their first-sf-seen?
+```{r}
+
+#make sure fss.data is in the correct order if not already done
+fss.data = fss.data[order(fss.data$run, fss.data$ticks), !(names(fss.data) %in% c("resizearena", "resetfoodconsistent"))]
+
+#remove square brackets from the column
+fss.data$fsslist = gsub("[[]", "", fss.data$fsslist) 
+fss.data$fsslist = gsub("[]]", "", fss.data$fsslist)
+  
+#starting with fss.data, split the fsslist column into group.size columns 
+#do this in a loop, so you don't have to have 20 columns for all the smaller groups
+fss.data$change = rep(NA, nrow(fss.data))#add a column to keep track of which rows/ticks contain a change
+
+group.sizes = c(3, 6, 10, 15, 20)
+
+n.loops = 20 # max(unique(q.data.ord$group.size))
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
+
+for(i in group.sizes) {
+  loop.data = fss.data[fss.data$groupsize == i,]
+  
+  split.fsslist = str_split_fixed(loop.data$fsslist, " ", i) # split the data in the fsslist column at each space into i separate columns
+  
+  #add split columns to loop.data
+  loop.data = cbind(loop.data, split.fsslist)
+  
+  agents = seq(0, i-1)#vector of group members
+  
+  #loop through each run
+  for(j in unique(loop.data$run)) {
+    
+    loop.data2 = loop.data[loop.data$run==j,]
+    
+    #for each agent column, get the row numbers where the value is 
+      #1. different than the lagged version of the column AND 
+      #2. the value in the original version is an agentID (I want to ignore rows where it changes to an NA)
+    
+    for(k in agents){
+      
+      loop.colname = as.character(k+1)
+      curr.col = loop.data2[,names(loop.data2) == loop.colname]
+      
+      change.log = !(curr.col == lag(curr.col)) & curr.col %in% agents #logical vector with TRUE if the value in that row IS NOT the same as the value in the lead version of the column AND the value in the lead version of the column is an agent ID
+      
+      loop.data2 = cbind(loop.data2, change.log)
+      
+      
+      #put a 1 in the change column for rows that have a TRUE in the change.log column (if there are any)
+      if(nrow(loop.data2[loop.data2[,ncol(loop.data2)] == TRUE,]) > 0) {
+      loop.data2[loop.data2[,ncol(loop.data2)] == TRUE,]$change = 1
+      }
+      
+    }#END OF k LOOP
+    
+    #save the change column to the original fss.data data frame
+    fss.data[fss.data$run == j,]$change = loop.data2$change
+    
+  }#END OF j LOOP
+  
+  setTxtProgressBar(pb,i)#update progress bar
+  
+}#END OF OUTER LOOP
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time
+
+#THEN, FOR EACH PARAMETER COMBO I CAN GET A SUMMARY OF THE DISTRIBUTION OF TICKS IN WHICH AGENTS CHANGED THEIR FIRST-SF-SEEN AND PLOT THE MEAN/MEDIAN/VARIANCE
+
+#plot a sample histogram
+hist(fss.data[fss.data$groupsize == 3 &
+                fss.data$mem == 50 &
+                fss.data$attention == 0.75 &
+                fss.data$preference == 0.25 &
+                fss.data$approachfood == "true" & 
+                fss.data$change >= 1,]$ticks, breaks = 30)
+
+ticks.per.combo = fss.data[fss.data$change == 1,] %>% #count the number of times each tick shows up for each parameter combination
+                    group_by(groupsize, 
+                             mem, 
+                             attention, 
+                             preference, 
+                             approachfood) %>%
+                    summarize(mean.tick = mean(ticks),
+                              median.tick = median(ticks),
+                              var.tick = var(ticks))
+
+
+pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == 3,], aes(as.factor(preference), as.factor(attention), fill = mean.tick)) +
+    ggtitle("Mean time step that foragers formed/changed who they remember") +
+    labs(y = "Attention", x = "Preference", fill = "Mean time step") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(min(ticks.per.combo$mean.tick), max(ticks.per.combo$mean.tick))) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == 3,], aes(as.factor(preference), as.factor(attention), fill = median.tick)) +
+    ggtitle("Median time step that foragers formed/changed who they remember") +
+    labs(y = "Attention", x = "Preference", fill = "Median time step") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(min(ticks.per.combo$median.tick), max(ticks.per.combo$median.tick))) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == 3,], aes(as.factor(preference), as.factor(attention), fill = var.tick)) +
+    ggtitle("Variance in time step that foragers formed/changed who they remember") +
+    labs(y = "Attention", x = "Preference", fill = "Variance in time step") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(min(ticks.per.combo$var.tick), max(ticks.per.combo$var.tick))) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
 
 ```
 
