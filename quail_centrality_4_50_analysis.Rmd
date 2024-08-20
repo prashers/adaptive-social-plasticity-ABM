@@ -1285,104 +1285,74 @@ run.time = end.time - start.time
 run.time # RAN IN 6 HOURS
 
 write_csv(fss.data, "fss_data.csv") #write csv file so I don't have to run the long loop again
-for(i in group.sizes) {
-  loop.data = fss.data[fss.data$groupsize == i,]
-  
-  split.fsslist = str_split_fixed(loop.data$fsslist, " ", i) # split the data in the fsslist column at each space into i separate columns
-  
-  
-  #add split columns to loop.data
-  loop.data = bind_cols(loop.data, split.fsslist) #bind_cols is the same as cbind but faster
-  
-  agents = seq(0, i-1)#vector of group members
-  
-  #loop through each run
-  for(j in unique(loop.data$run)) {
-    
-    loop.data2 = loop.data[loop.data$run==j,]
-    
-    #for each agent column, get the row numbers where the value is 
-      #1. different than the lagged version of the column AND 
-      #2. the value in the original version is an agentID (I want to ignore rows where it changes to an NA)
-    
-    for(k in agents){
-      
-      loop.colname = as.character(k+1)
-      curr.col = loop.data2[,names(loop.data2) == loop.colname]
-      
-      change.log = !(curr.col == lag(curr.col)) & curr.col %in% agents #logical vector with TRUE if the value in that row IS NOT the same as the value in the lead version of the column AND the value in the lead version of the column is an agent ID
-      
-      loop.data2 = bind_cols(loop.data2, change.log, .name_repair = "unique") #unique name_repair will give each column a unique name
-      
-      #names(loop.data2)[ncol(loop.data2)] = paste0("change.log.", k+1) #change the name of the last column
-      
-      #put a 1 in the change column for rows that have a TRUE in the change.log column (if there are any)
-      # if(nrow(loop.data2[loop.data2[,ncol(loop.data2)] == TRUE,]) > 0) {
-      # loop.data2[loop.data2[,ncol(loop.data2)] == TRUE,]$change = 1
-      # }
-      
-      loop.data2 <- loop.data2 %>%
-                      mutate(change = as.numeric(select(., last_col()) == TRUE))
-      
-      
-    }#END OF k LOOP
-    
-    #save the change column to the original fss.data data frame
-    fss.data[fss.data$run == j,]$change = loop.data2$change
-    
-  }#END OF j LOOP
-  
-  setTxtProgressBar(pb,i)#update progress bar
-  
-}#END OF OUTER LOOP
+```
+
 
 
 
 
 #THEN, FOR EACH PARAMETER COMBO I CAN GET A SUMMARY OF THE DISTRIBUTION OF TICKS IN WHICH AGENTS CHANGED THEIR FIRST-SF-SEEN AND PLOT THE MEAN/MEDIAN/VARIANCE
+```{r}
+
+
+fss.data = read_csv("fss_data.csv")
 
 #plot a sample histogram
-hist(fss.data[fss.data$groupsize == 3 &
+ggplot(fss.data[fss.data$groupsize == 3 &
                 fss.data$mem == 50 &
                 fss.data$attention == 0.75 &
                 fss.data$preference == 0.25 &
-                fss.data$approachfood == "true" & 
-                fss.data$change >= 1,]$ticks, breaks = 30)
+                fss.data$approachfood == "true",]) + 
+  geom_bar(aes(x=ticks, y=change), stat="identity")
 
-ticks.per.combo = fss.data[fss.data$change == 1,] %>% #count the number of times each tick shows up for each parameter combination
+ticks.per.combo = fss.data %>% #count the number of times each tick shows up for each parameter combination
                     group_by(groupsize, 
                              mem, 
                              attention, 
                              preference, 
                              approachfood) %>%
-                    summarize(mean.tick = mean(ticks),
-                              median.tick = median(ticks),
-                              var.tick = var(ticks))
+                    summarize(mean.tick = weighted.mean(ticks, change),
+                              median.tick = median(rep(ticks, times = change)), #weighted median
+                              var.tick = var(rep(ticks, times = change)) #weighted variance
+                              )
+
 
 
 pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
 
-ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == 3,], aes(as.factor(preference), as.factor(attention), fill = mean.tick)) +
+i = 15
+
+file.path = paste0("./50percombo/", "group_size_", i, "/plots/mean_memory_form.pdf")
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = mean.tick)) +
     ggtitle("Mean time step that foragers formed/changed who they remember") +
     labs(y = "Attention", x = "Preference", fill = "Mean time step") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), limits=c(min(ticks.per.combo$mean.tick), max(ticks.per.combo$mean.tick))) + 
+    scale_fill_gradientn(colours = pal(100), limits=c(0, 300)) + 
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
 
+ggsave(file.path, width=13, height=7)
 
-ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == 3,], aes(as.factor(preference), as.factor(attention), fill = median.tick)) +
+
+file.path = paste0("./50percombo/", "group_size_", i, "/plots/median_memory_form.pdf")
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = median.tick)) +
     ggtitle("Median time step that foragers formed/changed who they remember") +
     labs(y = "Attention", x = "Preference", fill = "Median time step") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), limits=c(min(ticks.per.combo$median.tick), max(ticks.per.combo$median.tick))) + 
+    scale_fill_gradientn(colours = pal(100), limits=c(0, 300)) + 
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
 
+ggsave(file.path, width=13, height=7)
 
-ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == 3,], aes(as.factor(preference), as.factor(attention), fill = var.tick)) +
+
+file.path = paste0("./50percombo/", "group_size_", i, "/plots/variance_memory_form.pdf")
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = var.tick)) +
     ggtitle("Variance in time step that foragers formed/changed who they remember") +
     labs(y = "Attention", x = "Preference", fill = "Variance in time step") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
@@ -1390,6 +1360,8 @@ ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsi
     scale_fill_gradientn(colours = pal(100), limits=c(min(ticks.per.combo$var.tick), max(ticks.per.combo$var.tick))) + 
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
+
+ggsave(file.path, width=13, height=7)
 
 ```
 
