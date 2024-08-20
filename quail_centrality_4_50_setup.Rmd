@@ -428,7 +428,7 @@ for(i in group.sizes){
   
   prox.count.post = tibble::add_column(prox.count.post, prox.key = "NA", .after = "prox")
   
-  rm(data.post) # remove q.data.forage from environment to save memory
+  rm(data.post) # remove data.post from environment to save memory
   
   for(j in 1:20){ #LOOP TO FILL IN THE 'prox' COLUMN
     if(j > i){break} #end the loop if j > i
