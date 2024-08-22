@@ -1124,7 +1124,7 @@ prop.data = uniq.fss.data %>%
 ### plot mean/median/variance of proportion for each parameter combo using a heat map----
 pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
 group.sizes = c(3, 6, 10, 15)
-i=15
+i = 15
 #for (i in group.sizes) {
   
   prop.data.plot = prop.data[prop.data$groupsize == i,]
@@ -1134,7 +1134,9 @@ i=15
   file.path = paste0("./50percombo/", "group_size_", i, "/plots/median_prop_fss_producer.pdf")
   
   ggplot(prop.data.plot, aes(as.factor(preference), as.factor(attention), fill = med.prop)) +
-    ggtitle("Median proportion of foragers remembered that were the producer") +
+    ggtitle(paste0("Median proportion of foragers remembered that were the producer", 
+                   " group size = ", 
+                   i)) +
     labs(y = "Attention", x = "Preference", fill = "Median proportion") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
@@ -1153,7 +1155,9 @@ i=15
   file.path = paste0("./50percombo/", "group_size_", i, "/plots/variance_prop_fss_producer.pdf")
   
   ggplot(prop.data.plot, aes(as.factor(preference), as.factor(attention), fill = var.prop)) +
-    ggtitle("Variance in proportion of foragers remembered that were the producer") +
+    ggtitle(paste0("Variance in proportion of foragers remembered that were the producer", 
+                   " group size = ", 
+                   i)) +
     labs(y = "Attention", x = "Preference", fill = "Variance in proportion") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
@@ -1167,7 +1171,9 @@ i=15
 
   
   ggplot(prop.data.plot, aes(as.factor(preference), as.factor(attention), fill = med.prop.withNAs)) +
-    ggtitle("Median proportion of foragers remembered that were the producer with NAs") +
+    ggtitle(paste0("Median proportion of foragers remembered that were the producer with NAs", 
+                   " group size = ", 
+                   i)) +
     labs(y = "Attention", x = "Preference", fill = "Median proportion") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
@@ -1181,7 +1187,9 @@ i=15
   file.path = paste0("./50percombo", "/median_prop_fss_producer_appfoodfalse.pdf")
   
   ggplot(prop.data[prop.data$approachfood == "false",], aes(as.factor(preference), as.factor(attention), fill = med.prop)) +
-    ggtitle("Median proportion of foragers remembered that were the producer (approachfood false)") +
+    ggtitle(paste0("Median proportion of foragers remembered that were the producer (approachfood false)", 
+                   " group size = ", 
+                   i)) +
     labs(y = "Attention", x = "Preference", fill = "Median proportion") +
     facet_grid(rows=vars(groupsize), cols=vars(mem)) +
     geom_tile() +
@@ -1196,7 +1204,9 @@ i=15
   file.path = paste0("./50percombo", "/median_prop_fss_producer_appfoodtrue.pdf")
   
   ggplot(prop.data[prop.data$approachfood == "true",], aes(as.factor(preference), as.factor(attention), fill = med.prop)) +
-    ggtitle("Median proportion of foragers remembered that were the producer (approachfood false)") +
+    ggtitle(paste0("Median proportion of foragers remembered that were the producer (approachfood true)", 
+                   " group size = ", 
+                   i)) +
     labs(y = "Attention", x = "Preference", fill = "Median proportion") +
     facet_grid(rows=vars(groupsize), cols=vars(mem)) +
     geom_tile() +
@@ -1325,7 +1335,9 @@ i = 15
 file.path = paste0("./50percombo/", "group_size_", i, "/plots/mean_memory_form.pdf")
 
 ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = mean.tick)) +
-    ggtitle("Mean time step that foragers formed/changed who they remember") +
+    ggtitle(paste0("Mean time step that foragers formed/changed who they remember", 
+                   " group size = ", 
+                   i)) +
     labs(y = "Attention", x = "Preference", fill = "Mean time step") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
@@ -1339,7 +1351,9 @@ ggsave(file.path, width=13, height=7)
 file.path = paste0("./50percombo/", "group_size_", i, "/plots/median_memory_form.pdf")
 
 ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = median.tick)) +
-    ggtitle("Median time step that foragers formed/changed who they remember") +
+    ggtitle(paste0("Median time step that foragers formed/changed who they remember", 
+                   " group size = ", 
+                   i)) +
     labs(y = "Attention", x = "Preference", fill = "Median time step") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
@@ -1353,7 +1367,9 @@ ggsave(file.path, width=13, height=7)
 file.path = paste0("./50percombo/", "group_size_", i, "/plots/variance_memory_form.pdf")
 
 ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = var.tick)) +
-    ggtitle("Variance in time step that foragers formed/changed who they remember") +
+    ggtitle(paste0("Variance in time step that foragers formed/changed who they remember", 
+                   " group size = ", 
+                   i)) +
     labs(y = "Attention", x = "Preference", fill = "Variance in time step") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
