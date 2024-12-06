@@ -671,6 +671,9 @@ rm(pfxp.med, ppxf.med, ppxp.med, prox.forXpre, prox.postXfor, prox.postXpre)
 
 
 # PLOTTING DIFFERENCE IN PRODUCER'S STRENGTH BETWEEN PHASES AND AVG ENERGY LEVELS ACROSS PARAMETER COMBOS
+NOTE: FOR EACH GROUP SIZE, str.range CONTAINS 6 VALUES - A MIN/MAX FOR EACH PAIR OF PHASES
+e.g., str.range[1:2] is the min and max difference in strength between foraging and pre-foraging
+      str.range[3:4] is the min and max difference in strength between post-foraging and foraging
 ```{r}
 
 pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
@@ -682,32 +685,32 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
   if(i==3){
     file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_3"
     
-#    str.range1 = str.range[1:6] #take subset of str.range only if you want to have a different scale for each group size 
-    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    str.range1 = str.range[1:6] #take subset of str.range only if you want to have a different scale for each group size 
+#    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
     
   } else if(i==6) {
     file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_6"
     
-#    str.range1 = str.range[7:12]
-    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    str.range1 = str.range[7:12]
+#    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
     
   } else if(i==10) {
     file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_10"
     
-#    str.range1 = str.range[13:18]
-    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    str.range1 = str.range[13:18]
+#    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
     
   } else if(i==15) {
     file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_15"
     
-#    str.range1 = str.range[19:24]
-    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    str.range1 = str.range[19:24]
+#    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
     
   } else if(i==20) {
     file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_20"
     
-#    str.range1 = str.range[25:30]
-    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
+    str.range1 = str.range[25:30]
+#    str.range1 = str.range # if you want to have the same scale for all group sizes, then use this line instead
     
   }
   
@@ -766,7 +769,7 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
   
 #  dev.off()
   
-   ggsave(paste(file.path, "/plots/StrengthForxPre_scaled.pdf", sep = ""), width=13, height=7)
+   ggsave(paste(file.path, "/plots/StrengthForxPre.pdf", sep = ""), width=13, height=7)
   
   #rm(pfxp.med) #not removing this, because I will use it for foraging success plots as well
   
@@ -797,7 +800,7 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave(paste(file.path,"/plots/StrengthPostxFor_scaled.pdf", sep = ""), width=13, height=7)
+   ggsave(paste(file.path,"/plots/StrengthPostxFor.pdf", sep = ""), width=13, height=7)
   
   rm(ppxf.med)
   
@@ -827,7 +830,7 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave(paste(file.path, "/plots/StrengthPostxPre_scaled.pdf", sep = ""), width=13, height=7)
+   ggsave(paste(file.path, "/plots/StrengthPostxPre.pdf", sep = ""), width=13, height=7)
   
   rm(ppxp.med)
   
@@ -851,13 +854,13 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
     labs(y = "Attention", x = "Preference", fill = "Mean energy level") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
-#    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$mean.combo.energy), 0, max(for.success$mean.combo.energy)), limits=c(min(for.success$mean.combo.energy), max(for.success$mean.combo.energy))) +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.energy.range), 0, max(mean.energy.range)), limits=c(min(mean.energy.range), max(mean.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$mean.combo.energy), 0, max(for.success$mean.combo.energy)), limits=c(min(for.success$mean.combo.energy), max(for.success$mean.combo.energy))) +
+#    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.energy.range), 0, max(mean.energy.range)), limits=c(min(mean.energy.range), max(mean.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave(paste(file.path, "/plots/meanenergy_scaled.pdf", sep = ""), width=13, height=7)
+   ggsave(paste(file.path, "/plots/meanenergy.pdf", sep = ""), width=13, height=7)
   
   
   #plot median energy level per combo
@@ -870,13 +873,13 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
     labs(y = "Attention", x = "Preference", fill = "Median energy level") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
-#    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$med.combo.energy), 0, max(for.success$med.combo.energy)), limits=c(min(for.success$med.combo.energy), max(for.success$med.combo.energy))) +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(median.energy.range), 0, max(median.energy.range)), limits=c(min(median.energy.range), max(median.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$med.combo.energy), 0, max(for.success$med.combo.energy)), limits=c(min(for.success$med.combo.energy), max(for.success$med.combo.energy))) +
+#    scale_fill_gradientn(colours = pal(100), breaks=c(min(median.energy.range), 0, max(median.energy.range)), limits=c(min(median.energy.range), max(median.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-  ggsave(paste(file.path, "/plots/medianenergy_scaled.pdf", sep = ""), width=13, height=7)
+  ggsave(paste(file.path, "/plots/medianenergy.pdf", sep = ""), width=13, height=7)
   
   
   #plot variance in energy level per combo the same way
@@ -889,13 +892,13 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
     labs(y = "Attention", x = "Preference", fill = "Variance in energy level") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
-#    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$var.combo.energy), 0, max(for.success$var.combo.energy)), limits=c(min(for.success$var.combo.energy), max(for.success$var.combo.energy))) +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(var.energy.range), 0, max(var.energy.range)), limits=c(min(var.energy.range), max(var.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(for.success$var.combo.energy), 0, max(for.success$var.combo.energy)), limits=c(min(for.success$var.combo.energy), max(for.success$var.combo.energy))) +
+#    scale_fill_gradientn(colours = pal(100), breaks=c(min(var.energy.range), 0, max(var.energy.range)), limits=c(min(var.energy.range), max(var.energy.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-   ggsave(paste(file.path, "/plots/varenergy_scaled.pdf", sep = ""), width=13, height=7)
+   ggsave(paste(file.path, "/plots/varenergy.pdf", sep = ""), width=13, height=7)
   
   
   #calculate mean or median number of time steps that foragers ate for each combo number and plot in the same way
@@ -909,13 +912,13 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
   #ticks.per.combo$mean.ticks = rescale(ticks.per.combo$mean.ticks)
     
   #calculating where middle of legend should be if the scale is different across group sizes
-#  mid.break.mean = min(ticks.per.combo$mean.ticks) + ((max(ticks.per.combo$mean.ticks) - min(ticks.per.combo$mean.ticks))/2) #this should just be 0.5 if rescaling mean.ticks
-#  mid.break.median = min(ticks.per.combo$med.ticks) + ((max(ticks.per.combo$med.ticks) - min(ticks.per.combo$med.ticks))/2) #this should just be 0.5 if rescaling med.ticks
+  mid.break.mean = min(ticks.per.combo$mean.ticks) + ((max(ticks.per.combo$mean.ticks) - min(ticks.per.combo$mean.ticks))/2) #this should just be 0.5 if rescaling mean.ticks
+  mid.break.median = min(ticks.per.combo$med.ticks) + ((max(ticks.per.combo$med.ticks) - min(ticks.per.combo$med.ticks))/2) #this should just be 0.5 if rescaling med.ticks
   
   
   #calculating where middle of legend should be if the scale is the same across group sizes
-  mid.break.mean = min(mean.ticks.range) + ((max(mean.ticks.range) - min(mean.ticks.range))/2)
-  mid.break.median = min(med.ticks.range) + ((max(med.ticks.range) - min(med.ticks.range))/2)
+#  mid.break.mean = min(mean.ticks.range) + ((max(mean.ticks.range) - min(mean.ticks.range))/2)
+#  mid.break.median = min(med.ticks.range) + ((max(med.ticks.range) - min(med.ticks.range))/2)
   
   
 #  pdf("./plots/meanticksforaged.pdf", width=7, height=13)
@@ -927,18 +930,20 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
     labs(y = "Attention", x = "Preference", fill = "Mean # time steps") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
-#    scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
-    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.ticks.range), mid.break.mean, max(mean.ticks.range)), limits=c(min(mean.ticks.range), max(mean.ticks.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    scale_fill_gradientn(colours = pal(100), breaks=c(min(ticks.per.combo$mean.ticks), mid.break.mean, max(ticks.per.combo$mean.ticks)), limits=c(min(ticks.per.combo$mean.ticks), max(ticks.per.combo$mean.ticks))) +
+#    scale_fill_gradientn(colours = pal(100), breaks=c(min(mean.ticks.range), mid.break.mean, max(mean.ticks.range)), limits=c(min(mean.ticks.range), max(mean.ticks.range))) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-  ggsave(paste(file.path, "/plots/meanticksforaged_scaled.pdf", sep = ""), width=13, height=7)
+  ggsave(paste(file.path, "/plots/meanticksforaged.pdf", sep = ""), width=13, height=7)
   
   
   #plot foraging success metrics by median change in producer's strength between foraging and pre-foraging phases
   
-  ticks.mrg = merge(unique(ticks.per.combo[,!names(ticks.per.combo) %in% c("run", "n.timesteps", "mean.run.energy", "med.run.energy", "var.run.energy")]), pfxp.med[,names(pfxp.med) %in% c("combo.num", "med.str")], by = "combo.num")
+  ticks.mrg = merge(unique(ticks.per.combo[,!names(ticks.per.combo) %in% c("run", "n.timesteps", "mean.run.energy", "med.run.energy", "var.run.energy")]), 
+                    pfxp.med[,names(pfxp.med) %in% c("combo.num", "med.str")], 
+                    by = "combo.num")
   
 #  pdf("./plots/meanticksforagedXstrength.pdf", width=7, height=13)
   
@@ -948,15 +953,15 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
                   "group size =", i, sep = " ")) +
     labs(y = "Mean # time steps foraged", x = "Median change in producer's strength") +
     scale_x_continuous( limits = c(-1, max(str.range1))) + 
-#    scale_y_continuous( breaks = seq(0, ceiling(max(ticks.mrg$mean.ticks)), by = 2)) + # USE THIS LINE FOR DIFFERENT SCALES ACROSS GROUP SIZES
-    scale_y_continuous( limits = c(floor(min(mean.ticks.range)), ceiling(max(mean.ticks.range))) ) +  # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    scale_y_continuous( breaks = seq(0, ceiling(max(ticks.mrg$mean.ticks)), by = 2)) + # USE THIS LINE FOR DIFFERENT SCALES ACROSS GROUP SIZES
+#    scale_y_continuous( limits = c(floor(min(mean.ticks.range)), ceiling(max(mean.ticks.range))) ) +  # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
     facet_grid(rows=vars(approachfood), cols=vars(mem)) + #add 'cols = vars(approach.food)' if you want a different column for each level of approach.food
     geom_point() +
     theme_minimal() +
     theme(axis.line.x.bottom=element_line(linewidth = 1), axis.line.y.left=element_line(linewidth = 1), aspect.ratio=1, text=element_text(size=15))
     
 #  dev.off()
-  ggsave(paste(file.path, "/plots/meanticksforagedXstrength_scaled.pdf", sep = ""), width=14, height=10)
+  ggsave(paste(file.path, "/plots/meanticksforagedXstrength.pdf", sep = ""), width=14, height=10)
   
   
 #  pdf("./plots/meanenergyXstrength.pdf", width=7, height=13)
@@ -967,15 +972,15 @@ pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
                   "group size =", i, sep = " ")) +
     labs(y = "Mean energy level of foragers", x = "Median change in producer's strength") +
     scale_x_continuous( limits = c(-1, max(str.range1))) + 
-#    scale_y_continuous( breaks = seq(floor(min(ticks.mrg$mean.combo.energy)), ceiling(max(ticks.mrg$mean.combo.energy)), by = 5)) + # USE THIS LINE FOR DIFFERENT SCALES ACROSS GROUP SIZES
-    scale_y_continuous( limits = c(floor(min(mean.energy.range)), ceiling(max(mean.energy.range))) ) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
+    scale_y_continuous( breaks = seq(floor(min(ticks.mrg$mean.combo.energy)), ceiling(max(ticks.mrg$mean.combo.energy)), by = 5)) + # USE THIS LINE FOR DIFFERENT SCALES ACROSS GROUP SIZES
+#    scale_y_continuous( limits = c(floor(min(mean.energy.range)), ceiling(max(mean.energy.range))) ) + # USE THIS LINE FOR SAME SCALE ACROSS GROUP SIZES
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_point() +
     theme_minimal() +
     theme(axis.line.x.bottom=element_line(linewidth = 1), axis.line.y.left=element_line(linewidth = 1), aspect.ratio=1, text=element_text(size=15))
   
 #  dev.off()
-  ggsave(paste(file.path, "/plots/meanenergyXstrength_scaled.pdf", sep = ""), width=14, height=10)
+  ggsave(paste(file.path, "/plots/meanenergyXstrength.pdf", sep = ""), width=14, height=10)
   
   gc()
   
@@ -1022,16 +1027,18 @@ dbClearResult(rs)
 
 
 ##At which parameter combos are agents remembering a non-producer more often than they remember the producer?
-
 ```{r}
 ###split fsslist contents and compile them into a single vector for each run----
 
-#order fss.data by parameter combination
-fss.data = fss.data[order(fss.data$run, fss.data$ticks),]
+#order fss.data by parameter combination and remove rows associated with ticks ==0 (the starting tick in each run)
+fss.data = fss.data %>% 
+          filter(!(fss.data$ticks == 0)) %>%
+          arrange(run, ticks)
 
 #remove square brackets from the column
 fss.data$fsslist = gsub("[[]", "", fss.data$fsslist) 
 fss.data$fsslist = gsub("[]]", "", fss.data$fsslist)
+
 
 #split the values at the space to get a list of vectors 
 #(each item in the list corresponds to each row in fss.data)
@@ -1040,9 +1047,8 @@ fsslist.split = str_split(fss.data$fsslist, " ")
 #remove the producer's firstsfseen (i.e., the first value in each vector)
 fsslist.split2 = lapply(fsslist.split, function(x) x[-1])
 
-
 #compile the vectors within each run into one big vector
-#each combo has 301ticks*5runs=1505 rows
+#each combo has 301ticks*50runs=15050 rows
 combine.vectors = function(my_list, grp.size){ # define a function that will do the concatenation
   
   num.groups = length(my_list) %/% grp.size #grp.size is the number of rows per run (301)
@@ -1053,26 +1059,83 @@ combine.vectors = function(my_list, grp.size){ # define a function that will do 
   return(combined.list)
 }
 
-#run the function on fsslist.split2
+#run the function on fsslist.split2 to get one item in the list per phase
 fsslist.split.concat = combine.vectors(my_list = fsslist.split2, 
-                                       grp.size = 301) #this new list should have the same number of items as there are runs in fss.data
+                                       grp.size = 100) #this new list should have 3x the number of items as there are runs in fss.data
 
-length(fsslist.split.concat) == length(unique(fss.data$run)) #check - this should be TRUE
+length(fsslist.split.concat) == 3*length(unique(fss.data$run)) #check - this should be TRUE
 
 fsslist.split.concat = suppressWarnings(lapply(fsslist.split.concat, as.integer))
 
 
+#run the function on fsslist.split2 to get one item in the list per run
+fsslist.split.concat.total = combine.vectors(my_list = fsslist.split2, 
+                                       grp.size = 300) #this new list should have the same number of items as there are runs in fss.data
+
+length(fsslist.split.concat.total) == length(unique(fss.data$run)) #check - this should be TRUE
+
+fsslist.split.concat.total = suppressWarnings(lapply(fsslist.split.concat.total, as.integer))
+
+
 ###calculate proportion of each run's vector contents that are the producer's ID----
 runs.props = data.frame(run = unique(fss.data$run),
-                        props = rep(NA, length(unique(fss.data$run)))
+                        props.total = rep(NA, length(unique(fss.data$run)))
                         )#data frame that will hold runs with their corresponding proportions
 
-props.vector = vector()#vector to store proportions for each run
+props.vector = vector()#vector to store proportions for each run (all 3 phases)
 props.vector.withNAs = vector() #vector to store proportions when including counts of NAs as first-sf-seen
 
-for(i in 1:length(fsslist.split.concat)) {#for each run's vector calculate proportion of IDs in memory that were the producer
+props.pre = vector() #vector to store proportions for pre-foraging phase in each run
+props.for = vector() #vector to store proportions for foraging phase in each run
+props.post = vector() #vector to store proportions for post-foraging phase in each run
+
+pre.nums = seq(from = 1, to = length(fsslist.split.concat), by = 3)#items in fsslist.split.concat corresponding to pre-foraging phases
+for.nums = seq(from = 2, to = length(fsslist.split.concat), by = 3)#items in fsslist.split.concat corresponding to foraging phases
+post.nums = seq(from = 3, to = length(fsslist.split.concat), by = 3)#items in fsslist.split.concat corresponding to post-foraging phases
+
+
+for(i in 1:length(fsslist.split.concat)) {#for each PHASE's vector calculate proportion of IDs in memory that were the producer
   
   item.i = fsslist.split.concat[[i]]#item i in the concatenated list
+  
+  if(i %in% pre.nums) {
+    
+    total.length.pre = sum(!is.na(item.i)) # total number of non-NAs (all IDs remembered during this phase)
+  
+    producer.count.pre = sum(item.i %in% 0)# count total number of zeros (producer saved as fss)
+    
+    prop.producer.pre = producer.count.pre/total.length.pre #calculate proportion
+    props.pre = append(props.pre, prop.producer.pre) #append proportion to the external vector
+    
+  } else if(i %in% for.nums) {
+    
+    total.length.for = sum(!is.na(item.i)) # total number of non-NAs (all IDs remembered during this phase)
+  
+    producer.count.for = sum(item.i %in% 0)# count total number of zeros (producer saved as fss)
+    
+    prop.producer.for = producer.count.for/total.length.for #calculate proportion
+    props.for = append(props.for, prop.producer.for) #append proportion to the external vector
+    
+  } else if(i %in% post.nums) {
+    
+    total.length.post = sum(!is.na(item.i)) # total number of non-NAs (all IDs remembered during this phase)
+  
+    producer.count.post = sum(item.i %in% 0)# count total number of zeros (producer saved as fss)
+    
+    prop.producer.post = producer.count.post/total.length.post #calculate proportion
+    props.post = append(props.post, prop.producer.post) #append proportion to the external vector
+    
+  }
+  
+}
+runs.props$props.pre = props.pre
+runs.props$props.for = props.for
+runs.props$props.post = props.post
+  
+
+for(i in 1:length(fsslist.split.concat.total)) {#for each RUN's vector calculate proportion of IDs in memory that were the producer
+  
+  item.i = fsslist.split.concat.total[[i]]#item i in the concatenated list
   
    
   total.length = sum(!is.na(item.i)) # total number of non-NAs (all IDs that were remembered during this run)
@@ -1088,7 +1151,7 @@ for(i in 1:length(fsslist.split.concat)) {#for each run's vector calculate propo
   
 }
 
-runs.props$props = props.vector#add vector to dataframe that contains run IDs
+runs.props$props.total = props.vector#add vector to dataframe that contains run IDs
 #tail(runs.props)
 
 runs.props$props.withNAs = props.vector.withNAs
@@ -1106,24 +1169,45 @@ uniq.fss.data = unique(fss.data[,names(fss.data) %in% c("run",
 uniq.fss.data = merge(uniq.fss.data, runs.props, by.all = "run")
 #head(uniq.fss.data)
 
+
+
+write.csv(uniq.fss.data, "./50percombo/proportion_fss_producer.csv")
+```
+
+
+
+###plotting proportion of times producer was remembered as the successful forager by other
+```{r}
+
+prop.data = read.csv("./50percombo/proportion_fss_producer.csv")
+
 # calculate mean/median/variance of proportions for each parameter combo
-prop.data = uniq.fss.data %>%
+prop.data = prop.data %>%
     group_by(groupsize,
              mem, 
              attention, 
              preference, 
              approachfood) %>%
-    summarize(mean.prop = mean(props), 
-           med.prop = median(props), 
-           var.prop = var(props),
-           mean.prop.withNAs = mean(props.withNAs),
-           med.prop.withNAs = median(props.withNAs), 
-           var.prop.withNAs = var(props.withNAs))
-
+    summarize(mean.prop.total = mean(props.total), 
+               med.prop.total = median(props.total), 
+               var.prop.total = var(props.total),
+               mean.prop.withNAs = mean(props.withNAs),
+               med.prop.withNAs = median(props.withNAs), 
+               var.prop.withNAs = var(props.withNAs),
+               mean.prop.pre = mean(props.pre),
+               med.prop.pre = median(props.pre), 
+               var.prop.pre = var(props.pre),
+               mean.prop.for = mean(props.for),
+               med.prop.for = median(props.for), 
+               var.prop.for = var(props.for),
+               mean.prop.post = mean(props.post),
+               med.prop.post = median(props.post), 
+               var.prop.post = var(props.post))
 
 ### plot mean/median/variance of proportion for each parameter combo using a heat map----
 pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
-group.sizes = c(3, 6, 10, 15)
+redpal <- colorRampPalette(rev(brewer.pal(11, 'Reds')), space='Lab')
+#group.sizes = c(3, 6, 10, 15)
 i = 15
 #for (i in group.sizes) {
   
@@ -1133,7 +1217,7 @@ i = 15
   #plot of MEDIAN proportion of foragers remembered that were the producer
   file.path = paste0("./50percombo/", "group_size_", i, "/plots/median_prop_fss_producer.pdf")
   
-  ggplot(prop.data.plot, aes(as.factor(preference), as.factor(attention), fill = med.prop)) +
+  ggplot(prop.data.plot, aes(as.factor(preference), as.factor(attention), fill = med.prop.total)) +
     ggtitle(paste0("Median proportion of foragers remembered that were the producer", 
                    " group size = ", 
                    i)) +
@@ -1161,7 +1245,7 @@ i = 15
     labs(y = "Attention", x = "Preference", fill = "Variance in proportion") +
     facet_grid(rows=vars(approachfood), cols=vars(mem)) +
     geom_tile() +
-    scale_fill_gradientn(colours = pal(100), limits=c(0, 1)) + 
+    scale_fill_gradientn(colours = pal(100), limits=c(0, max(prop.data.plot$))) + 
     theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
   
@@ -1299,9 +1383,7 @@ write_csv(fss.data, "fss_data.csv") #write csv file so I don't have to run the l
 
 
 
-
-
-#THEN, FOR EACH PARAMETER COMBO I CAN GET A SUMMARY OF THE DISTRIBUTION OF TICKS IN WHICH AGENTS CHANGED THEIR FIRST-SF-SEEN AND PLOT THE MEAN/MEDIAN/VARIANCE
+###THEN, FOR EACH PARAMETER COMBO I CAN GET A SUMMARY OF THE DISTRIBUTION OF TICKS IN WHICH AGENTS CHANGED THEIR FIRST-SF-SEEN AND PLOT THE MEAN/MEDIAN/VARIANCE
 ```{r}
 
 
@@ -1380,4 +1462,821 @@ ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsi
 ggsave(file.path, width=13, height=7)
 
 ```
+
+
+
+
+###Distribution of ticks in which agents changed their first-sf-seen to the producer
+```{r}
+
+#make sure fss.data is in the correct order if not already done
+fss.data = fss.data[order(fss.data$run, fss.data$ticks), ]
+
+#remove square brackets from the column
+fss.data$fsslist = gsub("[[]", "", fss.data$fsslist) 
+fss.data$fsslist = gsub("[]]", "", fss.data$fsslist)
+  
+#starting with fss.data, split the fsslist column into group.size columns 
+#do this in a loop, so you don't have to have 20 columns for all the smaller groups
+fss.data$change = rep(0, nrow(fss.data))#add a column to keep track of which rows/ticks contain a change
+
+group.sizes = c(3, 6, 10, 15)#, 20)
+
+n.loops = 15 # max(unique(q.data.ord$group.size))
+pb = txtProgressBar(min=0, max = n.loops, style=3)
+start.time = Sys.time()
+
+for (i in group.sizes) {
+  
+  loop.data <- fss.data %>%
+    filter(groupsize == i) %>%
+    mutate(across(starts_with("fss"), ~ str_split_fixed(.x, " ", i)))  # Split fss columns
+  
+  agents <- seq(0, i - 1)#ids as in netlogo
+  
+  #loop through each run
+  for (j in unique(loop.data$run)) {
+    
+    loop.data2 <- loop.data %>% filter(run == j)
+      
+    
+    #for each agent column, get the row numbers (and counts for those rows) where the value is: 
+      #1. different than the lagged version of the column AND 
+      #2. the value in the original version is an agentID (I want to ignore rows where it changes to an NA)
+    
+    for(k in agents){
+      #loop.colname = paste0("fsslist_", as.character(k+1))
+      if(k == 0) {next}# skip the producer to only count times when non-producers formed/changed their fss
+      
+      curr.col = loop.data2[,names(loop.data2) == "fsslist"][,k+1] #this will be the first non-producer column or later
+      
+      loop.data2 <- loop.data2 %>%
+        mutate(change = case_when(
+                          !(curr.col == lag(curr.col, 1)) & curr.col %in% 0 ~ change + 1, # only count when the ID in curr.col is the producer's ID
+                          .default = change) 
+               )
+    }#END OF k LOOP
+    
+    #save the change column to the original fss.data data frame
+    fss.data[fss.data$run == j,]$change = loop.data2$change
+    
+  }#END OF j LOOP
+  
+  setTxtProgressBar(pb,i)#update progress bar
+  
+}#END OF OUTER LOOP
+end.time = Sys.time()
+run.time = end.time - start.time
+run.time
+
+write_csv(fss.data, "fss_data_producer.csv") #write csv file so I don't have to run the long loop again
+
+```
+
+```{r}
+
+fss.data = read_csv("fss_data_producer.csv")
+
+
+ticks.per.combo = fss.data %>% #count the number of times each tick shows up for each parameter combination
+                    group_by(groupsize, 
+                             mem, 
+                             attention, 
+                             preference, 
+                             approachfood) %>%
+                    summarize(mean.tick = weighted.mean(ticks, change),
+                              median.tick = median(rep(ticks, times = change)), #weighted median
+                              var.tick = var(rep(ticks, times = change)) #weighted variance
+                              )
+
+
+
+pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
+
+i = 3
+
+file.path = paste0("./50percombo/", "group_size_", i, "/plots/prodonly_mean_memory_form.pdf")
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = mean.tick)) +
+    ggtitle(paste0("Mean time step that foragers remembered producer", 
+                   " group size = ", 
+                   i)) +
+    labs(y = "Attention", x = "Preference", fill = "Mean time step") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(0, 300)) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+ggsave(file.path, width=13, height=7)
+
+
+file.path = paste0("./50percombo/", "group_size_", i, "/plots/prodonly_median_memory_form.pdf")
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = median.tick)) +
+    ggtitle(paste0("Median time step that foragers remembered producer", 
+                   " group size = ", 
+                   i)) +
+    labs(y = "Attention", x = "Preference", fill = "Median time step") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(0, 300)) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+ggsave(file.path, width=13, height=7)
+
+
+file.path = paste0("./50percombo/", "group_size_", i, "/plots/prodonly_variance_memory_form.pdf")
+
+ggplot(ticks.per.combo[complete.cases(ticks.per.combo) & ticks.per.combo$groupsize == i,], aes(as.factor(preference), as.factor(attention), fill = var.tick)) +
+    ggtitle(paste0("Variance in time step that foragers remembered producer", 
+                   " group size = ", 
+                   i)) +
+    labs(y = "Attention", x = "Preference", fill = "Variance in time step") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100), limits=c(min(ticks.per.combo$var.tick), max(ticks.per.combo$var.tick))) + 
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+ggsave(file.path, width=13, height=7)
+
+```
+
+
+
+
+
+# COMBINE RESULTS INTO A SINGLE DATA FRAME FOR EASIER PLOTTING IN LATER CHUNKS
+```{r}
+
+#data frames to hold str differences
+full.prox.forXpre = data.frame()
+full.prox.postXfor = data.frame()
+full.prox.postXpre = data.frame()
+full.for.success = data.frame()
+
+#data frames to hold proximity network metrics for each phase
+full.prox.metrics.pre = data.frame()
+full.prox.metrics.for = data.frame()
+full.prox.metrics.post = data.frame()
+
+
+group.sizes = c(3, 6, 10, 15)
+for(i in group.sizes){
+  if(i==3){
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_3"
+    
+  } else if(i==6) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_6"
+    
+  } else if(i==10) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_10"
+    
+  } else if(i==15) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_15"
+    
+  } else if(i==20) {
+    file.path = "C:/Users/sanja/Documents/Sanjay's stuff/QuailCentralityABM/R analyses/quail_centrality_4/50percombo/group_size_20"
+    
+  }
+  
+  
+  #COMBINE DATA FROM DIFFERENT GROUP SIZES INTO ONE DATA FRAME
+  file.name = paste(file.path, "prox_forxpre.csv", sep = "/")
+  prox.forXpre = as.data.frame(read_csv(file.name, col_types = cols()))
+  full.prox.forXpre = rbind(full.prox.forXpre, prox.forXpre)
+  
+  
+  file.name = paste(file.path, "prox_postxfor.csv", sep = "/")
+  prox.postXfor = as.data.frame(read_csv(file.name, col_types = cols()))
+  full.prox.postXfor = rbind(full.prox.postXfor, prox.postXfor)
+  
+
+  file.name = paste(file.path, "prox_postxpre.csv", sep = "/")
+  prox.postXpre = as.data.frame(read_csv(file.name, col_types = cols()))
+  full.prox.postXpre = rbind(full.prox.postXpre, prox.postXpre)
+  
+  
+  file.name = paste(file.path, "for_success.csv", sep = "/")
+  for.success = as.data.frame(read_csv(file.name, col_types = cols()))
+  for.success$groupsize = rep(i, nrow(for.success))#add a groupsize column
+  full.for.success = rbind(full.for.success, for.success)
+
+  
+  file.name = paste(file.path, "prox_metrics_pre.csv", sep = "/")
+  prox.metrics.pre = as.data.frame(read_csv(file.name, col_types = cols()))
+  full.prox.metrics.pre = rbind(full.prox.metrics.pre, prox.metrics.pre)
+  
+  
+  file.name = paste(file.path, "prox_metrics_for.csv", sep = "/")
+  prox.metrics.for = as.data.frame(read_csv(file.name, col_types = cols()))
+  full.prox.metrics.for = rbind(full.prox.metrics.for, prox.metrics.for)
+  
+  
+  file.name = paste(file.path, "prox_metrics_post.csv", sep = "/")
+  prox.metrics.post = as.data.frame(read_csv(file.name, col_types = cols()))
+  full.prox.metrics.post = rbind(full.prox.metrics.post, prox.metrics.post)
+  
+}
+
+#saving a file to send to Liz for her to look into dimension reduction
+#full.prox.forXpre = full.prox.forXpre %>% rename(deg.diff = forXpre.deg, str.diff = forXpre.str, memory = mem)
+#write_csv(full.prox.forXpre, "prox_phase2vsphase1.csv")
+
+#import proportions of memories that were the producer (it already has data for each group size)
+props = read_csv("./50percombo/proportion_fss_producer.csv")
+
+#merge output metrics into a single data frame
+full.outputs = full.prox.forXpre %>%
+                full_join(full.prox.postXfor, 
+                          by = c("run", 
+                                 "mem", 
+                                 "attention", 
+                                 "preference", 
+                                 "approachfood", 
+                                 "groupsize", 
+                                 "combo.num")) %>%
+                full_join(full.prox.postXpre, 
+                          by = c("run", 
+                                 "mem", 
+                                 "attention", 
+                                 "preference", 
+                                 "approachfood", 
+                                 "groupsize", 
+                                 "combo.num")) %>%
+                full_join(full.for.success, 
+                          by = c("run", 
+                                 "mem", 
+                                 "attention", 
+                                 "preference", 
+                                 "approachfood", 
+                                 "groupsize", 
+                                 "combo.num")) %>%
+                full_join(props, 
+                          by = c("run", 
+                                 "mem", 
+                                 "attention", 
+                                 "preference", 
+                                 "approachfood", 
+                                 "groupsize"))
+
+#data frames with degree and strength per phase only have run column for merging
+#first rename deg and str columns to make phase clear
+full.prox.metrics.pre = full.prox.metrics.pre %>% rename(pre.deg = A.deg, pre.str = A.str)
+full.prox.metrics.for = full.prox.metrics.for %>% rename(for.deg = A.deg, for.str = A.str)
+full.prox.metrics.post = full.prox.metrics.post %>% rename(post.deg = A.deg, post.str = A.str)
+
+full.outputs = full.outputs %>%
+                full_join(full.prox.metrics.pre, 
+                          by = c("run")) %>%
+                full_join(full.prox.metrics.for, 
+                          by = c("run")) %>%
+                full_join(full.prox.metrics.post, 
+                          by = c("run")) 
+
+
+
+#add columns for scaled strength per phase (just strength/groupsize to see if effects of each parameter are consistent across group sizes)
+full.outputs$scld.pre.str = full.outputs$pre.str/(full.outputs$groupsize)#^1.2
+full.outputs$scld.for.str = full.outputs$for.str/(full.outputs$groupsize)#^1.2
+full.outputs$scld.post.str = full.outputs$post.str/(full.outputs$groupsize)#^1.2
+
+full.outputs$scld.forXpre.str = full.outputs$scld.for.str - full.outputs$scld.pre.str #difference in standardized strengths
+full.outputs$scld.postXfor.str = full.outputs$scld.post.str - full.outputs$scld.for.str
+full.outputs$scld.postXpre.str = full.outputs$scld.post.str - full.outputs$scld.for.str
+
+#write_csv(full.outputs, "all_outputs.csv")
+
+```
+
+## Plot one-factor-at-a-time to reveal relationships between each parameter and the output of interest in an easier to understand way (OFAT - see Broeke et al. 2016 in JASSS)
+```{r}
+
+full.outputs = read.csv("all_outputs.csv")
+
+# On the y-axis: foraging success of non-producers or difference in strength between A.phase1/2; B.phase2/3; C.phase1/3 
+# On the x-axis: attention, preference, memory, approachfood(scrounging), groupsize
+
+#ALL PLOTS HAVE HUGE VARIATION AS PARAMETER VALUES INCREASE - I THINK A SIGN THAT THERE ARE STRONG INTERACTION EFFECTS (LIKELY BC ZERO VALUE FOR ATT/PREF/MEM PREVENT USE OF MOVEMENT RULES COMPLETELY)
+#PLOTTING AGAIN WITH ZEROS REMOVED LOOKS SIMILAR STILL
+full.outputs.nozeros = full.outputs %>%
+                      filter(attention > 0 & 
+                             preference > 0 &
+                             mem > 0)
+  
+hist(full.outputs$forXpre.str)
+hist(full.outputs.nozeros$forXpre.str)
+
+#Broeke etal. say that each parameter should be plotted while keeping all other parameters at their nominal/default value
+#plotting this way... 
+
+
+full.outputs.att = full.outputs %>% filter(preference == 0.75, 
+                                           mem == 100, 
+                                           approachfood == FALSE, 
+                                           groupsize == 10)
+full.outputs.pref = full.outputs %>% filter(attention == 0.75, 
+                                           mem == 100, 
+                                           approachfood == FALSE, 
+                                           groupsize == 10)
+full.outputs.mem = full.outputs %>% filter(attention == 0.75, 
+                                           preference == 0.75, 
+                                           approachfood == FALSE, 
+                                           groupsize == 10)
+full.outputs.appfood = full.outputs %>% filter(attention == 0.75,
+                                               preference == 0.75,
+                                               mem == 100, 
+                                               groupsize == 10)
+full.outputs.grpsize = full.outputs %>% filter(attention == 0.75,
+                                               preference == 0.75, 
+                                               mem == 100, 
+                                               approachfood == FALSE)
+
+#ggplot(full.outputs.att, aes(x = as.factor(attention), y = forXpre.str)) +
+#         geom_violin() +
+#         stat_summary(fun = median, geom = "point", size = 2, color = "red") +
+#         geom_jitter(shape = 1, position = position_jitter(0.05)) 
+plot(forXpre.str ~ as.factor(attention), data = full.outputs.att)
+plot(forXpre.str ~ as.factor(preference), data = full.outputs.pref)
+plot(forXpre.str ~ as.factor(mem), data = full.outputs.mem)
+plot(forXpre.str ~ as.factor(approachfood), data = full.outputs.appfood)
+plot(forXpre.str ~ as.factor(groupsize), data = full.outputs.grpsize)
+
+
+plot(postXpre.str ~ as.factor(attention), data = full.outputs.att)
+plot(postXpre.str ~ as.factor(preference), data = full.outputs.pref)
+plot(postXpre.str ~ as.factor(mem), data = full.outputs.mem)
+plot(postXpre.str ~ as.factor(approachfood), data = full.outputs.appfood)
+plot(postXpre.str ~ as.factor(groupsize), data = full.outputs.grpsize)
+
+
+plot(postXfor.str ~ as.factor(attention), data = full.outputs.att)
+plot(postXfor.str ~ as.factor(preference), data = full.outputs.pref)
+plot(postXfor.str ~ as.factor(mem), data = full.outputs.mem)
+plot(postXfor.str ~ as.factor(approachfood), data = full.outputs.appfood)
+plot(postXfor.str ~ as.factor(groupsize), data = full.outputs.grpsize)
+
+
+plot(med.run.energy ~ as.factor(attention), data = full.outputs.att)
+plot(med.run.energy ~ as.factor(preference), data = full.outputs.pref)
+plot(med.run.energy ~ as.factor(mem), data = full.outputs.mem)
+plot(med.run.energy ~ as.factor(approachfood), data = full.outputs.appfood) #strong pattern here
+plot(med.run.energy ~ as.factor(groupsize), data = full.outputs.grpsize) #strong pattern here
+
+
+plot(pre.str ~ as.factor(groupsize), data = full.outputs)
+plot(for.str ~ as.factor(groupsize), data = full.outputs)
+plot(post.str ~ as.factor(groupsize), data = full.outputs)
+plot(forXpre.str ~ as.factor(groupsize), data = full.outputs)
+plot(scld.forXpre.str ~ as.factor(groupsize), data = full.outputs)
+plot(forXpre.str/(groupsize^1.2) ~ as.factor(groupsize), data = full.outputs)
+
+```
+
+
+
+##plot 2 parameters at a time while keeping the others constant
+```{r}
+library(gridExtra) #need the grid.arrange function
+
+#function to get data summaries for plotting
+# data : a data frame
+# varname : the name of a column containing the variable to be summarized
+# groupnames : vector of column names to be used as grouping variables
+data_summary <- function(data, varname, groupnames){
+  #require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      median = median(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE),
+      se = sd(x[[col]], na.rm=TRUE)/sqrt(length(x[[col]])), #standard error == sd/sqrt(n)
+      lowquant = quantile(x[[col]], na.rm=TRUE)[["25%"]],
+      highquant = quantile(x[[col]], na.rm=TRUE)[["75%"]]
+      )
+  }
+  data_sum<-plyr::ddply(data, 
+                        groupnames, 
+                        .fun=summary_func,
+                        varname)
+  
+  data_sum <- plyr::rename(data_sum, c("mean" = varname))
+  
+ return(data_sum)
+}
+
+
+# how do effects of att/pref/mem change across group sizes 
+p = list() #list to hold plots inspecting interactions between each cognitive skill and groupsize/approachfood
+p2 = list() #list to hold plots inspecting interactions between each att/pref and memory/approachfood
+
+params = c("attention", "preference", "mem")
+outputs = c("scld.forXpre.str", "props.for", "scld.postXfor.str", "scld.postXpre.str", "med.run.energy") #probably also want plots for proportion of times producer was remembered as fss
+
+for(i in 1:length(outputs)) {
+  
+  yaxis = outputs[i]
+  p[[i]] = list() #each item in p will be a list and each item in that list will be the plot for att/pref/mem
+  p2[[i]] = list()
+  
+  for(j in 1:length(params)) {
+    
+    xaxis = params[j]
+    
+    if(xaxis == "attention") {
+      dat = full.outputs %>% # data keeping preference and memory constant
+              filter(preference == 1,
+                     mem == 100) %>%
+              data_summary(varname = yaxis, 
+                          groupnames = c(xaxis, "groupsize", "approachfood"))
+      
+      dat2 = full.outputs %>% 
+              filter(preference == 1,
+                     groupsize == 15) %>% #going with groupsize 15 because it shows the clearest patterns 
+              data_summary(varname = yaxis, 
+                          groupnames = c(xaxis, "mem", "approachfood"))
+      
+    } else if(xaxis == "preference") {
+      dat = full.outputs %>% # data keeping attention and memory constant
+              filter(attention == 1,
+                     mem == 100) %>%
+              data_summary(varname = yaxis, 
+                          groupnames = c(xaxis, "groupsize", "approachfood"))
+      
+      dat2 = full.outputs %>% 
+              filter(attention == 1,
+                     groupsize == 15) %>% #going with groupsize 15 because it shows the clearest patterns
+              data_summary(varname = yaxis, 
+                          groupnames = c(xaxis, "mem", "approachfood"))
+      
+    } else if(xaxis == "mem") {
+      dat = full.outputs %>% # data keeping preference and attention constant
+              filter(attention == 1,
+                     preference == 1) %>%
+              data_summary(varname = yaxis, 
+                          groupnames = c(xaxis, "groupsize", "approachfood"))
+    }
+    
+    
+    #dat$groupsize = as.factor(dat$groupsize)
+    
+    p[[i]][[j]] = ggplot(dat, aes(x=.data[[xaxis]], y=median, group=groupsize, color=groupsize)) + 
+                  geom_line() +
+                  geom_point()+
+                  facet_grid(cols = vars(approachfood))+
+                  geom_errorbar(aes(ymin=lowquant, ymax=highquant), width=.05) +
+                  labs(title=paste0("Effect of ", xaxis, " on median ", yaxis), 
+                       x = xaxis, 
+                       y = yaxis)+
+                  theme_classic() +
+                  scale_color_gradientn(colors =  colorRampPalette(brewer.pal(9, "Oranges"))(100)[15:100],
+                                        breaks = c(3, 6, 10, 15))
+    
+    #dat2$mem = as.factor(dat2$mem)
+    
+    p2[[i]][[j]] = ggplot(dat2, aes(x=.data[[xaxis]], y=median, group=mem, color=mem)) + 
+                  geom_line() +
+                  geom_point()+
+                  facet_grid(cols = vars(approachfood))+
+                  geom_errorbar(aes(ymin=lowquant, ymax=highquant), width=.05) +
+                  labs(title=paste0("Effect of ", xaxis, " on median ", yaxis), 
+                       x = xaxis, 
+                       y = yaxis)+
+                  theme_classic() +
+                  scale_color_gradientn(colors =  colorRampPalette(brewer.pal(9, "Oranges"))(100)[15:100])
+    
+  }
+}
+
+#save p plots to a single pdf
+pdf("parameters_by_grpsize_and_appfood.pdf", onefile = TRUE)
+for(i in seq(length(p))) {
+  do.call("grid.arrange", p[[i]])
+}
+dev.off()
+
+
+#save p2 plots to a single pdf
+pdf("parameters_by_memory_and_appfood.pdf", onefile = TRUE)
+for(i in seq(length(p2))) {
+  do.call("grid.arrange", p2[[i]])
+}
+dev.off()
+
+
+# plot outputs against each other
+##change in prod strength by props.for
+full.outputs %>% 
+              filter(attention == 1,
+                     preference == 1,
+                     groupsize == 15) %>%
+              data_summary(varname = "forXpre.str", 
+                          groupnames = c("props.for", "mem", "approachfood")) %>%
+              ggplot( aes(x=props.for, y=median, group=as.factor(mem), color=as.factor(mem))) + 
+                  #geom_line() +
+                  geom_point()+
+                  facet_grid(cols = vars(approachfood))+
+                  #geom_errorbar(aes(ymin=lowquant, ymax=highquant), width=.05) +
+                  labs(title=paste0("Effect of ", "props.for", " on median ", "forXpre.str"), 
+                       x = "props.for", 
+                       y = "forXpre.str")+
+                  theme_classic()
+
+##change in prod strength by med.run.energy
+full.outputs %>% 
+              filter(attention == 1,
+                     preference == 1,
+                     groupsize == 15) %>%
+              data_summary(varname = "forXpre.str", 
+                          groupnames = c("med.run.energy", "mem", "approachfood")) %>%
+              ggplot( aes(x=med.run.energy, y=median, group=as.factor(mem), color=as.factor(mem))) + 
+                  #geom_line() +
+                  geom_point()+
+                  facet_grid(cols = vars(approachfood))+
+                  #geom_errorbar(aes(ymin=lowquant, ymax=highquant), width=.05) +
+                  labs(title=paste0("Effect of ", "med.run.energy", " on median ", "forXpre.str"), 
+                       x = "med.run.energy", 
+                       y = "forXpre.str")+
+                  theme_classic()
+
+
+
+#groupsize relation to change in producer's strength
+full.outputs %>%
+              data_summary(varname = "forXpre.str", 
+                          groupnames = c("groupsize")) %>%
+              ggplot( aes(x=groupsize, y=median)) + 
+                  geom_line() +
+                  geom_point()+
+                  geom_errorbar(aes(ymin=lowquant, ymax=highquant), width=.05) +
+                  labs(title=paste0("Effect of ", "groupsize", " on median ", "forXpre.str"), 
+                       x = "groupsize", 
+                       y = "forXpre.str")+
+                  theme_classic()
+
+#groupsize relation to change in producer strength (scaled by group size)
+full.outputs %>%
+              data_summary(varname = "scld.forXpre.str", 
+                          groupnames = c("groupsize")) %>%
+              ggplot( aes(x=groupsize, y=median)) + 
+                  geom_line() +
+                  geom_point()+
+                  geom_errorbar(aes(ymin=lowquant, ymax=highquant), width=.05) +
+                  labs(title=paste0("Effect of ", "groupsize", " on median ", "scaled forXpre.str"), 
+                       x = "groupsize", 
+                       y = "scaled forXpre.str")+
+                  theme_classic()
+
+#groupsize relation to sqrt change in producer strength (scaled by group size)
+full.outputs %>%
+              mutate(log.forXpre.str = log(forXpre.str)) %>%
+              data_summary(varname = "log.forXpre.str", 
+                          groupnames = c("groupsize")) %>%
+              ggplot( aes(x=groupsize, y=median)) + 
+                  geom_line() +
+                  geom_point()+
+                  geom_errorbar(aes(ymin=lowquant, ymax=highquant), width=.05) +
+                  labs(title=paste0("Effect of ", "groupsize", " on median ", "log forXpre.str"), 
+                       x = "groupsize", 
+                       y = "log forXpre.str")+
+                  theme_classic()
+
+```
+
+
+
+
+## heat maps with overlayed values
+```{r}
+pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
+
+
+
+#finding medians of metrics for each parameter combo:
+full.outputs.combo = full.outputs %>% 
+                      group_by(groupsize,
+                               mem, 
+                               attention, 
+                               preference, 
+                               approachfood, 
+                               combo.num) %>% 
+                      summarize(n=n(),
+                                med.forXpre.str = median(scld.forXpre.str), #median difference in scaled prod str phase2v1
+                                med.postXfor.str = median(scld.postXfor.str),#median difference in scaled prod str phase3v2
+                                med.postXpre.str = median(scld.postXpre.str),#median difference in scaled prod str phase3v1
+                                med.ntimesteps = median(n.timesteps),#median num timesteps non-prods ate
+                                med.combo.energy = median(med.run.energy),#median energy of non-prods
+                                med.props.total = median(props.total),#median proportion of memories == prod
+                                med.props.pre = median(props.pre),#median proportion of phase1 memories == prod
+                                med.props.for = median(props.for),#median proportion of phase2 memories == prod
+                                med.props.post = median(props.post),#median proportion of phase3 mems == prod
+                                )
+
+p.strdifs1 = list()
+p.strdifs2 = list()
+p.forsuccess = list()
+
+group.sizes = c(3,6,10,15)
+strdifs1 = c("med.forXpre.str", "med.props.for") 
+strdifs2= c("med.postXfor.str", "med.postXpre.str")
+forsuccess = c("med.ntimesteps", "med.combo.energy")
+
+for(i in 1:length(group.sizes)) {
+  
+  gsize = group.sizes[i]
+  
+  p.strdifs1[[i]] = list()
+  p.strdifs2[[i]] = list()
+  p.forsuccess[[i]] = list()
+  
+  for(j in 1:length(strdifs1)) {
+    
+    yvar = strdifs1[j]
+    
+    p.strdifs1[[i]][[j]] = full.outputs.combo %>%
+                            filter(groupsize == gsize) %>%
+                              ggplot(aes(as.factor(preference), as.factor(attention), fill = .data[[yvar]])) +
+                              ggtitle(paste(yvar, "group size:", gsize, sep = " ")) +
+                              labs(y = "Attention", x = "Preference", fill = yvar) +
+                              facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+                              geom_tile() +
+                              scale_fill_gradientn(colours = pal(100)) +
+                              theme_minimal() +
+                              theme(aspect.ratio=1, text=element_text(size=15))
+  }
+  
+  
+  for(k in 1:length(strdifs2)) {
+    
+    yvar = strdifs2[k]
+    
+    p.strdifs2[[i]][[k]] = full.outputs.combo %>%
+                            filter(groupsize == gsize) %>%
+                              ggplot(aes(as.factor(preference), as.factor(attention), fill = .data[[yvar]])) +
+                              ggtitle(paste(yvar, "group size:", gsize, sep = " ")) +
+                              labs(y = "Attention", x = "Preference", fill = yvar) +
+                              facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+                              geom_tile() +
+                              scale_fill_gradientn(colours = pal(100)) +
+                              theme_minimal() +
+                              theme(aspect.ratio=1, text=element_text(size=15))
+  }
+  
+  
+  for(l in 1:length(forsuccess)) {
+    
+    yvar = forsuccess[l]
+    
+    p.forsuccess[[i]][[l]] = full.outputs.combo %>%
+                            filter(groupsize == gsize) %>%
+                              ggplot(aes(as.factor(preference), as.factor(attention), fill = .data[[yvar]])) +
+                              ggtitle(paste(yvar, "group size:", gsize, sep = " ")) +
+                              labs(y = "Attention", x = "Preference", fill = yvar) +
+                              facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+                              geom_tile() +
+                              scale_fill_gradientn(colours = pal(100)) +
+                              theme_minimal() +
+                              theme(aspect.ratio=1, text=element_text(size=15))
+  }
+  
+  
+}
+
+
+
+#save p.strdifs1 plots to a single pdf
+pdf("forXpre_str_heatmaps.pdf", onefile = TRUE)
+for(i in seq(length(p.strdifs1))) {
+  do.call("grid.arrange", p.strdifs1[[i]])
+}
+dev.off()
+
+#save p.strdifs2 plots to a single pdf
+pdf("postX_str_heatmaps.pdf", onefile = TRUE)
+for(i in seq(length(p.strdifs2))) {
+  do.call("grid.arrange", p.strdifs2[[i]])
+}
+dev.off()
+
+#save p.forsuccess plots to a single pdf
+pdf("foraging_success_heatmaps.pdf", onefile = TRUE)
+for(i in seq(length(p.forsuccess))) {
+  do.call("grid.arrange", p.forsuccess[[i]])
+}
+dev.off()
+
+
+#plot of median difference in producer strength between foraging and pre-foraging phases with numbers overlapping
+full.outputs.combo %>% 
+  filter(groupsize == gsize) %>%
+  ggplot(aes(as.factor(preference), as.factor(attention), fill = med.forXpre.str)) +
+    ggtitle(paste("Difference in producer's proximity strength between foraging and pre-foraging phases", 
+            "group size:", gsize, sep = " ")) +
+    labs(y = "Attention", x = "Preference", fill = "Median Difference in Strength") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100)) +
+    geom_text(aes(label = round(med.props.for, 1))) + #argument to add values on top of heat map
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+
+#plot of median energy of non-producers with dif in strength values overlapping
+full.outputs.combo %>% 
+  filter(groupsize == gsize) %>%
+  ggplot(aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
+    ggtitle(paste("Median energy of agents", 
+            "group size:", gsize, sep = " ")) +
+    labs(y = "Attention", x = "Preference", fill = "Median energy") +
+    facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = pal(100)) +
+    geom_text(aes(label = round(med.forXpre.str))) + #argument to add values on top of heat map
+    theme_minimal() +
+    theme(aspect.ratio=1, text=element_text(size=15))
+
+```
+
+
+#Run GLMs to better understand relationships between parameters and change in proximity strength/foraging success
+# SCRAP THIS - LMS ARE NOT APPROPRIATE AND THEY WERE NOT FITTING WELL ANYWAY
+```{r}
+
+
+mod.forXpre = lm(forXpre.str ~ attention + 
+                              preference + 
+                              mem +
+                              approachfood + 
+                              groupsize + 
+                              mem:attention + #bc of how I built the model, memory should have an effect through attention/preference 
+                              mem:preference +
+                              groupsize:attention + #groupsize influences possible strength since there are more/less agents to be in proximity with inside the arena that doesn't change size, so other predictors expected to have a larger effect for larger group sizes
+                              groupsize:preference +
+                              groupsize:mem +
+                              groupsize:approachfood, 
+              data = full.outputs.nozeros)
+plot(mod.forXpre) # very heteroscedastic when including zeros for att/pref/mem or not (before adding groupsize interaction terms)
+
+
+#COMPARE COEFFICIENTS CALCULATED BY mod.forXpre TO A WEIGHTED LEAST SQUARES MODEL
+weights.forXpre = 1 / lm(abs(mod.forXpre$residuals) ~ mod.forXpre$fitted.values)$fitted.values^2
+weighted.mod.forXpre = lm(forXpre.str ~ attention + 
+                              preference + 
+                              mem + 
+                              approachfood + 
+                              groupsize + 
+                              mem:attention + 
+                              mem:preference, 
+                          weights = weights.forXpre,
+                          data = full.outputs)
+plot(weighted.mod.forXpre)#still has issues
+summary(weighted.mod.forXpre)
+
+#try robust std errors using sandwich estimator
+library(sandwich)
+lmtest::coeftest(mod.forXpre, vcov = sandwich)
+
+#try the model for one group size at a time
+mod.forXpre15 = lm(forXpre.str ~ attention + 
+                              preference + 
+                              mem + 
+                              approachfood + 
+                              mem:attention + 
+                              mem:preference, 
+              data = full.outputs[full.outputs$groupsize==15,])
+plot(mod.forXpre15)#only a bit better
+summary(mod.forXpre15)$coef
+
+
+
+mod.postXfor = lm(postXfor.str ~ attention + 
+                              preference + 
+                              mem + 
+                              approachfood + 
+                              groupsize + 
+                              mem:attention + 
+                              mem:preference, 
+              data = full.outputs)
+plot(mod.postXfor) # also very heteroscedastic and non-normal
+
+
+mod.forsuccess = lm(med.run.energy ~ attention + 
+                              preference + 
+                              mem + 
+                              approachfood + 
+                              groupsize + 
+                              mem:attention + 
+                              mem:preference, 
+              data = full.outputs)
+plot(mod.postXfor) # also very heteroscedastic and non-normal
+
+
+
+
+```
+
+
+
+
 
