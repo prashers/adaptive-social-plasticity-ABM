@@ -1745,7 +1745,7 @@ full.outputs$scld.post.str = full.outputs$post.str/(full.outputs$groupsize)#^1.2
 
 full.outputs$scld.forXpre.str = full.outputs$scld.for.str - full.outputs$scld.pre.str #difference in standardized strengths
 full.outputs$scld.postXfor.str = full.outputs$scld.post.str - full.outputs$scld.for.str
-full.outputs$scld.postXpre.str = full.outputs$scld.post.str - full.outputs$scld.for.str
+full.outputs$scld.postXpre.str = full.outputs$scld.post.str - full.outputs$scld.pre.str
 
 #write_csv(full.outputs, "all_outputs.csv")
 
@@ -1872,7 +1872,7 @@ p = list() #list to hold plots inspecting interactions between each cognitive sk
 p2 = list() #list to hold plots inspecting interactions between each att/pref and memory/approachfood
 
 params = c("attention", "preference", "mem")
-outputs = c("scld.forXpre.str", "props.for", "scld.postXfor.str", "scld.postXpre.str", "med.run.energy") #probably also want plots for proportion of times producer was remembered as fss
+outputs = c("scld.forXpre.str", "props.for", "scld.postXfor.str", "scld.postXpre.str", "props.post", "med.run.energy") #probably also want plots for proportion of times producer was remembered as fss
 
 for(i in 1:length(outputs)) {
   
@@ -1986,18 +1986,18 @@ full.outputs %>%
 ##change in prod strength by med.run.energy
 full.outputs %>% 
               filter(attention == 1,
-                     preference == 1,
+                     mem == 100,
                      groupsize == 15) %>%
               data_summary(varname = "forXpre.str", 
-                          groupnames = c("med.run.energy", "mem", "approachfood")) %>%
-              ggplot( aes(x=med.run.energy, y=median, group=as.factor(mem), color=as.factor(mem))) + 
+                          groupnames = c("med.run.energy", "preference", "approachfood")) %>%
+              ggplot( aes(x=median, y=med.run.energy, group=as.factor(preference), color=as.factor(preference))) + 
                   #geom_line() +
                   geom_point()+
                   facet_grid(cols = vars(approachfood))+
                   #geom_errorbar(aes(ymin=lowquant, ymax=highquant), width=.05) +
-                  labs(title=paste0("Effect of ", "med.run.energy", " on median ", "forXpre.str"), 
-                       x = "med.run.energy", 
-                       y = "forXpre.str")+
+                  labs(title=paste0("Effect of ", "forXpre.str", " on ", "med.run.energy"), 
+                       x = "forXpre.str", 
+                       y = "med.run.energy")+
                   theme_classic()
 
 
@@ -2076,11 +2076,13 @@ full.outputs.combo = full.outputs %>%
 p.strdifs1 = list()
 p.strdifs2 = list()
 p.forsuccess = list()
+p.propsprepost = list()
 
 group.sizes = c(3,6,10,15)
 strdifs1 = c("med.forXpre.str", "med.props.for") 
 strdifs2= c("med.postXfor.str", "med.postXpre.str")
 forsuccess = c("med.ntimesteps", "med.combo.energy")
+propsprepost = c("med.props.post", "med.props.total") 
 
 for(i in 1:length(group.sizes)) {
   
@@ -2089,6 +2091,7 @@ for(i in 1:length(group.sizes)) {
   p.strdifs1[[i]] = list()
   p.strdifs2[[i]] = list()
   p.forsuccess[[i]] = list()
+  p.propsprepost[[i]] = list()
   
   for(j in 1:length(strdifs1)) {
     
@@ -2141,6 +2144,23 @@ for(i in 1:length(group.sizes)) {
   }
   
   
+  for(m in 1:length(propsprepost)) {
+    
+    yvar = propsprepost[m]
+    
+    p.propsprepost[[i]][[m]] = full.outputs.combo %>%
+                            filter(groupsize == gsize) %>%
+                              ggplot(aes(as.factor(preference), as.factor(attention), fill = .data[[yvar]])) +
+                              ggtitle(paste(yvar, "group size:", gsize, sep = " ")) +
+                              labs(y = "Attention", x = "Preference", fill = yvar) +
+                              facet_grid(rows=vars(approachfood), cols=vars(mem)) +
+                              geom_tile() +
+                              scale_fill_gradientn(colours = pal(100)) +
+                              theme_minimal() +
+                              theme(aspect.ratio=1, text=element_text(size=15))
+  }
+  
+  
 }
 
 
@@ -2163,6 +2183,13 @@ dev.off()
 pdf("foraging_success_heatmaps.pdf", onefile = TRUE)
 for(i in seq(length(p.forsuccess))) {
   do.call("grid.arrange", p.forsuccess[[i]])
+}
+dev.off()
+
+#save p.propsprepost plots to a single pdf
+pdf("props_heatmaps.pdf", onefile = TRUE)
+for(i in seq(length(p.propsprepost))) {
+  do.call("grid.arrange", p.propsprepost[[i]])
 }
 dev.off()
 
