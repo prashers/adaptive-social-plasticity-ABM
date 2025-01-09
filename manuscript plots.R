@@ -487,3 +487,31 @@ ggsave("./ms_plots/heatmaps.pdf",
        width = 8,
        height = 9,
        dpi = 300)
+
+
+
+
+####heatmap dif in prod strength phase1to3 ####
+ggplot(full.outputs.combo, aes(as.factor(preference), as.factor(attention), fill = med.postXpre.str)) +
+  #ggtitle("Median change in producer's strength between phases 1 and 3") +
+  labs(title = "Memory",
+       y = "Attention", 
+       x = "Preference", 
+       fill = "Change in \nproducer's strength") +
+  facet_grid(rows=vars(approachfood), 
+             cols=vars(mem),
+             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+  geom_tile() +
+  scale_fill_gradientn(colours = pal(100)) +
+  theme_minimal() +
+  theme(aspect.ratio=1, 
+        plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
+                                  hjust = 0.5, 
+                                  vjust = 0, 
+                                  size = 11)
+        #text=element_text(size=15)
+  )
+ggsave("./ms_plots/Median change in producer's strength between phases 1 and 3.pdf",
+       width = 15,
+       height = 7,
+       dpi = 300)
