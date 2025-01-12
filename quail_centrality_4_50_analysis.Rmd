@@ -113,6 +113,26 @@ ggsave("./50percombo/depletions_per_group_size.pdf", width=13, height=7)
 
 
 
+#add depletions and resets together to get total number of times the food patch was reset during each simulation (both variables counted number of times food patch fell below resource-level 350, just in different phases)
+reset.data$total.resets = reset.data$resetnum + reset.data$depletenum
+
+resets_by_gsize = reset.data %>%
+                  filter(groupsize %in% c(3, 6, 10, 15)) %>% 
+                      ggplot(aes(as.factor(groupsize), 
+                                                  total.resets, 
+                                                  color = approachfood)) +
+                      #ggtitle("Total number of food resets per group size") +
+                      labs(y = "Number of food resets", 
+                           x = "Group size",
+                           color = "Scrounging") +
+                      geom_boxplot() +
+                      scale_color_manual(values = c("blue4", "red4"), 
+                                         labels = c("Disabled", "Enabled")) +
+                      theme_classic() +
+                      theme(aspect.ratio=1,
+                            legend.position = "bottom"
+                            #text=element_text(size=15)
+                            )
 
 ```
 
@@ -291,15 +311,24 @@ ggplot(all.for.success, aes(as.factor(groupsize), mean.run.energy, color = appro
     #theme_minimal() +
     theme(aspect.ratio=1, text=element_text(size=15))
 
+# THIS PLOT WILL BE IN THE SUPPLEMENTAL MATERIAL:
+med.energy.by.gsize = ggplot(all.for.success, aes(as.factor(groupsize), 
+                                                  med.run.energy, 
+                                                  color = approachfood)) +
+                      #ggtitle("median energy per group size") +
+                      labs(y = "Median energy", 
+                           x = "Group size",
+                           color = "Scrounging") +
+                      geom_boxplot() +
+                      scale_color_manual(values = c("blue4", "red4"), 
+                                         labels = c("Disabled", "Enabled")) +
+                      theme_classic() +
+                      theme(aspect.ratio=1
+                            #text=element_text(size=15)
+                            )
 
-ggplot(all.for.success, aes(as.factor(groupsize), med.run.energy, color = approachfood)) +
-    ggtitle("median energy per group size") +
-    labs(y = "med.run.energy", x = "groupsize") +
-    geom_boxplot() +
-    #theme_minimal() +
-    theme(aspect.ratio=1, text=element_text(size=15))
+#ggsave("./50percombo/median_energy_per_group_size.pdf", width=13, height=7)
 
-ggsave("./50percombo/median_energy_per_group_size.pdf", width=13, height=7)
 
 ```
 
