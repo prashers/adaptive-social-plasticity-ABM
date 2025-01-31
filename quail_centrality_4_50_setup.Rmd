@@ -319,15 +319,15 @@ for(i in group.sizes){
 #  unique(prox.count.pre$prox.key)# check that all NAs were replaced
   
   
-  # use dplyr functions to get counts after grouping by prox.key and proxIDs
+  # use dplyr functions to get counts after grouping by prox.key and proxIDs (gives a count of timesteps in which each agent was in proximity with each other agent for each model run)
   prox.count.pre = prox.count.pre %>% 
     group_by(run, 
              mem, 
              attention, 
              preference, 
              approachfood,
-             prox.key, 
-             prox.ID) %>% 
+             prox.key, #prox.key is each agent's ID
+             prox.ID) %>% #prox.ID is the ID of agents in proximity to the prox.key individual
     summarize(n = n()) 
   
   #prox.count.pre = prox.count.pre[complete.cases(prox.count.pre$prox.ID),] #using complete.cases like this removes a lot of runs in which agents were never near each other
