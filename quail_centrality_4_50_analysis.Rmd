@@ -124,7 +124,7 @@ resets_by_gsize = reset.data %>%
                       #ggtitle("Total number of food resets per group size") +
                       labs(y = "Number of food resets", 
                            x = "Group size",
-                           color = "Scrounging") +
+                           color = "Asocial-information") +
                       geom_boxplot() +
                       scale_color_manual(values = c("blue4", "red4"), 
                                          labels = c("Disabled", "Enabled")) +
@@ -318,7 +318,7 @@ med.energy.by.gsize = ggplot(all.for.success, aes(as.factor(groupsize),
                       #ggtitle("median energy per group size") +
                       labs(y = "Median energy", 
                            x = "Group size",
-                           color = "Scrounging") +
+                           color = "Asocial-information") +
                       geom_boxplot() +
                       scale_color_manual(values = c("blue4", "red4"), 
                                          labels = c("Disabled", "Enabled")) +

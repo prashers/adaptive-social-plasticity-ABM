@@ -1,6 +1,6 @@
 # plots for manuscript
 
-
+library(dplyr)
 library(ggplot2)
 library(RColorBrewer)
 library(ggpubr) #for ggarrange function
@@ -70,7 +70,7 @@ fig1 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(0, 
@@ -87,7 +87,7 @@ fig1 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
         )
-ggsave("./ms_plots/Figure1_Median change in strength between phases 1 and 2.pdf",
+ggsave("./ms_plots/Figure1_Median change in strength between phases 1 and 2.tif",
        width = 180,
        height = 88,
        units = "mm",
@@ -155,7 +155,7 @@ fig2c = full.outputs %>%
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
   facet_grid(cols = vars(approachfood),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging Disabled", "TRUE" = "Scrounging Enabled")))+
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=10) +
   labs(#title=paste0("Effect of Memory on Median Change in Producer's Strength (scaled by groupsize) between phases 1 and 2"), 
        x = "Memory", 
@@ -180,7 +180,7 @@ fig2d = full.outputs %>%
     geom_line(aes(color = factor(groupsize))) +
     geom_point(aes(color = factor(groupsize)))+
     facet_grid(cols = vars(approachfood),
-               labeller = labeller(approachfood = c("FALSE" = "Scrounging Disabled", "TRUE" = "Scrounging Enabled")))+
+               labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
     geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=10) +
     labs(#title=paste0("Effect of Memory on Median Proportion of Times Correct Producer Remembered during Phase 2"), 
          x = "Memory", 
@@ -206,7 +206,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0.5, 0, 0),
                   y = c(3.5, 3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure2.pdf", 
+ggsave("./ms_plots/Figure2.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -223,7 +223,7 @@ fig3 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(full.outputs.combo.15$med.postXfor.str), 
@@ -242,7 +242,7 @@ fig3 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
   )
-ggsave("./ms_plots/Figure3_Median change in strength between phases 2 and 3.pdf",
+ggsave("./ms_plots/Figure3_Median change in strength between phases 2 and 3.tif",
        width = 180,
        height = 88,
        units = "mm",
@@ -307,7 +307,7 @@ fig4c = full.outputs %>%
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
   facet_grid(cols = vars(approachfood),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging Disabled", "TRUE" = "Scrounging Enabled")))+
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=10) +
   labs(#title=paste0("Effect of Memory on Median Change \nin Producer's Strength (scaled by groupsize) from  \nbetween phases 2 and 3 \n- Scrounging Enabled"), 
        x = "Memory", 
@@ -331,7 +331,7 @@ fig4d = full.outputs %>%
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
   facet_grid(cols = vars(approachfood),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging Disabled", "TRUE" = "Scrounging Enabled")))+
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=10) +
   labs(#title=paste0("Effect of Memory on Median Proportion of Times Correct Producer Remembered during Phase 3"), 
        x = "Memory", 
@@ -357,7 +357,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0.5, 0, 0),
                   y = c(3.5, 3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure4.pdf", 
+ggsave("./ms_plots/Figure4.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -371,10 +371,10 @@ fig5 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
   labs(title = "Memory",
        y = "Attention", 
        x = "Preference", 
-       fill = "Scrounger energy") +
+       fill = "Scrounger \nenergy") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(full.outputs.combo.15$med.combo.energy), 
@@ -393,7 +393,7 @@ fig5 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
   )
-ggsave("./ms_plots/Figure5_Median scrounger energy.pdf",
+ggsave("./ms_plots/Figure5_Median scrounger energy.tif",
        width = 180,
        height = 88,
        units = "mm",
@@ -412,9 +412,9 @@ fig6a = full.outputs %>%
   geom_point(aes(color = factor(groupsize)))+
   #facet_grid(cols = vars(approachfood))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=.05) +
-  labs(#title=paste0("Effect of Attention on Median Scrounger Energy \n- Scrounging Enabled"), 
+  labs(#title=paste0("Effect of Attention on Median Scrounger Energy \n- Asocial-information Enabled"), 
        x = "Attention", 
-       y = "Scrounger energy",
+       y = "Scrounger \nenergy",
        color = "Group size")+
   theme_classic() +
   scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
@@ -436,9 +436,9 @@ fig6b = full.outputs %>%
   geom_point(aes(color = factor(groupsize)))+
   #facet_grid(cols = vars(approachfood))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=.05) +
-  labs(#title=paste0("Effect of Preference on Median Scrounger energy \n- Scrounging Enabled"), 
+  labs(#title=paste0("Effect of Preference on Median Scrounger energy \n- Asocial-information Enabled"), 
        x = "Preference", 
-       y = "Scrounger energy",
+       y = "Scrounger \nenergy",
        color = "Group size")+
   theme_classic() +
   scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
@@ -460,9 +460,9 @@ fig6c = full.outputs %>%
   geom_point(aes(color = factor(groupsize)))+
   #facet_grid(cols = vars(approachfood))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=10) +
-  labs(#title=paste0("Effect of Memory on Median Scrounger energy \n- Scrounging Enabled"), 
+  labs(#title=paste0("Effect of Memory on Median Scrounger energy \n- Asocial-information Enabled"), 
        x = "Memory", 
-       y = "Scrounger energy",
+       y = "Scrounger \nenergy",
        color = "Group size")+
   theme_classic() +
   scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
@@ -474,16 +474,16 @@ fig6c = full.outputs %>%
 
 ####save composite figure 6####
 legend6 = cowplot::get_plot_component(fig6a + theme(legend.position = "bottom"), 'guide-box-bottom', return_all = TRUE)
-ggdraw(xlim = c(0, 1), ylim = c(0, 2.5)) + #initialize empty canvas
-  draw_plot(fig6a + theme(legend.position = "none"), x=0, y=1.5, width = 0.5, height =  1) +
-  draw_plot(fig6b + theme(legend.position = "none"), x=0.5, y=1.5, width = 0.5, height =  1) +
+ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
+  draw_plot(fig6a + theme(legend.position = "none"), x=0, y=2.5, width = 0.5, height =  1) +
+  draw_plot(fig6b + theme(legend.position = "none"), x=0, y=1.5, width = 0.5, height =  1) +
   draw_plot(fig6c + theme(legend.position = "none"), x=0, y=0.5, width = 0.5, height =  1) +
-  draw_plot(legend6, x=0.05, y=0.34, width = 1, height=0.2) +
+  draw_plot(legend6, x=-0.25, y=0.34, width = 1, height=0.2) +
   draw_plot_label(label = c("A", "B", "C"), 
                   size = 15,
-                  x = c(0, 0.5, 0),
-                  y = c(2.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure6.pdf", 
+                  x = c(0, 0, 0),
+                  y = c(3.5, 2.5, 1.5))
+ggsave("./ms_plots/Figure6.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -527,7 +527,7 @@ ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), f
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(full.outputs.combo.15$med.postXpre.str), 
@@ -568,7 +568,7 @@ fig1.gsize3 = ggplot(data.3, aes(as.factor(preference), as.factor(attention), fi
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.3$med.forXpre.str), 
@@ -596,7 +596,7 @@ fig1.gsize6 = ggplot(data.6, aes(as.factor(preference), as.factor(attention), fi
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.6$med.forXpre.str), 
@@ -624,7 +624,7 @@ fig1.gsize10 = ggplot(data.10, aes(as.factor(preference), as.factor(attention), 
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.10$med.forXpre.str), 
@@ -651,7 +651,7 @@ plot_grid(fig1.gsize3,
                   size = 15,
                   x = c(0.02, 0.02, 0.02),
                   y = c(0.99, 0.66, 0.33))
-ggsave("./ms_plots/supplemental/Fig1_other_group_sizes.pdf", 
+ggsave("./ms_plots/supplemental/Fig1_other_group_sizes.tif", 
        width = 8,
        height = 9,
        dpi = 300)
@@ -666,7 +666,7 @@ fig3.gsize3 = ggplot(data.3, aes(as.factor(preference), as.factor(attention), fi
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.3$med.postXfor.str), 
@@ -693,7 +693,7 @@ fig3.gsize6 = ggplot(data.6, aes(as.factor(preference), as.factor(attention), fi
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.6$med.postXfor.str), 
@@ -720,7 +720,7 @@ fig3.gsize10 = ggplot(data.10, aes(as.factor(preference), as.factor(attention), 
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.10$med.postXfor.str), 
@@ -748,7 +748,7 @@ plot_grid(fig3.gsize3,
                   size = 15,
                   x = c(0.02, 0.02, 0.02),
                   y = c(0.99, 0.66, 0.33))
-ggsave("./ms_plots/supplemental/Fig3_other_group_sizes.pdf", 
+ggsave("./ms_plots/supplemental/Fig3_other_group_sizes.tif", 
        width = 8,
        height = 9,
        dpi = 300)
@@ -763,7 +763,7 @@ fig5.gsize3 = ggplot(data.3, aes(as.factor(preference), as.factor(attention), fi
        fill = "Scrounger energy") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.3$med.combo.energy), 
@@ -791,7 +791,7 @@ fig5.gsize6 = ggplot(data.6, aes(as.factor(preference), as.factor(attention), fi
        fill = "Scrounger energy") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.6$med.combo.energy), 
@@ -819,7 +819,7 @@ fig5.gsize10 = ggplot(data.10, aes(as.factor(preference), as.factor(attention), 
        fill = "Scrounger energy") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging \nDisabled", "TRUE" = "Scrounging \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
   scale_fill_gradientn(colours = pal(100),
                        breaks = seq(min(data.10$med.combo.energy), 
@@ -847,7 +847,7 @@ plot_grid(fig5.gsize3,
                   size = 15,
                   x = c(0.02, 0.02, 0.02),
                   y = c(0.99, 0.66, 0.33))
-ggsave("./ms_plots/supplemental/Fig5_other_group_sizes.pdf", 
+ggsave("./ms_plots/supplemental/Fig5_other_group_sizes.tif", 
        width = 8,
        height = 9,
        dpi = 300)
@@ -865,7 +865,7 @@ fig2a_full = full.outputs %>%
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
   facet_grid(cols = vars(approachfood),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging Disabled", "TRUE" = "Scrounging Enabled")))+
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=.05) +
   labs(#title=paste0("Effect of Attention on Median Change \nin Producer's Strength (scaled by groupsize) \nbetween phases 1 and 2 \n- Scrounging Enabled"), 
     x = "Attention", 
@@ -883,7 +883,7 @@ fig2b_full = full.outputs %>%
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
   facet_grid(cols = vars(approachfood),
-             labeller = labeller(approachfood = c("FALSE" = "Scrounging Disabled", "TRUE" = "Scrounging Enabled")))+
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=.05) +
   labs(#title=paste0("Effect of Preference on Median Change \nin Producer's Strength (scaled by groupsize) \nbetween phases 1 and 2 \n- Scrounging Enabled"), 
     x = "Preference", 
@@ -901,7 +901,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 2.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0),
                   y = c(2.5, 1.5))
-ggsave("./ms_plots/supplemental/Figure2_full.pdf", 
+ggsave("./ms_plots/supplemental/Figure2_full.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -917,7 +917,8 @@ fig4a_full = full.outputs %>%
   ggplot(aes(x=attention, y=median, group=groupsize)) + 
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
-  facet_grid(cols = vars(approachfood))+
+  facet_grid(cols = vars(approachfood),
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=.05) +
   labs(#title=paste0("Effect of Attention on Median Change \nin Producer's Strength (scaled by groupsize) \nbetween phases 2 and 3 \n- Scrounging Enabled"), 
     x = "Attention", 
@@ -935,7 +936,8 @@ fig4b_full = full.outputs %>%
   ggplot(aes(x=preference, y=median, group=groupsize)) + 
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
-  facet_grid(cols = vars(approachfood))+
+  facet_grid(cols = vars(approachfood),
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=.05) +
   labs(#title=paste0("Effect of Preference on Median Change \nin Producer's Strength (scaled by groupsize) \nbetween phases 2 and 3 \n- Scrounging Enabled"), 
     x = "Preference", 
@@ -952,7 +954,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 2.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0),
                   y = c(2.5, 1.5))
-ggsave("./ms_plots/supplemental/Figure4_full.pdf", 
+ggsave("./ms_plots/supplemental/Figure4_full.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -968,7 +970,8 @@ fig6a_full = full.outputs %>%
   ggplot(aes(x=attention, y=median, group=groupsize)) + 
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
-  facet_grid(cols = vars(approachfood))+
+  facet_grid(cols = vars(approachfood),
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=.05) +
   labs(#title=paste0("Effect of Attention on Median Scrounger Energy \n- Scrounging Enabled"), 
     x = "Attention", 
@@ -985,7 +988,8 @@ fig6b_full = full.outputs %>%
   ggplot(aes(x=preference, y=median, group=groupsize)) + 
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
-  facet_grid(cols = vars(approachfood))+
+  facet_grid(cols = vars(approachfood),
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=.05) +
   labs(#title=paste0("Effect of Preference on Median Scrounger energy \n- Scrounging Enabled"), 
     x = "Preference", 
@@ -1002,7 +1006,8 @@ fig6c_full = full.outputs %>%
   ggplot(aes(x=mem, y=median, group=groupsize)) + 
   geom_line(aes(color = factor(groupsize))) +
   geom_point(aes(color = factor(groupsize)))+
-  facet_grid(cols = vars(approachfood))+
+  facet_grid(cols = vars(approachfood),
+             labeller = labeller(approachfood = c("FALSE" = "Asocial-information Disabled", "TRUE" = "Asocial-information Enabled")))+
   geom_errorbar(aes(ymin=lowquant, ymax=highquant, color = factor(groupsize)), width=10) +
   labs(#title=paste0("Effect of Memory on Median Scrounger energy \n- Scrounging Enabled"), 
     x = "Memory", 
@@ -1021,7 +1026,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0, 0),
                   y = c(3.5, 2.5, 1.5))
-ggsave("./ms_plots/supplemental/Figure6_full.pdf", 
+ggsave("./ms_plots/supplemental/Figure6_full.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -1041,7 +1046,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 1.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0.5),
                   y = c(1.5, 1.5))
-ggsave("./ms_plots/supplemental/resets_and_energy_by_group_size.pdf", 
+ggsave("./ms_plots/supplemental/resets_and_energy_by_group_size.tif", 
        width=180, 
        height=160,
        units = "mm",
