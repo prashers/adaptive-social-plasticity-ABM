@@ -2256,10 +2256,456 @@ full.outputs.combo %>%
 
 
 #Run GLMs to better understand relationships between parameters and change in proximity strength/foraging success
-# SCRAP THIS - LMS ARE NOT APPROPRIATE AND THEY WERE NOT FITTING WELL ANYWAY
 ```{r}
 
+full.outputs = read.csv("all_outputs.csv")
+str(full.outputs)
 
+#only running models for parts that we want to dig into more, or that need more quantification
+subset.outputs = full.outputs[full.outputs$groupsize==15 & full.outputs$approachfood==TRUE,] # data for group size of 15 and only when approachfood (aka asocial-information) is TRUE
+
+subset.outputs$attention2 = subset.outputs$attention + 0.0001 #add a very small amount to attention to be able to calculate log(attention2)
+
+#need to have all positive values to be able to run GAM with gamma or tweedie distributions
+subset.outputs$scld.forXpre.str.shifted = subset.outputs$scld.forXpre.str + abs(min(subset.outputs$scld.forXpre.str)) + 1e-6
+
+#####
+#1. how do parameters predict change in scaled strength between phase 1 and 2?
+  #Based on dissertation chapter 3 Figure 3, attention looks like it could have a log relationship with    change in scaled strength, linear relationship for preference and quadratic relationship for memory
+mod.12.linear = lm(scld.forXpre.str ~ attention*preference*mem,
+            data = subset.outputs)
+
+mod.12 = lm(scld.forXpre.str ~ attention*preference*I(mem^2), #using * includes all lower order interactions and main effects
+            data = subset.outputs)
+
+mod.12.2 = lm(scld.forXpre.str ~ log(attention2)*preference*I(mem^2),
+            data = subset.outputs)
+
+mod.12.3 = lm(scld.forXpre.str ~ attention2*preference*mem + log(attention2)*preference*I(mem^2),
+            data = subset.outputs) #three way and all lower order terms for both linear and non-linear effects
+
+mod.12.4 = lm(scld.forXpre.str ~ attention2 + mem + log(attention2)*preference*I(mem^2),
+            data = subset.outputs) # linear terms and interactions for non-linear effects
+
+mod.12.5 = lm(sqrt(scld.forXpre.str.shifted) ~ attention2 + mem + log(attention2)*preference*I(mem^2),
+            data = subset.outputs) # same as mod.12.4 but with transformed y variable
+
+####
+mod.12.gam = mgcv::gam(scld.forXpre.str.shifted ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
+            data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
+
+mod.12.gam2 = mgcv::gam(sqrt(scld.forXpre.str.shifted) ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
+            data = subset.outputs) #same as mod.12.gam but with transformed y variable
+
+mod.12.gamgamma = mgcv::gam(scld.forXpre.str.shifted ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)), 
+                        family = Gamma(link = "log"),
+                        data = subset.outputs) #GAM fit with gamma distribution which is supposed to allow variance to increase with mean (deal with heteroscedasticity)
+
+mod.12.gamtw = mgcv::gam(scld.forXpre.str.shifted ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)), 
+                        family = tw(link = "log"),
+                        data = subset.outputs) #GAM fit with tweedie family distribution which is supposed to allow variance to increase with mean (deal with heteroscedasticity)
+#GAM WITH TWEEDIE FITS BETTER THAN GAMMA BASED ON AIC - NOT SURE IT IS APPROPRIATE THOUGH SINCE IT IS MEANT FOR DATA WITH A LOT OF ZEROES
+
+#does model with log and quadratic terms actually fit better than a model with only linear terms?
+AIC(mod.12.4, mod.12.5) #lower = better fit
+    #mod.12.5 with sqrt transformed y variable is much lower than mod.12.4
+
+#compare residual plots
+par(mfrow = c(2,2))
+plot(mod.12.linear)
+plot(mod.12)
+plot(mod.12.2)
+plot(mod.12.3)
+plot(mod.12.4)
+plot(mod.12.5) #a bit better for heteroscedasticity
+mgcv::k.check(mod.12.gam2) # p should be nonsignificant and edf should be much lower than k (otherwise increase k for that term)
+par(mfrow = c(2,2))
+mgcv::gam.check(mod.12.gam) #still see heteroscedasticity and normality is not perfect
+mgcv::gam.check(mod.12.gam2)
+mgcv::gam.check(mod.12.gamgamma)
+mgcv::gam.check(mod.12.gamtw)#still see some heteroscedasticity, but better
+
+#compare adjusted r squared
+summary(mod.12.linear)$adj.r.squared #< 0.21
+summary(mod.12)$adj.r.squared # < 0.21
+summary(mod.12.2)$adj.r.squared # ~ 0.25
+summary(mod.12.3)$adj.r.squared # ~ 0.4, but the residual plots look a little worse than others
+summary(mod.12.4)$adj.r.squared # ~ 0.351
+summary(mod.12.5)$adj.r.squared # ~ 0.317
+
+
+# Get predicted values for att, pref, mem interaction
+preds <- ggeffects::ggpredict(mod.12.linear, terms = c("attention", "preference", "mem^2"))
+
+# Plot the interaction
+ggplot(preds, aes(x = x, y = predicted, color = as.factor(facet))) + #x is attention, facet is memory
+  geom_line(aes(linetype = as.factor(group))) + #group is preference
+  geom_jitter(data = subset.outputs, 
+             aes(x = attention, 
+                 y = scld.forXpre.str,
+                 color = as.factor(mem)),
+             width = 0.01,
+             alpha = 0.3) +  # Observed data points
+  #facet_wrap(~as.factor(facet)) +
+  labs(y = "Predicted y", x = "attention", color = "preference") +
+  theme_minimal()
+#I think this shows attention has a larger positive effect on change in strength with higher preference values and memory does not have a big influence on the att:pref interaction effect
+
+#alternative way of visualizing non-linear effects: visreg package
+pdf("./visreg/memory_visreg_plots_pref1.pdf")
+visreg::visreg(mod.12.4, 
+               xvar = "preference", 
+               by = "attention2", 
+               breaks = 5,
+               cond = list(mem = 100),
+               jitter = TRUE) #visualize effect of preference across values of attention while holding memory constant
+dev.off()
+
+
+#plot GAM effects
+par(mfrow = c(2,2))
+plot(mod.12.gamtw)
+
+#3D plot to visualize interaction
+vis.gam(mod.12.gamtw, 
+        view = c("mem", "preference"), #plot these two predictors
+        cond = list(attention = 0), #while keeping the third predictor at this value
+        theta = 45, #change theta to rotate the plot
+        n.grid = 20, #number of cells on each axis
+        lwd = 0.4,
+        color = "terrain")
+
+#GAM ONLY TELLS ME IF VARIABLES HAVE A SIGNIFICANTLY NONLINEAR RELATIONSHIP WITH Y - NOTHING ABOUT RELATIVE EFFECTS (ONLY GET AN IDEA OF RELATIVE EFFECTS FROM PLOTS)
+
+#QUESTION 1 RESULTS: 
+summary(mod.12.4)
+#rather than sqrt transforming y variable, report robust standard errors which correct for heteroscedasticity
+library(sandwich)
+library(lmtest)
+coeftest(mod.12.4, vcov = vcovHC(mod.12.4, type = "HC3")) #HC3 is a conservative choice for calculating robust standard errors
+#in the end, results in terms of statistical significance with robust standard errors are the same as summary(mod.12.4)
+
+
+#####
+#2. how do parameters predict change in scaled strength between phase 2 and 3?
+  #Based on dissertation chapter3 Figure5, attention looks like it could have a log relationship with      change in scaled strength, linear relationship for preference and maybe sinusoidal relationship for memory
+mod.23.linear = lm(scld.postXfor.str ~ attention*preference*mem,
+            data = subset.outputs)
+
+mod.23.gam = mgcv::gam(scld.postXfor.str ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
+            data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
+
+#plot GAM effects
+par(mfrow = c(2,2))
+plot(mod.23.gam)
+
+#3D plot to visualize interaction
+vis.gam(mod.23.gam, 
+        view = c("mem", "preference"), #plot these two predictors
+        cond = list(attention = 0.5), #while keeping the third predictor at this value
+        theta = 45, #change theta to rotate the plot
+        n.grid = 20, #number of cells on each axis
+        lwd = 0.4,
+        color = "cm")
+
+#gam visualization shows maybe quatric function for attention and pref, cubic for mem
+mod.23.2 = lm(scld.postXfor.str ~ attention + preference + mem + I(attention^2) + I(preference^2) + I(mem^2) + I(attention^3) + I(preference^3) + I(attention^4)*I(preference^4)*I(mem^3),
+            data = subset.outputs)
+
+#compare fits
+AIC(mod.23.linear, mod.23.2)
+
+#check residuals
+par(mfrow = c(2,2))
+plot(mod.23.linear)
+plot(mod.23.2)
+mgcv::gam.check(mod.23.gam)
+
+#adjusted R squared
+summary(mod.23.linear)$adj.r.squared
+summary(mod.23.2)$adj.r.squared
+
+#QUESTION 2 RESULTS
+summary(mod.23.linear)
+summary(mod.23.2)
+
+
+
+#####
+#3. how do parameters predict median scrounger energy level?
+#just linear terms for this one
+mod.energy.1 = lm(med.run.energy ~ attention*preference*mem,
+            data = subset.outputs)
+
+mod.energy.gam = mgcv::gam(med.run.energy ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
+            data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
+
+#plots of gam visualization shows linear term may be fine for attention, maybe quadratic for pref and cubic for mem
+mod.energy.2 = lm(med.run.energy ~ preference + mem + I(mem^2) + attention*I(preference^2)*I(mem^3),
+            data = subset.outputs)
+
+#compare fits
+AIC(mod.energy.1, mod.energy.2)
+
+
+hist(subset.outputs$med.run.energy)
+#check residuals
+par(mfrow = c(2,2))
+plot(mod.energy.1)
+plot(mod.energy.2)
+mgcv::gam.check(mod.energy.gam)
+
+#adjusted R squared
+summary(mod.energy.1)$adj.r.squared
+summary(mod.energy.2)$adj.r.squared
+
+
+visreg::visreg(mod.energy.2, 
+               xvar = "preference", 
+               by = "attention", 
+               breaks = 5,
+               cond = list(mem = 50),
+               jitter = TRUE)
+
+#plot GAM effects
+par(mfrow = c(2,2))
+plot(mod.energy.gam) #these plots show how coefficients of the GAM fit change across values of each predictor - these are not the exact lines that would be plotted on top of raw data points
+
+#3D plot to visualize interaction
+vis.gam(mod.energy.gam, 
+        view = c("mem", "preference"), #plot these two predictors
+        cond = list(attention = 0.5), #while keeping the third predictor at this value
+        theta = 45, #change theta to rotate the plot
+        n.grid = 20, #number of cells on each axis
+        lwd = 0.4,
+        color = "cm")
+
+
+#QUESTION 3 RESULTS
+summary(mod.energy.1)
+summary(mod.energy.2)
+
+
+
+
+```
+
+
+##Plotting effects from GAMs from previous chunk
+```{r}
+
+#THESE ARE PLOTS FOR EACH PREDICTOR INCLUDING ALL LEVELS OF OTHER TWO PREDICTORS
+#ONLY INCLUDING ASOCIAL-INFO ENABLED AND GROUP SIZE 15
+
+#####
+#plot GAM effects with raw data for scrounger energy
+preds.12.att = ggeffects::ggpredict(mod.12.gam2, terms = "attention") #mod.12.gam2 has sqrt(scld.forXpre.str.shifted) as the y variable
+
+ggplot(data = subset.outputs, aes(x=attention, y=scld.forXpre.str.shifted)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.12.att, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.12.att, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Attention on Change in Producers Strength from Phase 1 to 2"), 
+       x = "Attention", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+preds.12.pref = ggeffects::ggpredict(mod.12.gam2, terms = "preference")
+
+ggplot(data = subset.outputs, aes(x=preference, y=scld.forXpre.str.shifted)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.12.pref, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.12.pref, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Preference on Change in Producers Strength from Phase 1 to 2"), 
+       x = "Preference", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+
+preds.12.mem = ggeffects::ggpredict(mod.12.gam2, terms = "mem")
+
+ggplot(data = subset.outputs, aes(x=mem, y=scld.forXpre.str.shifted)) + 
+  geom_jitter(width = 5,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.12.mem, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.12.mem, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Memory on Change in Producers Strength from Phase 1 to 2"), 
+       x = "Memory", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+#compare range of prediced values for each predictor - get an idea of how much each predictor affects response variable
+data.frame(y = "Change in strength 1-2",
+           att = max(preds.12.att$predicted) - min(preds.12.att$predicted),
+           pref = max(preds.12.pref$predicted) - min(preds.12.pref$predicted),
+           mem = max(preds.12.mem$predicted) - min(preds.12.mem$predicted))
+
+
+
+#####
+#plot GAM effects with raw data for scrounger energy
+preds.23.att = ggeffects::ggpredict(mod.23.gam, terms = "attention")
+
+ggplot(data = subset.outputs, aes(x=attention, y=scld.postXfor.str)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.23.att, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.23.att, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Attention on Change in Producers Strength from Phase 2 to 3"), 
+       x = "Attention", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+preds.23.pref = ggeffects::ggpredict(mod.23.gam, terms = "preference")
+
+ggplot(data = subset.outputs, aes(x=preference, y=scld.postXfor.str)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.23.pref, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.23.pref, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Preference on Change in Producers Strength from Phase 2 to 3"), 
+       x = "Preference", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+
+preds.23.mem = ggeffects::ggpredict(mod.23.gam, terms = "mem")
+
+ggplot(data = subset.outputs, aes(x=mem, y=scld.postXfor.str)) + 
+  geom_jitter(width = 5,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.23.mem, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.23.mem, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Memory on Change in Producers Strength from Phase 2 to 3"), 
+       x = "Memory", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+#compare range of prediced values for each predictor - get an idea of how much each predictor affects response variable
+data.frame(y = "Change in strength 2-3",
+           att = max(preds.23.att$predicted) - min(preds.23.att$predicted),
+           pref = max(preds.23.pref$predicted) - min(preds.23.pref$predicted),
+           mem = max(preds.23.mem$predicted) - min(preds.23.mem$predicted))
+
+
+
+#####
+#plot GAM effects with raw data for scrounger energy
+preds.energy.att = ggeffects::ggpredict(mod.energy.gam, terms = "attention")
+
+ggplot(data = subset.outputs, aes(x=attention, y=med.run.energy)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.energy.att, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.energy.att, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Attention on Median Scrounger energy"), 
+       x = "Attention", 
+       y = "Scrounger \nenergy")+
+  theme_bw()
+
+
+preds.energy.pref = ggeffects::ggpredict(mod.energy.gam, terms = "preference")
+
+ggplot(data = subset.outputs, aes(x=preference, y=med.run.energy)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.energy.pref, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.energy.pref, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Preference on Median Scrounger energy"), 
+       x = "Preference", 
+       y = "Scrounger \nenergy")+
+  theme_bw()
+
+
+
+preds.energy.mem = ggeffects::ggpredict(mod.energy.gam, terms = "mem")
+
+ggplot(data = subset.outputs, aes(x=mem, y=med.run.energy)) + 
+  geom_jitter(width = 5,
+              shape = 1,
+              alpha = 0.5) +
+  geom_line(data = preds.energy.mem, 
+            aes(x = x, y = predicted), 
+            color = "blue", 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.energy.mem, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Attention on Median Scrounger energy"), 
+       x = "Attention", 
+       y = "Scrounger \nenergy")+
+  theme_bw()
+
+#compare range of prediced values for each predictor - get an idea of how much each predictor affects response variable
+data.frame(y = "Scrounger energy",
+           att = max(preds.energy.att$predicted) - min(preds.energy.att$predicted),
+           pref = max(preds.energy.pref$predicted) - min(preds.energy.pref$predicted),
+           mem = max(preds.energy.mem$predicted) - min(preds.energy.mem$predicted))
+
+
+```
+
+
+
+```{r}
+# OLD MODELS I TRIED:
+{
 mod.forXpre = lm(forXpre.str ~ attention + 
                               preference + 
                               mem +
@@ -2326,13 +2772,6 @@ mod.forsuccess = lm(med.run.energy ~ attention +
                               mem:preference, 
               data = full.outputs)
 plot(mod.postXfor) # also very heteroscedastic and non-normal
-
-
-
-
+}
 ```
-
-
-
-
 
