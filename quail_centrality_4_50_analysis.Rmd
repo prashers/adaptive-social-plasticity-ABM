@@ -2255,7 +2255,7 @@ full.outputs.combo %>%
 ```
 
 
-#Run GLMs to better understand relationships between parameters and change in proximity strength/foraging success
+#Run GLMs/GAMs to better understand relationships between parameters and change in proximity strength/foraging success
 ```{r}
 
 full.outputs = read.csv("all_outputs.csv")
@@ -2291,6 +2291,8 @@ mod.12.5 = lm(sqrt(scld.forXpre.str.shifted) ~ attention2 + mem + log(attention2
             data = subset.outputs) # same as mod.12.4 but with transformed y variable
 
 ####
+library(mgcv)
+
 mod.12.gam = mgcv::gam(scld.forXpre.str.shifted ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
             data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
 
@@ -2395,6 +2397,11 @@ mod.23.linear = lm(scld.postXfor.str ~ attention*preference*mem,
 mod.23.gam = mgcv::gam(scld.postXfor.str ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
             data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
 
+#gam visualization (see next R chunk) shows maybe quatric function for attention and pref, cubic for mem
+mod.23.2 = lm(scld.postXfor.str ~ mem + I(mem^2) + attention*preference*I(mem^3),
+            data = subset.outputs)
+
+
 #plot GAM effects
 par(mfrow = c(2,2))
 plot(mod.23.gam)
@@ -2408,9 +2415,7 @@ vis.gam(mod.23.gam,
         lwd = 0.4,
         color = "cm")
 
-#gam visualization shows maybe quatric function for attention and pref, cubic for mem
-mod.23.2 = lm(scld.postXfor.str ~ attention + preference + mem + I(attention^2) + I(preference^2) + I(mem^2) + I(attention^3) + I(preference^3) + I(attention^4)*I(preference^4)*I(mem^3),
-            data = subset.outputs)
+
 
 #compare fits
 AIC(mod.23.linear, mod.23.2)
@@ -2484,14 +2489,14 @@ vis.gam(mod.energy.gam,
 #QUESTION 3 RESULTS
 summary(mod.energy.1)
 summary(mod.energy.2)
-
+summary(mod.energy.gam)
 
 
 
 ```
 
 
-##Plotting effects from GAMs from previous chunk
+##Plotting effects of each predictor from GAMs from previous chunk
 ```{r}
 
 #THESE ARE PLOTS FOR EACH PREDICTOR INCLUDING ALL LEVELS OF OTHER TWO PREDICTORS
@@ -2701,6 +2706,215 @@ data.frame(y = "Scrounger energy",
 
 ```
 
+
+
+##Plotting multiple effects from GAMs from previous chunk in each plot to show interactions
+```{r}
+
+
+#####
+#plot GAM effects with raw data for scrounger energy
+preds.12.att2 = ggeffects::ggpredict(mod.12.gam2, terms = c("attention", "preference", "mem")) %>%
+                    rename(Preference = "group",
+                           mem = "facet") #rename the facet column to match the name in subset.outputs so that the plot is faceted correctly 
+
+ggplot(data = subset.outputs, aes(x=attention, y=scld.forXpre.str.shifted)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(mem)) +
+  geom_line(data = preds.12.att2, 
+            aes(x = x, y = predicted, group = Preference, color = Preference), 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.12.att2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Preference), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Attention on Change in Producers Strength from Phase 1 to 2"), 
+       x = "Attention", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+
+preds.12.pref2 = ggeffects::ggpredict(mod.12.gam2, terms = c("preference", "attention", "mem")) %>%
+                    rename(Attention = "group",
+                           mem = "facet")
+
+ggplot(data = subset.outputs, aes(x=preference, y=scld.forXpre.str.shifted)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(mem)) +
+  geom_line(data = preds.12.pref2, 
+            aes(x = x, y = predicted, group = Attention, color = Attention), 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.12.pref2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Attention), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Preference on Change in Producers Strength from Phase 1 to 2"), 
+       x = "Preference", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+
+preds.12.mem2 = ggeffects::ggpredict(mod.12.gam2, terms = c("mem", "preference", "attention")) %>%
+                    rename(Preference = "group",
+                           attention = "facet")
+
+ggplot(data = subset.outputs, aes(x=mem, y=scld.forXpre.str.shifted)) + 
+  geom_jitter(width = 5,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(attention)) +
+  geom_line(data = preds.12.mem2, 
+            aes(x = x, y = predicted, group = Preference, color = Preference), 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.12.mem2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Preference), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Memory on Change in Producers Strength from Phase 1 to 2"), 
+       x = "Memory", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+
+#####
+#plot GAM effects with raw data for scrounger energy
+preds.23.att2 = ggeffects::ggpredict(mod.23.gam, terms = c("attention", "preference", "mem")) %>%
+                    rename(Preference = "group",
+                           mem = "facet")
+
+ggplot(data = subset.outputs, aes(x=attention, y=scld.postXfor.str)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(mem)) +
+  geom_line(data = preds.23.att2, 
+            aes(x = x, y = predicted, group = Preference, color = Preference),
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.23.att2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Preference), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Attention on Change in Producers Strength from Phase 2 to 3"), 
+       x = "Attention", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+preds.23.pref2 = ggeffects::ggpredict(mod.23.gam, terms = c("preference", "attention", "mem")) %>%
+                    rename(Attention = "group",
+                           mem = "facet")
+
+ggplot(data = subset.outputs, aes(x=preference, y=scld.postXfor.str)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(mem)) +
+  geom_line(data = preds.23.pref2, 
+            aes(x = x, y = predicted, group = Attention, color = Attention),
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.23.pref2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Attention), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Preference on Change in Producers Strength from Phase 2 to 3"), 
+       x = "Preference", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+
+preds.23.mem2 = ggeffects::ggpredict(mod.23.gam, terms = c("mem", "preference", "attention")) %>%
+                    rename(Preference = "group",
+                           attention = "facet")
+
+ggplot(data = subset.outputs, aes(x=mem, y=scld.postXfor.str)) + 
+  geom_jitter(width = 5,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(attention)) +
+  geom_line(data = preds.23.mem2, 
+            aes(x = x, y = predicted, group = Preference, color = Preference),
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.23.mem2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Preference), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Memory on Change in Producers Strength from Phase 2 to 3"), 
+       x = "Memory", 
+       y = "Producer's Change in Strength")+
+  theme_bw()
+
+
+#####
+#preds.energy.att2 = ggeffects::ggpredict(mod.energy.2, terms = c("attention", "preference"))
+preds.energy.att2 = ggeffects::ggpredict(mod.energy.gam, terms = c("attention", "preference", "mem")) %>%
+                    rename(Preference = "group",
+                           mem = "facet") #rename the facet column to match the name in subset.outputs so that the plot is faceted correctly
+
+ggplot(data = subset.outputs, aes(x=attention, y=med.run.energy)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(mem)) +
+  geom_line(data = preds.energy.att2, 
+            aes(x = x, y = predicted, group = Preference, color = Preference), 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.energy.att2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Preference), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Attention on Median Scrounger energy"), 
+       x = "Attention", 
+       y = "Scrounger \nenergy")+
+  theme_bw()
+
+
+#preds.energy.pref2 = ggeffects::ggpredict(mod.energy.2, terms = c("preference", "attention"))
+preds.energy.pref2 = ggeffects::ggpredict(mod.energy.gam, terms = c("preference", "attention", "mem")) %>%
+                    rename(Attention = "group",
+                           mem = "facet") #rename the facet column to match the name in subset.outputs so that the plot is faceted correctly
+
+ggplot(data = subset.outputs, aes(x=preference, y=med.run.energy)) + 
+  geom_jitter(width = 0.02,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(mem)) +
+  geom_line(data = preds.energy.pref2, 
+            aes(x = x, y = predicted, group = Attention, color = Attention), 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.energy.pref2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Attention), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Preference on Median Scrounger energy"), 
+       x = "Preference", 
+       y = "Scrounger \nenergy")+
+  theme_bw()
+
+
+
+#preds.energy.pref2 = ggeffects::ggpredict(mod.energy.2, terms = c("mem", "preference", "attention"))
+preds.energy.mem2 = ggeffects::ggpredict(mod.energy.gam, terms = c("mem", "preference", "attention")) %>%
+                    rename(Preference = "group",
+                           attention = "facet") #rename the facet column to match the name in subset.outputs so that the plot is faceted correctly
+
+ggplot() + 
+  geom_jitter(data = subset.outputs, aes(x=mem, y=med.run.energy, color = preference),
+              width = 5,
+              shape = 1,
+              alpha = 0.5) +
+  facet_grid(cols = vars(attention)) +
+  geom_line(data = preds.energy.mem2, 
+            aes(x = x, y = predicted, group = Preference, color = as.numeric(Preference)), 
+            size = 1.2) +  # GAM smooth
+  geom_ribbon(data = preds.energy.mem2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Preference), 
+              alpha = 0.2) +  # GAM Confidence interval
+  labs(#title=paste0("Effect of Memory on Median Scrounger energy"), 
+       x = "Memory", 
+       y = "Scrounger \nenergy")+
+  theme_bw()
+
+```
 
 
 ```{r}
