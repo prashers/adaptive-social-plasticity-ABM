@@ -1169,7 +1169,7 @@ ggplot(data = subset.outputs, aes(x=preference, y=scld.forXpre.str.shifted)) +
         legend.position = "bottom"
   )
 
-ggsave("./ms_plots/Figure3_GAM change in strength from phase 1 to 2.pdf",
+ggsave("./ms_plots/supplemental/FigureS4_GAM change in strength from phase 1 to 2.pdf",
        width = 180,
        height = 100,
        units = "mm",
