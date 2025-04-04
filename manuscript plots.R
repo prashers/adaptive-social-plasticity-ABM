@@ -269,55 +269,6 @@ ggsave("./ms_plots/Figure3_Median change in strength between phases 2 and 3.tif"
        units = "mm",
        dpi = 300)
 
-####Figure 5 ####
-preds.23.pref2 = ggeffects::ggpredict(mod.23.gam2, terms = c("preference", "attention", "mem")) %>%
-  rename(Attention = "group",
-         mem = "facet")
-
-ggplot(data = subset.outputs, aes(x=preference, y=scld.postXfor.str)) + 
-  labs(title = "Memory",
-       y = "Change in \nproducer's strength", 
-       x = "Preference",
-       color = "Attention") +
-  
-  geom_jitter(aes(color = as.factor(attention)),
-              width = 0.02,
-              shape = 1,
-              alpha = 0.2) +
-  
-  facet_grid(cols = vars(mem)) +
-  
-  # GAM predictions
-  geom_line(data = preds.23.pref2, 
-            aes(x = x, y = predicted, group = Attention, color = Attention), 
-            size = 1.2) +  
-  
-  # GAM Confidence ribbon
-  geom_ribbon(data = preds.23.pref2, 
-              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Attention), 
-              alpha = 0.2) +  
-  
-  # Manual color and fill scales
-  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
-  #scale_color_manual(values = c("0" = "gold2", "0.25" = "goldenrod3", "0.50" = "darkorange", "0.75" = "red1", "1.00" = "red4")) +
-  #scale_fill_manual(values = c("gold2", "goldenrod2", "darkorange", "red1", "red4")) +
-  
-  theme_bw() +
-  theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
-                                  hjust = 0.5, 
-                                  vjust = 2, 
-                                  size = 12),
-        text=element_text(size=12),
-        axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
-        legend.position = "bottom"
-  )
-
-ggsave("./ms_plots/Figure5_GAM change in strength from phase 2 to 3.pdf",
-       width = 180,
-       height = 100,
-       units = "mm",
-       dpi = 300)
-#ICB: "width of a single (88 mm) or at most a double (180 mm) column width"
 
 ####Figure 4a: #### 
 #median and interquartile range of change in producer's strength btwn phase 2 and 3 when varying attention
@@ -1177,3 +1128,52 @@ ggsave("./ms_plots/supplemental/FigureS4_GAM change in strength from phase 1 to 
 #ICB: "width of a single (88 mm) or at most a double (180 mm) column width"
 
 
+####Figure S7 ####
+preds.23.pref2 = ggeffects::ggpredict(mod.23.gam2, terms = c("preference", "attention", "mem")) %>%
+  rename(Attention = "group",
+         mem = "facet")
+
+ggplot(data = subset.outputs, aes(x=preference, y=scld.postXfor.str)) + 
+  labs(title = "Memory",
+       y = "Change in \nstrength", 
+       x = "Preference",
+       color = "Attention") +
+  
+  geom_jitter(aes(color = as.factor(attention)),
+              width = 0.02,
+              shape = 1,
+              alpha = 0.2) +
+  
+  facet_grid(cols = vars(mem)) +
+  
+  # GAM predictions
+  geom_line(data = preds.23.pref2, 
+            aes(x = x, y = predicted, group = Attention, color = Attention), 
+            size = 1.2) +  
+  
+  # GAM Confidence ribbon
+  geom_ribbon(data = preds.23.pref2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Attention), 
+              alpha = 0.2) +  
+  
+  # Manual color and fill scales
+  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  #scale_color_manual(values = c("0" = "gold2", "0.25" = "goldenrod3", "0.50" = "darkorange", "0.75" = "red1", "1.00" = "red4")) +
+  #scale_fill_manual(values = c("gold2", "goldenrod2", "darkorange", "red1", "red4")) +
+  
+  theme_bw() +
+  theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
+                                  hjust = 0.5, 
+                                  vjust = 2, 
+                                  size = 12),
+        text=element_text(size=12),
+        axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
+        legend.position = "bottom"
+  )
+
+ggsave("./ms_plots/supplemental/FigureS7_GAM change in strength from phase 2 to 3.pdf",
+       width = 180,
+       height = 100,
+       units = "mm",
+       dpi = 300)
+#ICB: "width of a single (88 mm) or at most a double (180 mm) column width"
