@@ -81,7 +81,7 @@ data_summary <- function(data, varname, groupnames){
 
 ####Figure 2 ####
 #heatmap: median diff in producer's strength (scaled by group size) btwn phase 1 and 2 for groupsize 15
-fig1 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.forXpre.str)) +
+fig2 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.forXpre.str)) +
   #ggtitle("Median change in producer's strength between phases 1 and 2") +
   labs(title = "Memory",
        y = "Attention", 
@@ -106,7 +106,7 @@ fig1 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
         )
-ggsave("./ms_plots/Figure1_Median change in strength between phases 1 and 2.tif",
+ggsave("./ms_plots/Figure2_Median change in strength between phases 1 and 2.tif",
        width = 180,
        height = 88,
        units = "mm",
@@ -116,9 +116,9 @@ ggsave("./ms_plots/Figure1_Median change in strength between phases 1 and 2.tif"
 
 
 
-####Figure 2A: ####
+####Figure 3A: ####
 #median and interquartile range of change in producer's strength btwn phase 1 and 2 when varying attention
-fig2a = full.outputs %>% 
+fig3a = full.outputs %>% 
         filter(preference == 1,
                mem == 100) %>% # data keeping preference and memory constant
         data_summary(varname = "scld.forXpre.str", 
@@ -141,9 +141,9 @@ fig2a = full.outputs %>%
 #        dpi = 300)
 
 
-####Figure 2B: ####
+####Figure 3B: ####
 #median and interquartile range of change in producer's strength btwn phase 1 and 2 when varying preference
-fig2b = full.outputs %>% 
+fig3b = full.outputs %>% 
   filter(attention == 1,
          mem == 100) %>% # data keeping attention and memory constant
   data_summary(varname = "scld.forXpre.str", 
@@ -165,9 +165,9 @@ fig2b = full.outputs %>%
 #        height = 7,
 #        dpi = 300)
 
-####Figure 2c: #### 
+####Figure 3c: #### 
 #median and interquartile range of change in producer's strength btwn phase 1 and 2 when varying memory
-fig2c = full.outputs %>% 
+fig3c = full.outputs %>% 
   filter(attention == 1,
          preference == 1) %>% # data keeping attention and memory constant
   data_summary(varname = "scld.forXpre.str", 
@@ -190,9 +190,9 @@ fig2c = full.outputs %>%
 #        dpi = 300)
 
 
-####Figure 2d: ####
+####Figure 3d: ####
 #median and interquartile range of proportion of times within phase 2 that producer is being remembered as successful forager
-fig2d = full.outputs %>% 
+fig3d = full.outputs %>% 
   filter(attention == 1,
          preference == 1) %>% # data keeping attention and memory constant
   data_summary(varname = "props.for", 
@@ -215,19 +215,19 @@ fig2d = full.outputs %>%
 #        dpi = 300)
 
 
-####save composite figure 2####
-legend2 = cowplot::get_plot_component(fig2a + theme(legend.position = "bottom"), 'guide-box-bottom', return_all = TRUE)
+####save composite figure 3####
+legend3 = cowplot::get_plot_component(fig3a + theme(legend.position = "bottom"), 'guide-box-bottom', return_all = TRUE)
 ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
-  draw_plot(fig2a + theme(legend.position = "none"), x=0, y=2.5, width = 0.5, height =  1) +
-  draw_plot(fig2b + theme(legend.position = "none"), x=0.5, y=2.5, width = 0.5, height =  1) +
-  draw_plot(fig2c + theme(legend.position = "none"), x=0, y=1.5, width = 1, height =  1) +
-  draw_plot(fig2d + theme(legend.position = "none"), x=0, y=0.5, width = 1, height =  1) +
-  draw_plot(legend2, x=0.05, y=0.3, width = 1, height = 0.2) +
+  draw_plot(fig3a + theme(legend.position = "none"), x=0, y=2.5, width = 0.5, height =  1) +
+  draw_plot(fig3b + theme(legend.position = "none"), x=0.5, y=2.5, width = 0.5, height =  1) +
+  draw_plot(fig3c + theme(legend.position = "none"), x=0, y=1.5, width = 1, height =  1) +
+  draw_plot(fig3d + theme(legend.position = "none"), x=0, y=0.5, width = 1, height =  1) +
+  draw_plot(legend3, x=0.05, y=0.3, width = 1, height = 0.2) +
   draw_plot_label(label = c("A", "B", "C", "D"), 
                   size = 15,
                   x = c(0, 0.5, 0, 0),
                   y = c(3.5, 3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure2.tif", 
+ggsave("./ms_plots/Figure3.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -236,7 +236,7 @@ ggsave("./ms_plots/Figure2.tif",
 
 #### Figure 4 ####
 #heatmap: median diff in producer's strength (scaled by group size) btwn phase 2 and 3 for groupsize 15
-fig3 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.postXfor.str)) +
+fig4 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.postXfor.str)) +
   #ggtitle("Median change in producer's strength between phases 2 and 3") +
   labs(title = "Memory",
        y = "Attention", 
@@ -270,9 +270,9 @@ ggsave("./ms_plots/Figure3_Median change in strength between phases 2 and 3.tif"
        dpi = 300)
 
 
-####Figure 4a: #### 
+####Figure 5a: #### 
 #median and interquartile range of change in producer's strength btwn phase 2 and 3 when varying attention
-fig4a = full.outputs %>% 
+fig5a = full.outputs %>% 
   filter(preference == 1,
          mem == 100) %>% # data keeping preference and memory constant
   data_summary(varname = "scld.postXfor.str", 
@@ -294,9 +294,9 @@ fig4a = full.outputs %>%
 #        height = 7,
 #        dpi = 300)
 
-####Figure 4b: ####
+####Figure 5b: ####
 #median and interquartile range of change in producer's strength btwn phase 2 and 3 when varying preference
-fig4b = full.outputs %>% 
+fig5b = full.outputs %>% 
   filter(attention == 1,
          mem == 100) %>% # data keeping attention and memory constant
   data_summary(varname = "scld.postXfor.str", 
@@ -318,9 +318,9 @@ fig4b = full.outputs %>%
 #        height = 7,
 #        dpi = 300)
 
-####Figure 4c: ####
+####Figure 5c: ####
 #median and interquartile range of change in producer's strength btwn phase 2 and 3 when varying memory
-fig4c = full.outputs %>% 
+fig5c = full.outputs %>% 
   filter(attention == 1,
          preference == 1) %>% # data keeping attention and memory constant
   data_summary(varname = "scld.postXfor.str", 
@@ -342,9 +342,9 @@ fig4c = full.outputs %>%
 #        height = 7,
 #        dpi = 300)
 
-#### Figure 4d: ####
+#### Figure 5d: ####
 #median and interquartile range of proportion of times within phase 3 that producer is being remembered as successful forager
-fig4d = full.outputs %>% 
+fig5d = full.outputs %>% 
   filter(attention == 1,
          preference == 1) %>% # data keeping attention and memory constant
   data_summary(varname = "props.post", 
@@ -367,19 +367,19 @@ fig4d = full.outputs %>%
 #        dpi = 300)
 
 
-####save composite figure 4####
-legend4 = cowplot::get_plot_component(fig4a + theme(legend.position = "bottom"), 'guide-box-bottom', return_all = TRUE)
+####save composite figure 5####
+legend5 = cowplot::get_plot_component(fig5a + theme(legend.position = "bottom"), 'guide-box-bottom', return_all = TRUE)
 ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
-  draw_plot(fig4a + theme(legend.position = "none"), x=0, y=2.5, width = 0.5, height =  1) +
-  draw_plot(fig4b + theme(legend.position = "none"), x=0.5, y=2.5, width = 0.5, height =  1) +
-  draw_plot(fig4c + theme(legend.position = "none"), x=0, y=1.5, width = 1, height =  1) +
-  draw_plot(fig4d + theme(legend.position = "none"), x=0, y=0.5, width = 1, height =  1) +
-  draw_plot(legend4, x=0.05, y=0.30, width = 1, height = 0.2) +
+  draw_plot(fig5a + theme(legend.position = "none"), x=0, y=2.5, width = 0.5, height =  1) +
+  draw_plot(fig5b + theme(legend.position = "none"), x=0.5, y=2.5, width = 0.5, height =  1) +
+  draw_plot(fig5c + theme(legend.position = "none"), x=0, y=1.5, width = 1, height =  1) +
+  draw_plot(fig5d + theme(legend.position = "none"), x=0, y=0.5, width = 1, height =  1) +
+  draw_plot(legend5, x=0.05, y=0.30, width = 1, height = 0.2) +
   draw_plot_label(label = c("A", "B", "C", "D"), 
                   size = 15,
                   x = c(0, 0.5, 0, 0),
                   y = c(3.5, 3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure4.tif", 
+ggsave("./ms_plots/Figure5.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -388,7 +388,7 @@ ggsave("./ms_plots/Figure4.tif",
 
 ####Figure 6 ####
 #heatmap: Median energy achieved by scroungers at end of simulation for groupsize 15
-fig5 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
+fig6 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
   #ggtitle("Median energy level of scroungers") +
   labs(title = "Memory",
        y = "Attention", 
@@ -421,9 +421,9 @@ ggsave("./ms_plots/Figure5_Median scrounger energy.tif",
        units = "mm",
        dpi = 300)
 
-####Figure 6a: ####
+####Figure 7a: ####
 #median and interquartile range of median energy when varying attention
-fig6a = full.outputs %>% 
+fig7a = full.outputs %>% 
   filter(preference == 1,
          mem == 100) %>% # data keeping preference and memory constant
   data_summary(varname = "med.run.energy", 
@@ -445,9 +445,9 @@ fig6a = full.outputs %>%
 #        height = 7,
 #        dpi = 300)
 
-####Figure 6b: ####
+####Figure 7b: ####
 #median and interquartile range of median energy when varying preference
-fig6b = full.outputs %>% 
+fig7b = full.outputs %>% 
   filter(attention == 1,
          mem == 100) %>% # data keeping attention and memory constant
   data_summary(varname = "med.run.energy", 
@@ -469,9 +469,9 @@ fig6b = full.outputs %>%
 #        height = 7,
 #        dpi = 300)
 
-####Figure 6c: ####
+####Figure 7c: ####
 #median and interquartile range of median energy when varying memory
-fig6c = full.outputs %>% 
+fig7c = full.outputs %>% 
   filter(attention == 1,
          preference == 1) %>% # data keeping attention and memory constant
   data_summary(varname = "med.run.energy", 
@@ -494,23 +494,182 @@ fig6c = full.outputs %>%
 #        dpi = 300)
 
 
-####save composite figure 6####
-legend6 = cowplot::get_plot_component(fig6a + theme(legend.position = "bottom"), 'guide-box-bottom', return_all = TRUE)
+####save composite figure 7####
+legend7 = cowplot::get_plot_component(fig7a + theme(legend.position = "bottom"), 'guide-box-bottom', return_all = TRUE)
 ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
-  draw_plot(fig6a + theme(legend.position = "none"), x=0, y=2.5, width = 0.5, height =  1) +
-  draw_plot(fig6b + theme(legend.position = "none"), x=0, y=1.5, width = 0.5, height =  1) +
-  draw_plot(fig6c + theme(legend.position = "none"), x=0, y=0.5, width = 0.5, height =  1) +
-  draw_plot(legend6, x=-0.25, y=0.34, width = 1, height=0.2) +
+  draw_plot(fig7a + theme(legend.position = "none"), x=0, y=2.5, width = 0.5, height =  1) +
+  draw_plot(fig7b + theme(legend.position = "none"), x=0, y=1.5, width = 0.5, height =  1) +
+  draw_plot(fig7c + theme(legend.position = "none"), x=0, y=0.5, width = 0.5, height =  1) +
+  draw_plot(legend7, x=-0.25, y=0.34, width = 1, height=0.2) +
   draw_plot_label(label = c("A", "B", "C"), 
                   size = 15,
                   x = c(0, 0, 0),
                   y = c(3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure6.tif", 
+ggsave("./ms_plots/Figure7.tif", 
        width = 180,
        height = 180,
        units = "mm",
        dpi = 300)
 
+
+
+#### Figure 8a ####
+#GAM fit for scrounger energy with attention on x-axis
+preds.energy.att2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("attention", "preference", "mem")) %>%
+  rename(Preference = "group",
+         mem = "facet")
+
+fig8a = ggplot(data = subset.outputs, aes(x=attention, y=med.run.energy)) + 
+  labs(title = "Memory",
+       y = "Change in \nstrength", 
+       x = "Attention",
+       color = "Preference") +
+  
+  geom_jitter(aes(color = as.factor(preference)),
+              width = 0.02,
+              shape = 1,
+              alpha = 0.2) +
+  
+  facet_grid(cols = vars(mem)) +
+  
+  # GAM predictions
+  geom_line(data = preds.energy.att2, 
+            aes(x = x, y = predicted, group = Preference, color = Preference), 
+            size = 1.2) +  
+  
+  # GAM Confidence ribbon
+  geom_ribbon(data = preds.energy.att2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Preference), 
+              alpha = 0.2) +  
+  
+  # Manual color and fill scales
+  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  
+  theme_bw() +
+  theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
+                                  hjust = 0.5, 
+                                  vjust = 2, 
+                                  size = 12),
+        text=element_text(size=12),
+        axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
+        legend.position = "bottom"
+  )
+ggsave("./ms_plots/Figure8a.pdf", 
+       width = 180,
+       height = 100,
+       units = "mm",
+       dpi = 300)
+
+
+
+#### Figure 8b ####
+preds.energy.pref2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("preference", "attention", "mem")) %>%
+  rename(Attention = "group",
+         mem = "facet")
+
+fig8b = ggplot(data = subset.outputs, aes(x=preference, y=med.run.energy)) + 
+  labs(title = "Memory",
+       y = "Change in \nstrength", 
+       x = "Preference",
+       color = "Attention") +
+  
+  geom_jitter(aes(color = as.factor(attention)),
+              width = 0.02,
+              shape = 1,
+              alpha = 0.2) +
+  
+  facet_grid(cols = vars(mem)) +
+  
+  # GAM predictions
+  geom_line(data = preds.energy.pref2, 
+            aes(x = x, y = predicted, group = Attention, color = Attention), 
+            size = 1.2) +  
+  
+  # GAM Confidence ribbon
+  geom_ribbon(data = preds.energy.pref2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Attention), 
+              alpha = 0.2) +  
+  
+  # Manual color and fill scales
+  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  
+  theme_bw() +
+  theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
+                                  hjust = 0.5, 
+                                  vjust = 2, 
+                                  size = 12),
+        text=element_text(size=12),
+        axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
+        legend.position = "bottom"
+  )
+ggsave("./ms_plots/Figure8b.pdf", 
+       width = 180,
+       height = 100,
+       units = "mm",
+       dpi = 300)
+
+
+#### Figure 8c ####
+preds.energy.mem2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("mem", "preference", "attention")) %>%
+  rename(Preference = "group",
+         attention = "facet")
+
+fig8c = ggplot(data = subset.outputs, aes(x=mem, y=med.run.energy)) + 
+  labs(title = "Attention",
+       y = "Change in \nstrength", 
+       x = "Memory",
+       color = "Preference") +
+  
+  geom_jitter(aes(color = as.factor(preference)),
+              width = 5,
+              shape = 1,
+              alpha = 0.2) +
+  
+  facet_grid(cols = vars(attention)) +
+  
+  # GAM predictions
+  geom_line(data = preds.energy.mem2, 
+            aes(x = x, y = predicted, group = Preference, color = Preference), 
+            size = 1.2) +  
+  
+  # GAM Confidence ribbon
+  geom_ribbon(data = preds.energy.mem2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Preference), 
+              alpha = 0.2) +  
+  
+  # Manual color and fill scales
+  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  
+  theme_bw() +
+  theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
+                                  hjust = 0.5, 
+                                  vjust = 2, 
+                                  size = 12),
+        text=element_text(size=12),
+        axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
+        legend.position = "bottom"
+  )
+ggsave("./ms_plots/Figure8c.pdf", 
+       width = 180,
+       height = 100,
+       units = "mm",
+       dpi = 300)
+
+####save composite figure 8####
+# ggdraw(xlim = c(0, 1), ylim = c(0, 4.5)) + #initialize empty canvas
+#   draw_plot(fig8a , x=0, y=2.5, width = 1, height =  1) +
+#   draw_plot(fig8b , x=0, y=1.5, width = 1, height =  1) +
+#   draw_plot(fig8c , x=0, y=0.5, width = 1, height =  1) +
+#   #draw_plot(legend8, x=-0.25, y=0.34, width = 1, height=0.2) +
+#   draw_plot_label(label = c("A", "B", "C"), 
+#                   size = 15,
+#                   x = c(0, 0, 0),
+#                   y = c(3.5, 2.5, 1.5))
+# ggsave("./ms_plots/Figure8.pdf", 
+#        width = 180,
+#        height = 100,
+#        units = "mm",
+#        dpi = 300)
 
 
 
