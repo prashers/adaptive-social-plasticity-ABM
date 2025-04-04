@@ -2256,6 +2256,7 @@ full.outputs.combo %>%
 
 
 #Run GLMs/GAMs to better understand relationships between parameters and change in proximity strength/foraging success
+##1. change in strength phase 1 to 2
 ```{r}
 
 full.outputs = read.csv("all_outputs.csv")
@@ -2296,8 +2297,18 @@ library(mgcv)
 mod.12.gam = mgcv::gam(scld.forXpre.str.shifted ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
             data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
 
+mod.12.gam1 = mgcv::gam(scld.forXpre.str.shifted ~ te(attention, preference, mem),
+            data = subset.outputs) #same as mod.12.gam but with only the tensor product interaction term (which is supposed to include main effects)
+
 mod.12.gam2 = mgcv::gam(sqrt(scld.forXpre.str.shifted) ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
             data = subset.outputs) #same as mod.12.gam but with transformed y variable
+
+mod.12.gam3 = mgcv::gam(sqrt(scld.forXpre.str.shifted) ~ attention + preference + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
+            data = subset.outputs) #same as mod.12.gam2 but with linear terms for attention and preference because their k values were 1 in summary(mod.12.gam2)
+
+mod.12.gam4 = mgcv::gam(sqrt(scld.forXpre.str.shifted) ~ te(attention, preference, mem),
+            data = subset.outputs) #same as mod.12.gam2 but with only the tensor product interaction term (which is supposed to include main effects)
+#AIC IS WITHIN DELTA 2 FOR mod.12.gam3 AND mod.12.gam4 - I AM GOING WITH mod.12.gam4 
 
 mod.12.gamgamma = mgcv::gam(scld.forXpre.str.shifted ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)), 
                         family = Gamma(link = "log"),
@@ -2309,7 +2320,7 @@ mod.12.gamtw = mgcv::gam(scld.forXpre.str.shifted ~ s(attention, k=5) + s(prefer
 #GAM WITH TWEEDIE FITS BETTER THAN GAMMA BASED ON AIC - NOT SURE IT IS APPROPRIATE THOUGH SINCE IT IS MEANT FOR DATA WITH A LOT OF ZEROES
 
 #does model with log and quadratic terms actually fit better than a model with only linear terms?
-AIC(mod.12.4, mod.12.5) #lower = better fit
+AIC(mod.12.gam2, mod.12.gam3) #lower = better fit
     #mod.12.5 with sqrt transformed y variable is much lower than mod.12.4
 
 #compare residual plots
@@ -2380,26 +2391,40 @@ vis.gam(mod.12.gamtw,
 #GAM ONLY TELLS ME IF VARIABLES HAVE A SIGNIFICANTLY NONLINEAR RELATIONSHIP WITH Y - NOTHING ABOUT RELATIVE EFFECTS (ONLY GET AN IDEA OF RELATIVE EFFECTS FROM PLOTS)
 
 #QUESTION 1 RESULTS: 
-summary(mod.12.4)
-#rather than sqrt transforming y variable, report robust standard errors which correct for heteroscedasticity
-library(sandwich)
-library(lmtest)
-coeftest(mod.12.4, vcov = vcovHC(mod.12.4, type = "HC3")) #HC3 is a conservative choice for calculating robust standard errors
-#in the end, results in terms of statistical significance with robust standard errors are the same as summary(mod.12.4)
+summary(mod.12.gam4)
+    #summary(mod.12.4)
+    #rather than sqrt transforming y variable, you could report robust standard errors which correct for heteroscedasticity
+    #library(sandwich)
+    #library(lmtest)
+    #coeftest(mod.12.4, vcov = vcovHC(mod.12.4, type = "HC3")) #HC3 is a conservative choice for calculating robust standard errors
+    #in the end, results in terms of statistical significance with robust standard errors are the same as summary(mod.12.4)
 
 
-#####
+
+
+```
+
+
+
+
+##2. change in strength phase 2 to 3
+```{r}
+
 #2. how do parameters predict change in scaled strength between phase 2 and 3?
   #Based on dissertation chapter3 Figure5, attention looks like it could have a log relationship with      change in scaled strength, linear relationship for preference and maybe sinusoidal relationship for memory
 mod.23.linear = lm(scld.postXfor.str ~ attention*preference*mem,
             data = subset.outputs)
 
+#gam visualization (see plotting R chunks below) shows maybe quatric function for attention and pref, cubic for mem
+mod.23.2 = lm(scld.postXfor.str ~ mem + I(mem^2) + attention*preference*I(mem^3),
+            data = subset.outputs)
+
 mod.23.gam = mgcv::gam(scld.postXfor.str ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
             data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
 
-#gam visualization (see next R chunk) shows maybe quatric function for attention and pref, cubic for mem
-mod.23.2 = lm(scld.postXfor.str ~ mem + I(mem^2) + attention*preference*I(mem^3),
-            data = subset.outputs)
+mod.23.gam2 = mgcv::gam(scld.postXfor.str ~ te(attention, preference, mem),
+            data = subset.outputs)#GAM with only te interaction term which already includes lower order terms
+#mod.23.gam2 has a lower AIC and the same adjusted R-squared (see end of summary(model))
 
 
 #plot GAM effects
@@ -2418,7 +2443,7 @@ vis.gam(mod.23.gam,
 
 
 #compare fits
-AIC(mod.23.linear, mod.23.2)
+AIC(mod.23.gam, mod.23.gam2)
 
 #check residuals
 par(mfrow = c(2,2))
@@ -2431,26 +2456,40 @@ summary(mod.23.linear)$adj.r.squared
 summary(mod.23.2)$adj.r.squared
 
 #QUESTION 2 RESULTS
-summary(mod.23.linear)
-summary(mod.23.2)
+summary(mod.23.gam2)
+      #summary(mod.23.linear)
+      #summary(mod.23.2)
 
 
 
-#####
+```
+
+
+
+
+##3. energy of scroungers
+```{r}
+
 #3. how do parameters predict median scrounger energy level?
 #just linear terms for this one
 mod.energy.1 = lm(med.run.energy ~ attention*preference*mem,
             data = subset.outputs)
 
-mod.energy.gam = mgcv::gam(med.run.energy ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
-            data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
-
 #plots of gam visualization shows linear term may be fine for attention, maybe quadratic for pref and cubic for mem
 mod.energy.2 = lm(med.run.energy ~ preference + mem + I(mem^2) + attention*I(preference^2)*I(mem^3),
             data = subset.outputs)
 
+
+mod.energy.gam = mgcv::gam(med.run.energy ~ s(attention, k=5) + s(preference, k=5) + s(mem, k=5) + te(attention, preference, mem, k=c(5,5,5)),
+            data = subset.outputs) #GAM with smoothed function for all three parameters #k sets the maximum wiggliness
+
+mod.energy.gam2 = mgcv::gam(med.run.energy ~ te(attention, preference, mem),
+            data = subset.outputs) # GAM with only te interaction term has lower AIC and 0.001 higher adjusted r-squared
+
+
 #compare fits
 AIC(mod.energy.1, mod.energy.2)
+AIC(mod.energy.gam, mod.energy.gam2)
 
 
 hist(subset.outputs$med.run.energy)
@@ -2487,16 +2526,19 @@ vis.gam(mod.energy.gam,
 
 
 #QUESTION 3 RESULTS
-summary(mod.energy.1)
-summary(mod.energy.2)
-summary(mod.energy.gam)
+summary(mod.energy.gam2)
+      #summary(mod.energy.1)
+      #summary(mod.energy.2)
+
 
 
 
 ```
 
 
-##Plotting effects of each predictor from GAMs from previous chunk
+
+
+##Plotting effects of each predictor from GAMs from previous chunks
 ```{r}
 
 #THESE ARE PLOTS FOR EACH PREDICTOR INCLUDING ALL LEVELS OF OTHER TWO PREDICTORS
@@ -2714,7 +2756,7 @@ data.frame(y = "Scrounger energy",
 
 #####
 #plot GAM effects with raw data for scrounger energy
-preds.12.att2 = ggeffects::ggpredict(mod.12.gam2, terms = c("attention", "preference", "mem")) %>%
+preds.12.att2 = ggeffects::ggpredict(mod.12.gam4, terms = c("attention", "preference", "mem")) %>%
                     rename(Preference = "group",
                            mem = "facet") #rename the facet column to match the name in subset.outputs so that the plot is faceted correctly 
 
@@ -2736,7 +2778,7 @@ ggplot(data = subset.outputs, aes(x=attention, y=scld.forXpre.str.shifted)) +
 
 
 
-preds.12.pref2 = ggeffects::ggpredict(mod.12.gam2, terms = c("preference", "attention", "mem")) %>%
+preds.12.pref2 = ggeffects::ggpredict(mod.12.gam4, terms = c("preference", "attention", "mem")) %>%
                     rename(Attention = "group",
                            mem = "facet")
 
@@ -2758,7 +2800,7 @@ ggplot(data = subset.outputs, aes(x=preference, y=scld.forXpre.str.shifted)) +
 
 
 
-preds.12.mem2 = ggeffects::ggpredict(mod.12.gam2, terms = c("mem", "preference", "attention")) %>%
+preds.12.mem2 = ggeffects::ggpredict(mod.12.gam4, terms = c("mem", "preference", "attention")) %>%
                     rename(Preference = "group",
                            attention = "facet")
 
@@ -2782,7 +2824,7 @@ ggplot(data = subset.outputs, aes(x=mem, y=scld.forXpre.str.shifted)) +
 
 #####
 #plot GAM effects with raw data for scrounger energy
-preds.23.att2 = ggeffects::ggpredict(mod.23.gam, terms = c("attention", "preference", "mem")) %>%
+preds.23.att2 = ggeffects::ggpredict(mod.23.gam2, terms = c("attention", "preference", "mem")) %>%
                     rename(Preference = "group",
                            mem = "facet")
 
@@ -2803,7 +2845,7 @@ ggplot(data = subset.outputs, aes(x=attention, y=scld.postXfor.str)) +
   theme_bw()
 
 
-preds.23.pref2 = ggeffects::ggpredict(mod.23.gam, terms = c("preference", "attention", "mem")) %>%
+preds.23.pref2 = ggeffects::ggpredict(mod.23.gam2, terms = c("preference", "attention", "mem")) %>%
                     rename(Attention = "group",
                            mem = "facet")
 
@@ -2825,7 +2867,7 @@ ggplot(data = subset.outputs, aes(x=preference, y=scld.postXfor.str)) +
 
 
 
-preds.23.mem2 = ggeffects::ggpredict(mod.23.gam, terms = c("mem", "preference", "attention")) %>%
+preds.23.mem2 = ggeffects::ggpredict(mod.23.gam2, terms = c("mem", "preference", "attention")) %>%
                     rename(Preference = "group",
                            attention = "facet")
 
@@ -2848,7 +2890,7 @@ ggplot(data = subset.outputs, aes(x=mem, y=scld.postXfor.str)) +
 
 #####
 #preds.energy.att2 = ggeffects::ggpredict(mod.energy.2, terms = c("attention", "preference"))
-preds.energy.att2 = ggeffects::ggpredict(mod.energy.gam, terms = c("attention", "preference", "mem")) %>%
+preds.energy.att2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("attention", "preference", "mem")) %>%
                     rename(Preference = "group",
                            mem = "facet") #rename the facet column to match the name in subset.outputs so that the plot is faceted correctly
 
@@ -2870,7 +2912,7 @@ ggplot(data = subset.outputs, aes(x=attention, y=med.run.energy)) +
 
 
 #preds.energy.pref2 = ggeffects::ggpredict(mod.energy.2, terms = c("preference", "attention"))
-preds.energy.pref2 = ggeffects::ggpredict(mod.energy.gam, terms = c("preference", "attention", "mem")) %>%
+preds.energy.pref2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("preference", "attention", "mem")) %>%
                     rename(Attention = "group",
                            mem = "facet") #rename the facet column to match the name in subset.outputs so that the plot is faceted correctly
 
@@ -2893,7 +2935,7 @@ ggplot(data = subset.outputs, aes(x=preference, y=med.run.energy)) +
 
 
 #preds.energy.pref2 = ggeffects::ggpredict(mod.energy.2, terms = c("mem", "preference", "attention"))
-preds.energy.mem2 = ggeffects::ggpredict(mod.energy.gam, terms = c("mem", "preference", "attention")) %>%
+preds.energy.mem2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("mem", "preference", "attention")) %>%
                     rename(Preference = "group",
                            attention = "facet") #rename the facet column to match the name in subset.outputs so that the plot is faceted correctly
 

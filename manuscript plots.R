@@ -5,8 +5,27 @@ library(ggplot2)
 library(RColorBrewer)
 library(ggpubr) #for ggarrange function
 library(cowplot)
+library(mgcv) #for GAMs
 
 full.outputs = read.csv("all_outputs.csv")
+subset.outputs = full.outputs[full.outputs$groupsize==15 & full.outputs$approachfood==TRUE,] # data for group size of 15 and only when approachfood (aka asocial-information) is TRUE
+
+#need to have all positive values to be able to run GAM with sqrt transformed change in strength from phase 1 to 2
+subset.outputs$scld.forXpre.str.shifted = subset.outputs$scld.forXpre.str + abs(min(subset.outputs$scld.forXpre.str)) + 1e-6
+
+#GAM models with same names as in 'quail_centrality_4_50_analysis.Rmd'
+mod.12.gam4 = gam(sqrt(scld.forXpre.str.shifted) ~ te(attention, preference, mem),
+                        data = subset.outputs)
+summary(mod.12.gam4)
+
+mod.23.gam2 = mgcv::gam(scld.postXfor.str ~ te(attention, preference, mem),
+                        data = subset.outputs)
+summary(mod.23.gam2)
+
+mod.energy.gam2 = mgcv::gam(med.run.energy ~ te(attention, preference, mem),
+                            data = subset.outputs)
+summary(mod.energy.gam2)
+
 
 #color scale for heatmaps
 pal <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
@@ -60,7 +79,7 @@ data_summary <- function(data, varname, groupnames){
 
 
 
-####Figure 1 ####
+####Figure 2 ####
 #heatmap: median diff in producer's strength (scaled by group size) btwn phase 1 and 2 for groupsize 15
 fig1 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.forXpre.str)) +
   #ggtitle("Median change in producer's strength between phases 1 and 2") +
@@ -88,6 +107,58 @@ fig1 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         legend.position = "bottom"
         )
 ggsave("./ms_plots/Figure1_Median change in strength between phases 1 and 2.tif",
+       width = 180,
+       height = 88,
+       units = "mm",
+       dpi = 300)
+#ICB: "width of a single (88 mm) or at most a double (180 mm) column width"
+
+
+
+####Figure 3 ####
+preds.12.pref2 = ggeffects::ggpredict(mod.12.gam4, terms = c("preference", "attention", "mem")) %>%
+  rename(Attention = "group",
+         mem = "facet")
+
+ggplot(data = subset.outputs, aes(x=preference, y=scld.forXpre.str.shifted)) + 
+  labs(title = "Memory",
+       y = "Change in \nproducer's strength", 
+       x = "Preference") +
+  
+  geom_jitter(aes(color = as.factor(attention)),
+              width = 0.02,
+              shape = 1,
+              alpha = 0.2) +
+  
+  facet_grid(cols = vars(mem)) +
+  
+  # GAM predictions
+  geom_line(data = preds.12.pref2, 
+            aes(x = x, y = predicted, group = Attention, color = Attention), 
+            size = 1) +  
+  
+  # GAM Confidence ribbon
+  geom_ribbon(data = preds.12.pref2, 
+              aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, group = Attention), 
+              alpha = 0.2) +  
+  
+  # Manual color and fill scales
+  scale_color_manual(values = c("palegreen2", "gold2", "darkorange", "red1", "red4")) +
+  #scale_color_manual(values = c("0" = "gold2", "0.25" = "goldenrod3", "0.50" = "darkorange", "0.75" = "red1", "1.00" = "red4")) +
+  #scale_fill_manual(values = c("gold2", "goldenrod2", "darkorange", "red1", "red4")) +
+  
+  theme_bw() +
+  theme(aspect.ratio=1, 
+        plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
+                                  hjust = 0.5, 
+                                  vjust = 2, 
+                                  size = 12),
+        text=element_text(size=12),
+        axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
+        legend.position = "bottom"
+  )
+
+ggsave("./ms_plots/Figure3_GAM change in strength from phase 1 to 2.pdf",
        width = 180,
        height = 88,
        units = "mm",
@@ -213,7 +284,7 @@ ggsave("./ms_plots/Figure2.tif",
        dpi = 300)
 
 
-#### Figure 3 ####
+#### Figure 4 ####
 #heatmap: median diff in producer's strength (scaled by group size) btwn phase 2 and 3 for groupsize 15
 fig3 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.postXfor.str)) +
   #ggtitle("Median change in producer's strength between phases 2 and 3") +
@@ -364,7 +435,7 @@ ggsave("./ms_plots/Figure4.tif",
        dpi = 300)
 
 
-####Figure 5 ####
+####Figure 6 ####
 #heatmap: Median energy achieved by scroungers at end of simulation for groupsize 15
 fig5 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), fill = med.combo.energy)) +
   #ggtitle("Median energy level of scroungers") +
