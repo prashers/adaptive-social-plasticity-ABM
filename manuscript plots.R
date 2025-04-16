@@ -106,7 +106,7 @@ fig2 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
         )
-ggsave("./ms_plots/Figure2_Median change in strength between phases 1 and 2.tif",
+ggsave("./ms_plots/Figure2_Median change in strength between phases 1 and 2.pdf",
        width = 180,
        height = 88,
        units = "mm",
@@ -227,7 +227,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0.5, 0, 0),
                   y = c(3.5, 3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure3.tif", 
+ggsave("./ms_plots/Figure3.pdf", 
        width = 180,
        height = 180,
        units = "mm",
@@ -263,7 +263,7 @@ fig4 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
   )
-ggsave("./ms_plots/Figure3_Median change in strength between phases 2 and 3.tif",
+ggsave("./ms_plots/Figure4_Median change in strength between phases 2 and 3.tif",
        width = 180,
        height = 88,
        units = "mm",
@@ -379,7 +379,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0.5, 0, 0),
                   y = c(3.5, 3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure5.tif", 
+ggsave("./ms_plots/Figure5.pdf", 
        width = 180,
        height = 180,
        units = "mm",
@@ -415,7 +415,7 @@ fig6 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
   )
-ggsave("./ms_plots/Figure5_Median scrounger energy.tif",
+ggsave("./ms_plots/Figure6_Median scrounger energy.pdf",
        width = 180,
        height = 88,
        units = "mm",
@@ -505,7 +505,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0, 0),
                   y = c(3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure7.tif", 
+ggsave("./ms_plots/Figure7.pdf", 
        width = 180,
        height = 180,
        units = "mm",
@@ -554,7 +554,7 @@ fig8a = ggplot(data = subset.outputs, aes(x=attention, y=med.run.energy)) +
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
   )
-ggsave("./ms_plots/Figure8a.pdf", 
+ggsave("./ms_plots/Figure8a.tif", 
        width = 180,
        height = 100,
        units = "mm",
@@ -602,7 +602,7 @@ fig8b = ggplot(data = subset.outputs, aes(x=preference, y=med.run.energy)) +
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
   )
-ggsave("./ms_plots/Figure8b.pdf", 
+ggsave("./ms_plots/Figure8b.tif", 
        width = 180,
        height = 100,
        units = "mm",
@@ -649,7 +649,7 @@ fig8c = ggplot(data = subset.outputs, aes(x=mem, y=med.run.energy)) +
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
   )
-ggsave("./ms_plots/Figure8c.pdf", 
+ggsave("./ms_plots/Figure8c.tif", 
        width = 180,
        height = 100,
        units = "mm",
