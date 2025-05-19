@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(ggpubr) #for ggarrange function
 library(cowplot)
 library(mgcv) #for GAMs
+library(viridis)
 
 full.outputs = read.csv("all_outputs.csv")
 subset.outputs = full.outputs[full.outputs$groupsize==15 & full.outputs$approachfood==TRUE,] # data for group size of 15 and only when approachfood (aka asocial-information) is TRUE
@@ -89,13 +90,21 @@ fig2 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", 
+                                                  "TRUE" = "Asocial \ninformation \nEnabled"))
+             ) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(0, 
-                                    max(full.outputs.combo.15$med.forXpre.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = c(0, 15, 30, 45, round(max(full.outputs.combo.15$med.forXpre.str)))) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(0, 
+  #                                   max(full.outputs.combo.15$med.forXpre.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = c(0, 15, 30, 45, round(max(full.outputs.combo.15$med.forXpre.str)))) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(0, max(full.outputs.combo.15$med.forXpre.str), length.out = 5),
+    labels = c(0, 15, 30, 45, round(max(full.outputs.combo.15$med.forXpre.str)))
+  ) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -106,7 +115,7 @@ fig2 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
         )
-ggsave("./ms_plots/Figure2_Median change in strength between phases 1 and 2.pdf",
+ggsave("./ms_plots/Figure2_Median change in strength between phases 1 and 2.tif",
        width = 180,
        height = 88,
        units = "mm",
@@ -134,7 +143,13 @@ fig3a = full.outputs %>%
              y = "Change in \nstrength",
              color = "Group size")+
         theme_classic() +
-        scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+        # scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+        scale_color_viridis_d(
+          option = "C",   # Choose another palette like "C", "E", etc., if preferred
+          begin = 0,
+          end = 0.95,
+          direction = -1   # Use -1 to reverse the color order
+        )
 # ggsave("./ms_plots/Figure1B_Effect of Attention on Median Change in Producer's Strength.tif", 
 #        width = 7,
 #        height = 7,
@@ -159,7 +174,13 @@ fig3b = full.outputs %>%
        y = "Change in \nstrength",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 # ggsave("./ms_plots/Figure1C_Effect of Preference on Median Change in Producer's Strength.tif", 
 #        width = 7,
 #        height = 7,
@@ -183,7 +204,13 @@ fig3c = full.outputs %>%
        y = "Change in \nstrength",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 # ggsave("./ms_plots/Figure1D_Effect of Memory on Median Change in Producer's Strength.tif", 
 #        width = 15,
 #        height = 7,
@@ -208,7 +235,13 @@ fig3d = full.outputs %>%
          y = "Proportion",
          color = "Group size")+
     theme_classic() +
-    scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+    #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+    scale_color_viridis_d(
+      option = "C",   # Choose another palette like "C", "E", etc., if preferred
+      begin = 0,
+      end = 0.95,
+      direction = -1   # Use -1 to reverse the color order
+    )
 # ggsave("./ms_plots/Figure1E_Effect of Memory on Median Proportion Phase2.tif", 
 #        width = 15,
 #        height = 7,
@@ -227,7 +260,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0.5, 0, 0),
                   y = c(3.5, 3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure3.pdf", 
+ggsave("./ms_plots/Figure3.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -244,15 +277,26 @@ fig4 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
        fill = "Change in \nproducer's strength") +
   facet_grid(rows=vars(approachfood), 
              cols=vars(mem),
-             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
+             labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", 
+                                                  "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(full.outputs.combo.15$med.postXfor.str), 
-                                    max(full.outputs.combo.15$med.postXfor.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(full.outputs.combo.15$med.postXfor.str), 
-                                          max(full.outputs.combo.15$med.postXfor.str), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(full.outputs.combo.15$med.postXfor.str), 
+  #                                   max(full.outputs.combo.15$med.postXfor.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(full.outputs.combo.15$med.postXfor.str), 
+  #                                         max(full.outputs.combo.15$med.postXfor.str), 
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(full.outputs.combo.15$med.postXfor.str),
+                 max(full.outputs.combo.15$med.postXfor.str),
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(full.outputs.combo.15$med.postXfor.str),
+                       max(full.outputs.combo.15$med.postXfor.str),
+                       length.out = 5), 0)
+    ) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -288,7 +332,13 @@ fig5a = full.outputs %>%
        y = "Change in \nstrength",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 # ggsave("./ms_plots/Figure2B_Effect of Attention on Median Change in Producer's Strength.tif", 
 #        width = 7,
 #        height = 7,
@@ -312,7 +362,13 @@ fig5b = full.outputs %>%
        y = "Change in \nstrength",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 # ggsave("./ms_plots/Figure2C_Effect of Preference on Median Change in Producer's Strength.tif", 
 #        width = 7,
 #        height = 7,
@@ -336,7 +392,13 @@ fig5c = full.outputs %>%
        y = "Change in \nstrength",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 # ggsave("./ms_plots/Figure2D_Effect of Memory on Median Change in Producer's Strength.tif", 
 #        width = 15,
 #        height = 7,
@@ -360,7 +422,13 @@ fig5d = full.outputs %>%
        y = "Proportion",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 # ggsave("./ms_plots/Figure2E_Effect of Memory on Median Proportion Phase3.tif", 
 #        width = 15,
 #        height = 7,
@@ -379,7 +447,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0.5, 0, 0),
                   y = c(3.5, 3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure5.pdf", 
+ggsave("./ms_plots/Figure5.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -398,13 +466,22 @@ fig6 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(full.outputs.combo.15$med.combo.energy), 
-                                    max(full.outputs.combo.15$med.combo.energy), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(full.outputs.combo.15$med.combo.energy), 
-                                          max(full.outputs.combo.15$med.combo.energy), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(full.outputs.combo.15$med.combo.energy), 
+  #                                   max(full.outputs.combo.15$med.combo.energy), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(full.outputs.combo.15$med.combo.energy), 
+  #                                         max(full.outputs.combo.15$med.combo.energy), 
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(full.outputs.combo.15$med.combo.energy),
+                 max(full.outputs.combo.15$med.combo.energy),
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(full.outputs.combo.15$med.combo.energy),
+                       max(full.outputs.combo.15$med.combo.energy),
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -415,7 +492,7 @@ fig6 = ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attent
         axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         legend.position = "bottom"
   )
-ggsave("./ms_plots/Figure6_Median scrounger energy.pdf",
+ggsave("./ms_plots/Figure6_Median scrounger energy.tif",
        width = 180,
        height = 88,
        units = "mm",
@@ -439,7 +516,14 @@ fig7a = full.outputs %>%
        y = "Scrounger \nenergy",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
+  
 # ggsave("./ms_plots/Figure3B_Effect of Attention on Median Scrounger Energy.tif", 
 #        width = 7,
 #        height = 7,
@@ -463,7 +547,13 @@ fig7b = full.outputs %>%
        y = "Scrounger \nenergy",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 # ggsave("./ms_plots/Figure3C_Effect of Preference on Median Scrounger Energy.tif", 
 #        width = 7,
 #        height = 7,
@@ -487,7 +577,13 @@ fig7c = full.outputs %>%
        y = "Scrounger \nenergy",
        color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 # ggsave("./ms_plots/Figure3D_Effect of Memory on Median Scrounger Energy.tif", 
 #        width = 7,
 #        height = 7,
@@ -505,7 +601,7 @@ ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
                   size = 15,
                   x = c(0, 0, 0),
                   y = c(3.5, 2.5, 1.5))
-ggsave("./ms_plots/Figure7.pdf", 
+ggsave("./ms_plots/Figure7.tif", 
        width = 180,
        height = 180,
        units = "mm",
@@ -543,7 +639,11 @@ fig8a = ggplot(data = subset.outputs, aes(x=attention, y=med.run.energy)) +
               alpha = 0.2) +  
   
   # Manual color and fill scales
-  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  #scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  scale_color_viridis_d(
+    option = "D",   # Choose another palette like "C", "E", etc., if preferred
+    direction = -1   # Use -1 to reverse the color order
+  ) +
   
   theme_bw() +
   theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -556,7 +656,7 @@ fig8a = ggplot(data = subset.outputs, aes(x=attention, y=med.run.energy)) +
   )
 ggsave("./ms_plots/Figure8a.tif", 
        width = 180,
-       height = 100,
+       height = 90,
        units = "mm",
        dpi = 300)
 
@@ -591,7 +691,11 @@ fig8b = ggplot(data = subset.outputs, aes(x=preference, y=med.run.energy)) +
               alpha = 0.2) +  
   
   # Manual color and fill scales
-  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  #scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  scale_color_viridis_d(
+    option = "D",   # Choose another palette like "C", "E", etc., if preferred
+    direction = -1   # Use -1 to reverse the color order
+  ) +
   
   theme_bw() +
   theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -604,7 +708,7 @@ fig8b = ggplot(data = subset.outputs, aes(x=preference, y=med.run.energy)) +
   )
 ggsave("./ms_plots/Figure8b.tif", 
        width = 180,
-       height = 100,
+       height = 90,
        units = "mm",
        dpi = 300)
 
@@ -638,7 +742,11 @@ fig8c = ggplot(data = subset.outputs, aes(x=mem, y=med.run.energy)) +
               alpha = 0.2) +  
   
   # Manual color and fill scales
-  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  #scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  scale_color_viridis_d(
+    option = "D",   # Choose another palette like "C", "E", etc., if preferred
+    direction = -1   # Use -1 to reverse the color order
+  ) +
   
   theme_bw() +
   theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -651,7 +759,7 @@ fig8c = ggplot(data = subset.outputs, aes(x=mem, y=med.run.energy)) +
   )
 ggsave("./ms_plots/Figure8c.tif", 
        width = 180,
-       height = 100,
+       height = 90,
        units = "mm",
        dpi = 300)
 
@@ -710,13 +818,22 @@ ggplot(full.outputs.combo.15, aes(as.factor(preference), as.factor(attention), f
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(full.outputs.combo.15$med.postXpre.str), 
-                                    max(full.outputs.combo.15$med.postXpre.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(full.outputs.combo.15$med.postXpre.str), 
-                                          max(full.outputs.combo.15$med.postXpre.str), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(full.outputs.combo.15$med.postXpre.str), 
+  #                                   max(full.outputs.combo.15$med.postXpre.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(full.outputs.combo.15$med.postXpre.str), 
+  #                                         max(full.outputs.combo.15$med.postXpre.str), 
+  #                                         length.out = 5), 0)) +
+    scale_fill_viridis_c(
+      option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+      direction = 1, # Use -1 to reverse
+      breaks = seq(min(full.outputs.combo.15$med.postXpre.str), 
+                   max(full.outputs.combo.15$med.postXpre.str), 
+                   length.out = 5), # Adjust length.out as needed
+      labels = round(seq(min(full.outputs.combo.15$med.postXpre.str), 
+                         max(full.outputs.combo.15$med.postXpre.str), 
+                         length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -751,13 +868,22 @@ fig1.gsize3 = ggplot(data.3, aes(as.factor(preference), as.factor(attention), fi
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.3$med.forXpre.str), 
-                                    max(data.3$med.forXpre.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.3$med.forXpre.str),
-                                          max(data.3$med.forXpre.str),
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.3$med.forXpre.str), 
+  #                                   max(data.3$med.forXpre.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.3$med.forXpre.str),
+  #                                         max(data.3$med.forXpre.str),
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.3$med.forXpre.str), 
+                 max(data.3$med.forXpre.str), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.3$med.forXpre.str),
+                       max(data.3$med.forXpre.str),
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -779,13 +905,22 @@ fig1.gsize6 = ggplot(data.6, aes(as.factor(preference), as.factor(attention), fi
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.6$med.forXpre.str), 
-                                    max(data.6$med.forXpre.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.6$med.forXpre.str),
-                                          max(data.6$med.forXpre.str),
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.6$med.forXpre.str), 
+  #                                   max(data.6$med.forXpre.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.6$med.forXpre.str),
+  #                                         max(data.6$med.forXpre.str),
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.6$med.forXpre.str), 
+                 max(data.6$med.forXpre.str), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.6$med.forXpre.str),
+                       max(data.6$med.forXpre.str),
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -807,13 +942,22 @@ fig1.gsize10 = ggplot(data.10, aes(as.factor(preference), as.factor(attention), 
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.10$med.forXpre.str), 
-                                    max(data.10$med.forXpre.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.10$med.forXpre.str),
-                                          max(data.10$med.forXpre.str),
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.10$med.forXpre.str), 
+  #                                   max(data.10$med.forXpre.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.10$med.forXpre.str),
+  #                                         max(data.10$med.forXpre.str),
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.10$med.forXpre.str), 
+                 max(data.10$med.forXpre.str), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.10$med.forXpre.str),
+                       max(data.10$med.forXpre.str),
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -849,13 +993,22 @@ fig3.gsize3 = ggplot(data.3, aes(as.factor(preference), as.factor(attention), fi
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.3$med.postXfor.str), 
-                                    max(data.3$med.postXfor.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.3$med.postXfor.str), 
-                                          max(data.3$med.postXfor.str), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.3$med.postXfor.str), 
+  #                                   max(data.3$med.postXfor.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.3$med.postXfor.str), 
+  #                                         max(data.3$med.postXfor.str), 
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.3$med.postXfor.str), 
+                 max(data.3$med.postXfor.str), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.3$med.postXfor.str), 
+                       max(data.3$med.postXfor.str), 
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -876,13 +1029,22 @@ fig3.gsize6 = ggplot(data.6, aes(as.factor(preference), as.factor(attention), fi
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.6$med.postXfor.str), 
-                                    max(data.6$med.postXfor.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.6$med.postXfor.str), 
-                                          max(data.6$med.postXfor.str), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.6$med.postXfor.str), 
+  #                                   max(data.6$med.postXfor.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.6$med.postXfor.str), 
+  #                                         max(data.6$med.postXfor.str), 
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.6$med.postXfor.str), 
+                 max(data.6$med.postXfor.str), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.6$med.postXfor.str), 
+                       max(data.6$med.postXfor.str), 
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -903,13 +1065,22 @@ fig3.gsize10 = ggplot(data.10, aes(as.factor(preference), as.factor(attention), 
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.10$med.postXfor.str), 
-                                    max(data.10$med.postXfor.str), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.10$med.postXfor.str), 
-                                          max(data.10$med.postXfor.str), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.10$med.postXfor.str), 
+  #                                   max(data.10$med.postXfor.str), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.10$med.postXfor.str), 
+  #                                         max(data.10$med.postXfor.str), 
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.10$med.postXfor.str), 
+                 max(data.10$med.postXfor.str), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.10$med.postXfor.str), 
+                       max(data.10$med.postXfor.str), 
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -946,13 +1117,22 @@ fig5.gsize3 = ggplot(data.3, aes(as.factor(preference), as.factor(attention), fi
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.3$med.combo.energy), 
-                                    max(data.3$med.combo.energy), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.3$med.combo.energy), 
-                                          max(data.3$med.combo.energy), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.3$med.combo.energy), 
+  #                                   max(data.3$med.combo.energy), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.3$med.combo.energy), 
+  #                                         max(data.3$med.combo.energy), 
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.3$med.combo.energy), 
+                 max(data.3$med.combo.energy), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.3$med.combo.energy), 
+                       max(data.3$med.combo.energy), 
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -974,13 +1154,22 @@ fig5.gsize6 = ggplot(data.6, aes(as.factor(preference), as.factor(attention), fi
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.6$med.combo.energy), 
-                                    max(data.6$med.combo.energy), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.6$med.combo.energy), 
-                                          max(data.6$med.combo.energy), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.6$med.combo.energy), 
+  #                                   max(data.6$med.combo.energy), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.6$med.combo.energy), 
+  #                                         max(data.6$med.combo.energy), 
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.6$med.combo.energy), 
+                 max(data.6$med.combo.energy), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.6$med.combo.energy), 
+                       max(data.6$med.combo.energy), 
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -1002,13 +1191,22 @@ fig5.gsize10 = ggplot(data.10, aes(as.factor(preference), as.factor(attention), 
              cols=vars(mem),
              labeller = labeller(approachfood = c("FALSE" = "Asocial \ninformation \nDisabled", "TRUE" = "Asocial \ninformation \nEnabled"))) +
   geom_tile() +
-  scale_fill_gradientn(colours = pal(100),
-                       breaks = seq(min(data.10$med.combo.energy), 
-                                    max(data.10$med.combo.energy), 
-                                    length.out = 5), # Adjust length.out as needed
-                       labels = round(seq(min(data.10$med.combo.energy), 
-                                          max(data.10$med.combo.energy), 
-                                          length.out = 5), 0)) +
+  # scale_fill_gradientn(colours = pal(100),
+  #                      breaks = seq(min(data.10$med.combo.energy), 
+  #                                   max(data.10$med.combo.energy), 
+  #                                   length.out = 5), # Adjust length.out as needed
+  #                      labels = round(seq(min(data.10$med.combo.energy), 
+  #                                         max(data.10$med.combo.energy), 
+  #                                         length.out = 5), 0)) +
+  scale_fill_viridis_c(
+    option = "D",  # Choose from: "D", "C", "B", "A", "E", "F", "G", "H", "I", "J"
+    direction = 1, # Use -1 to reverse
+    breaks = seq(min(data.10$med.combo.energy), 
+                 max(data.10$med.combo.energy), 
+                 length.out = 5), # Adjust length.out as needed
+    labels = round(seq(min(data.10$med.combo.energy), 
+                       max(data.10$med.combo.energy), 
+                       length.out = 5), 0)) +
   theme_minimal() +
   theme(aspect.ratio=1, 
         plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -1053,7 +1251,13 @@ fig2a_full = full.outputs %>%
     y = "Change in \nstrength",
     color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 
 fig2b_full = full.outputs %>% 
   filter(attention == 1,
@@ -1071,18 +1275,24 @@ fig2b_full = full.outputs %>%
     y = "Change in \nstrength",
     color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 
 
 ggdraw(xlim = c(0, 1), ylim = c(0, 2.5)) + #initialize empty canvas
   draw_plot(fig2a_full + theme(legend.position = "none"), x=0, y=1.5, width = 1, height =  1) +
   draw_plot(fig2b_full + theme(legend.position = "none"), x=0, y=0.5, width = 1, height =  1) +
-  draw_plot(legend2, x=0.05, y=0.3, width = 1, height = 0.2) +
+  draw_plot(legend3, x=0.05, y=0.3, width = 1, height = 0.2) +
   draw_plot_label(label = c("A", "B"), 
                   size = 15,
                   x = c(0, 0),
                   y = c(2.5, 1.5))
-ggsave("./ms_plots/supplemental/Figure2_full.tif", 
+ggsave("./ms_plots/supplemental/Figure2_full.pdf", 
        width = 180,
        height = 180,
        units = "mm",
@@ -1106,7 +1316,13 @@ fig4a_full = full.outputs %>%
     y = "Change in \nstrength",
     color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 
 
 fig4b_full = full.outputs %>% 
@@ -1125,17 +1341,23 @@ fig4b_full = full.outputs %>%
     y = "Change in \nstrength",
     color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 
 ggdraw(xlim = c(0, 1), ylim = c(0, 2.5)) + #initialize empty canvas
   draw_plot(fig4a_full + theme(legend.position = "none"), x=0, y=1.5, width = 1, height =  1) +
   draw_plot(fig4b_full + theme(legend.position = "none"), x=0, y=0.5, width = 1, height =  1) +
-  draw_plot(legend4, x=0.05, y=0.3, width = 1, height = 0.2) +
+  draw_plot(legend5, x=0.05, y=0.3, width = 1, height = 0.2) +
   draw_plot_label(label = c("A", "B"), 
                   size = 15,
                   x = c(0, 0),
                   y = c(2.5, 1.5))
-ggsave("./ms_plots/supplemental/Figure4_full.tif", 
+ggsave("./ms_plots/supplemental/Figure4_full.pdf", 
        width = 180,
        height = 180,
        units = "mm",
@@ -1159,7 +1381,13 @@ fig6a_full = full.outputs %>%
     y = "Scrounger energy",
     color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 
 fig6b_full = full.outputs %>% 
   filter(attention == 1,
@@ -1177,7 +1405,13 @@ fig6b_full = full.outputs %>%
     y = "Scrounger energy",
     color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 
 fig6c_full = full.outputs %>% 
   filter(attention == 1,
@@ -1195,14 +1429,20 @@ fig6c_full = full.outputs %>%
     y = "Scrounger energy",
     color = "Group size")+
   theme_classic() +
-  scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  #scale_color_manual(values = c("3" = "gold2", "6" = "darkorange", "10" = "red1", "15" = "red4"))
+  scale_color_viridis_d(
+    option = "C",   # Choose another palette like "C", "E", etc., if preferred
+    begin = 0,
+    end = 0.95,
+    direction = -1   # Use -1 to reverse the color order
+  )
 
 
 ggdraw(xlim = c(0, 1), ylim = c(0, 3.5)) + #initialize empty canvas
   draw_plot(fig6a_full + theme(legend.position = "none"), x=0, y=2.5, width = 1, height =  1) +
   draw_plot(fig6b_full + theme(legend.position = "none"), x=0, y=1.5, width = 1, height =  1) +
   draw_plot(fig6c_full + theme(legend.position = "none"), x=0, y=0.5, width = 1, height =  1) +
-  draw_plot(legend6, x=0.05, y=0.3, width = 1, height = 0.2) +
+  draw_plot(legend7, x=0.05, y=0.3, width = 1, height = 0.2) +
   draw_plot_label(label = c("A", "B", "C"), 
                   size = 15,
                   x = c(0, 0, 0),
@@ -1236,7 +1476,8 @@ ggsave("./ms_plots/supplemental/resets_and_energy_by_group_size.tif",
 
 
 
-#### Figure S4 #### GAM FITS FOR CHANGE IN STRENGTH PHASE 1 TO 2
+#### Figure S4 #### 
+#GAM FITS FOR CHANGE IN STRENGTH PHASE 1 TO 2
 preds.12.pref2 = ggeffects::ggpredict(mod.12.gam4, terms = c("preference", "attention", "mem")) %>%
   rename(Attention = "group",
          mem = "facet")
@@ -1265,9 +1506,13 @@ ggplot(data = subset.outputs, aes(x=preference, y=scld.forXpre.str.shifted)) +
               alpha = 0.2) +  
   
   # Manual color and fill scales
-  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  #scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
   #scale_color_manual(values = c("0" = "gold2", "0.25" = "goldenrod3", "0.50" = "darkorange", "0.75" = "red1", "1.00" = "red4")) +
   #scale_fill_manual(values = c("gold2", "goldenrod2", "darkorange", "red1", "red4")) +
+  scale_color_viridis_d(
+    option = "D",   # Choose another palette like "C", "E", etc., if preferred
+    direction = -1   # Use -1 to reverse the color order
+  ) +
   
   theme_bw() +
   theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -1279,7 +1524,7 @@ ggplot(data = subset.outputs, aes(x=preference, y=scld.forXpre.str.shifted)) +
         legend.position = "bottom"
   )
 
-ggsave("./ms_plots/supplemental/FigureS4_GAM change in strength from phase 1 to 2.pdf",
+ggsave("./ms_plots/supplemental/FigureS4_GAM change in strength from phase 1 to 2.tif",
        width = 180,
        height = 100,
        units = "mm",
@@ -1316,9 +1561,13 @@ ggplot(data = subset.outputs, aes(x=preference, y=scld.postXfor.str)) +
               alpha = 0.2) +  
   
   # Manual color and fill scales
-  scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
+  #scale_color_manual(values = c("olivedrab2", "gold2", "darkorange", "red1", "red4")) +
   #scale_color_manual(values = c("0" = "gold2", "0.25" = "goldenrod3", "0.50" = "darkorange", "0.75" = "red1", "1.00" = "red4")) +
   #scale_fill_manual(values = c("gold2", "goldenrod2", "darkorange", "red1", "red4")) +
+  scale_color_viridis_d(
+    option = "D",   # Choose another palette like "C", "E", etc., if preferred
+    direction = -1   # Use -1 to reverse the color order
+  ) +
   
   theme_bw() +
   theme(plot.title = element_text(margin = margin(t=0, b=0, unit = "pt"), 
@@ -1330,7 +1579,7 @@ ggplot(data = subset.outputs, aes(x=preference, y=scld.postXfor.str)) +
         legend.position = "bottom"
   )
 
-ggsave("./ms_plots/supplemental/FigureS7_GAM change in strength from phase 2 to 3.pdf",
+ggsave("./ms_plots/supplemental/FigureS7_GAM change in strength from phase 2 to 3.tif",
        width = 180,
        height = 100,
        units = "mm",
