@@ -1,7 +1,14 @@
-# quail-centrality-ABM
+# adaptive-social-plasticity-ABM
 This repo contains the Netlogo file for the final version of my 'quail_centrality' model and R code for analysis of the model output.
 
-This is the model and code corresponding to 
+This is the model and code corresponding to my paper in ICB: TKTKlink
+
+"quail_centrality_4_50_setup.Rmd" contains the code used for data cleaning. The data_ord_50.csv data file is available in FigShare: TKTKlink
+
+"quail_centrality_4_50_analysis.Rmd" contains the code used for all analyses
+
+"manuscript plots.R" contains the code used to produce all plots
+
 
 
 In quail_centrality_4, I made the following changes (as of Aug 7, 2024):
