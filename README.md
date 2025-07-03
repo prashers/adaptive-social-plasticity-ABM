@@ -1,5 +1,8 @@
 # quail-centrality-ABM
-This repo contains the Netlogo file for (hopefully) the final version of my 'quail_centrality' model and R code for analysis of the output
+This repo contains the Netlogo file for the final version of my 'quail_centrality' model and R code for analysis of the model output.
+
+This is the model and code corresponding to 
+
 
 In quail_centrality_4, I made the following changes (as of Aug 7, 2024):
 
@@ -27,11 +30,3 @@ In quail_centrality_4, I made the following changes (as of Aug 7, 2024):
 7. The arena will resize to keep group density constant across group sizes if the 'resize-arena?' switch is on
         - the foraging patch remains the same size for all group sizes
         - The thing I want to isolate with different group sizes is level of competition (fewer opportunities to feed with increasing group size)
-        - MAYBE CHOOSE A FEW PARAMETER COMBINATIONS TO TEST WHETHER CHANGING ARENA SIZE WOULD HAVE AN EFFECT (IF NOT THEN NOT NECESSARY TO DO A FULL PARAMETER SWEEP)
-
-
-TO BE DETERMINED:
-
-8. How can I replace arbitrary values in code with values that make more sense (e.g., resource-level and reset-thresholds)
-        - I think I just used values that seemed to give agents time to feed
-        - THESE WOULD VARY A LOT BASED ON THE BIOLOGICAL SYSTEM - YOU COULD DO A TEST PARAMETER SWEEP WITH DIFFERENT VALUES FOR THIS TOO - IF IT WOULD BE HELPFUL
