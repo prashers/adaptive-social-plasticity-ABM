@@ -617,7 +617,7 @@ preds.energy.att2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("attention",
 
 fig8a = ggplot(data = subset.outputs, aes(x=attention, y=med.run.energy)) + 
   labs(title = "Memory",
-       y = "Change in \nstrength", 
+       y = "Median scrounger \nenergy", 
        x = "Attention",
        color = "Preference") +
   
@@ -669,7 +669,7 @@ preds.energy.pref2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("preference
 
 fig8b = ggplot(data = subset.outputs, aes(x=preference, y=med.run.energy)) + 
   labs(title = "Memory",
-       y = "Change in \nstrength", 
+       y = "Median scrounger \nenergy", 
        x = "Preference",
        color = "Attention") +
   
@@ -720,7 +720,7 @@ preds.energy.mem2 = ggeffects::ggpredict(mod.energy.gam2, terms = c("mem", "pref
 
 fig8c = ggplot(data = subset.outputs, aes(x=mem, y=med.run.energy)) + 
   labs(title = "Attention",
-       y = "Change in \nstrength", 
+       y = "Median scrounger \nenergy", 
        x = "Memory",
        color = "Preference") +
   
