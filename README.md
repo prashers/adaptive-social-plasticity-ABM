@@ -3,11 +3,13 @@ This repo contains the Netlogo file for the final version of my 'quail_centralit
 
 This is the model and code corresponding to my paper in ICB: TKTKlink
 
-"quail_centrality_4_50_setup.Rmd" contains the code used for data cleaning. The data_ord_50.csv data file used in this script is available in FigShare: TKTKlink
+"quail_centrality_4_50_setup.Rmd" contains the code used for data cleaning. The data_ord_50.csv data file used in this script is available in FigShare: https://doi.org/10.6084/m9.figshare.29474114.v1
 
 "quail_centrality_4_50_analysis.Rmd" contains the code used for all analyses
 
 "manuscript plots.R" contains the code used to produce all plots
+
+"quail_centrality_4.nlogo" is the netlogo file containing the code for the agent-based model
 
 
 The data_ord_50.csv file on FigShare contains the following columns:
