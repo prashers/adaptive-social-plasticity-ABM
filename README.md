@@ -3,6 +3,91 @@ This repo contains the Netlogo file for the final version of my 'quail_centralit
 
 This is the model and code corresponding to my paper in ICB: https://doi.org/10.1093/icb/icaf126
 
+**Overview**
+
+This project uses an agent-based simulation to explore how simple decision-making rules influence behavior and interaction patterns in systems with limited resources. By varying how agents observe, remember, and respond to others, the model shows how individual choices can scale up to complex group-level outcomes.
+
+The project pairs simulation modeling with a structured analytics workflow to test behavior across a wide range of conditions.
+
+
+**Problem Addressed**
+
+When systems involve many interacting actors, small changes in decision rules can produce large and sometimes unexpected outcomes. This project demonstrates how simulation-based analysis can be used to explore those dynamics in a controlled, repeatable way.
+
+
+**What I Built**
+
+An agent-based simulation where agents compete for access to a shared resource
+
+A parameter testing framework evaluating 1,000 combinations of decision rules across repeated runs
+
+An end-to-end analytics pipeline using R and SQL to store, query, and analyze simulation output
+
+A visualization and modeling workflow to compare outcomes across scenarios
+
+The simulations produced datasets with 5,000+ observations, supporting systematic comparison across conditions.
+
+
+**Analysis Approach**
+
+Simulation results were analyzed in R using visualization and statistical modeling to identify patterns and nonlinear relationships between parameters and outcomes. Generalized additive models (GAMs) were used to explore interaction effects, with model checks used to assess fit and reliability.
+
+
+**Key Outcomes**
+
+The analysis showed that decision-making rules interact in important ways, and that intermediate parameter values often produced better outcomes than extreme strategies. These results highlight how flexible decision-making can outperform rigid strategies in constrained environments.
+
+Findings from this work were published in a peer-reviewed journal, validating the modeling and analysis approach. You can find the paper here: https://doi.org/10.1093/icb/icaf126 
+
+
+**Business Relevance**
+
+While this project is based on a simulated environment, the methods and insights are directly applicable to business and product analytics problems involving interacting agents and limited resources, such as:
+
+- User behavior modeling: Understanding how visibility, memory, and preference influence engagement or adoption
+
+- Marketplace dynamics: Exploring how information access and following behavior affect outcomes for buyers and sellers
+
+- Operations and logistics: Testing decision rules under capacity constraints before implementing real-world changes
+
+- Product experimentation: Evaluating strategy trade-offs in complex systems where A/B testing may be costly or slow
+
+This project demonstrates my ability to:
+
+- frame complex problems as testable experiments
+
+- design scalable simulation workflows
+
+- analyze large parameter spaces
+
+- translate technical results into actionable insights
+
+
+**Technical Stack**
+
+- Agent-based modeling
+
+- R (data analysis, visualization, statistical modeling)
+
+- SQL (querying simulation output)
+
+- Simulation experimentation and workflow automation
+
+
+**Skills Demonstrated**
+
+- Simulation-based analysis
+
+- Experimental design and parameter sweeps
+
+- Statistical modeling of nonlinear systems
+
+- Data pipeline design
+
+- Reproducible analytics workflows
+
+
+**Repo Contents**
 "quail_centrality_4_50_setup.Rmd" contains the code used for data cleaning. The data_ord_50.csv data file used in this script is available in FigShare: https://doi.org/10.6084/m9.figshare.29474114.v1
 
 "quail_centrality_4_50_analysis.Rmd" contains the code used for all analyses
@@ -25,33 +110,3 @@ The data_ord_50.csv file on FigShare contains the following columns:
  "energylist" list containing each agent's energy level in the current time step
  "combo.num" number indicating each unique combination of the five parameters that are allowed to vary between runIDs
  "phase" character string indicating which phase of the model the row corresponds to
-
-
-
-
-In quail_centrality_4, I made the following changes (as of Aug 7, 2024):
-
-1. the producer no longer follows the same rules as scroungers because I am modeling a scenario in which the producer knows where the one food source is and how to access it
-
-2. the food patch is now present and accessible to all agents in the first and last phase of the model
-        - This way I will be seeing if changing the value of a single individual influences its centrality rather than seeing if centrality changes compared to random interactions
-        - This is important bc we already know that complex grouping patterns can result from individual responses to resource distribution (e.g., Ramos-Fernandez et al. 2006) - so in the previous version I could just be seeing effects of a concentrated resource on changing centrality in proximity network
-        - NOTE: NOW ACTIVITY IN THE FORAGING PHASE WOULD NOT IMPACT AGENT MOVEMENT WHEN MEMORY IS LONGEST BC WHO THEY REMEMBER (a successful forager from the first phase) IS FIXED
-        
-3. the food patch is depleted and disappears for 5 time steps in the first and third phases. It reappears when any of the agents steps on one of the food patches by chance after those 5 time steps (if I don't have a few time steps in between, I think it would reset immediately because there would probably be an agent on the food patch already)
-        - if I did not add this, food would be resetting and different group sizes would no longer have different levels of competition in the pre- and post-foraging phases
-        - this also incorporates higher chance of larger groups resetting the food patch in the pre- or post-foraging phase since there are more agents that can potentially step on a food patch
-        - this change, in addition to #2, is meant to make the comparison of producer strength between the foraging phase and other phases more valid since the only difference between phases in the current model is that the producer is the only one who can reset the food patch in the foraging phase
-		
-4. Adjusted movement options for foragers when the approach-food? switch is on -- they now move toward food patch if their energy is very low and the food is accessible (food patch is green)
-        - I think this better reflects scrounging behavior - agent moves straight to an available food source without regard for how the food became accessible
-        - This means agents always know where accessible food is
-        - attention/preference/memory still only control whether agents follow the successful forager they saw when they are not hungry or there is no accessible food
-
-5. Added a switch to control whether reset threshold is consistent or changes across group sizes
-
-6. Rounded coordinates to 5 decimal places to reduce final csv file size (using the 'precision' command)
-
-7. The arena will resize to keep group density constant across group sizes if the 'resize-arena?' switch is on
-        - the foraging patch remains the same size for all group sizes
-        - The thing I want to isolate with different group sizes is level of competition (fewer opportunities to feed with increasing group size)
