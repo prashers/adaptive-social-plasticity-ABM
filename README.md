@@ -1,48 +1,63 @@
-# adaptive-social-plasticity-ABM
-This repo contains the Netlogo file for the final version of my 'quail_centrality' model and R code for analysis of the model output.
+# Agent-Based Decision-Making Simulation
+**TL;DR**
 
-This is the model and code corresponding to my paper in ICB: https://doi.org/10.1093/icb/icaf126
+This project uses an agent-based simulation and analytics workflow to test how different decision-making strategies affect social interactions with influential agents in a resource-constrained environment. I ran large-scale parameter experiments (1,000 scenarios; 5,000+ observations) and analyzed the results using SQL, R, and statistical modeling to uncover nonlinear patterns and trade-offs between strategies. The project demonstrates my ability to design experiments, build scalable data pipelines, and translate complex system behavior into insights that are relevant to real-world problems.
+
+
 
 **Overview**
 
-This project uses an agent-based simulation to explore how simple decision-making rules influence behavior and interaction patterns in systems with limited resources. By varying how agents observe, remember, and respond to others, the model shows how individual choices can scale up to complex group-level outcomes.
+This project uses an agent-based simulation to explore how simple decision-making rules influence behavior and interaction patterns in environments with limited resources. By varying how agents observe, remember, and respond to others, the model shows how individual choices can scale up to complex group-level outcomes.
 
-The project pairs simulation modeling with a structured analytics workflow to test behavior across a wide range of conditions.
+The project pairs simulation modeling with a structured analytics workflow to test behavior across a wide range of scenarios.
+
 
 
 **Problem Addressed**
 
-When systems involve many interacting actors, small changes in decision rules can produce large and sometimes unexpected outcomes. This project demonstrates how simulation-based analysis can be used to explore those dynamics in a controlled, repeatable way.
+When individuals make decisions based on incomplete information and limited memory, it’s unclear which strategies lead to better individual and group outcomes under constrained conditions. This project uses simulation to systematically test how different capacities or tendencies to observe, remember, and respond to the actions of others shape interaction patterns and performance outcomes.
+
 
 
 **What I Built**
 
-An agent-based simulation where agents compete for access to a shared resource
+- An agent-based simulation where agents search for and access a shared resource (a food patch)
 
-A parameter testing framework evaluating 1,000 combinations of decision rules across repeated runs
+- A parameter testing framework evaluating 1,000 combinations of agent/group characteristics (group size and the ability of agents to perceive, remember, and act on the actions of other agents) across repeated runs
 
-An end-to-end analytics pipeline using R and SQL to store, query, and analyze simulation output
+- An end-to-end analytics pipeline using SQL and R to store, query, and analyze simulation output
 
-A visualization and modeling workflow to compare outcomes across scenarios
+- A visualization and modeling workflow to compare outcomes across scenarios
 
 The simulations produced datasets with 5,000+ observations, supporting systematic comparison across conditions.
 
 
+
 **Analysis Approach**
+
+The analysis focused on two main outcomes:
+(1) changes in interaction connectivity (who becomes more connected in the network of agents - based on spatial proximity), and
+(2) food intake.
+
+These measures were tracked across simulation phases to evaluate how different decision rules performed over time.
 
 Simulation results were analyzed in R using visualization and statistical modeling to identify patterns and nonlinear relationships between parameters and outcomes. Generalized additive models (GAMs) were used to explore interaction effects, with model checks used to assess fit and reliability.
 
 
-**Key Outcomes**
 
-The analysis showed that decision-making rules interact in important ways, and that intermediate parameter values often produced better outcomes than extreme strategies. These results highlight how flexible decision-making can outperform rigid strategies in constrained environments.
+**Key Results**
 
-Findings from this work were published in a peer-reviewed journal, validating the modeling and analysis approach. You can find the paper here: https://doi.org/10.1093/icb/icaf126 
+The analysis showed that agent characteristics interact to influence the capacity of agents to respond to, and benefit from, the actions of others. Intermediate parameter values, reflecting flexible use of information from others, often produced better outcomes for agents than extreme strategies. These results highlight how flexible decision-making can outperform rigid strategies in constrained environments.
+
+Findings from this work were published in a peer-reviewed journal, validating the modeling and analysis approach. 
+
+You can find the paper here: https://doi.org/10.1093/icb/icaf126 
+
 
 
 **Business Relevance**
 
-While this project is based on a simulated environment, the methods and insights are directly applicable to business and product analytics problems involving interacting agents and limited resources, such as:
+While this project is based on a simulated environment, the methods and insights are applicable to business and product analytics problems involving interacting agents and limited resources, such as:
 
 - User behavior modeling: Understanding how visibility, memory, and preference influence engagement or adoption
 
@@ -71,7 +86,7 @@ This project demonstrates my ability to:
 
 - SQL (querying simulation output)
 
-- Simulation experimentation and workflow automation
+- Simulation experimentation
 
 
 **Skills Demonstrated**
